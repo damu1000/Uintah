@@ -40,6 +40,7 @@ public:
     void eval( const Patch* patch, ArchesTaskInfoManager* tsk_info );
 
     void VelocityDerivative_central(double&, double&, double&, const Array3<double>&, const Vector&, int, int, int);
+<<<<<<< HEAD
 #define dVeldDir(u, eps, Dx, dudx, dudy, dudz, i,  j, k ) \
          {                                           \
            STENCIL3_1D(0);                           \
@@ -53,6 +54,9 @@ public:
            STENCIL3_1D(2);                           \
            dudz = eps(IJK_)*eps(IJK_M_)*(u(IJK_) - u(IJK_M_))/Dx.z();      \
          }    
+=======
+
+>>>>>>> origin/master
     //Build instructions for this class.
     class Builder : public TaskInterface::TaskBuilder {
 

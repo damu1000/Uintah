@@ -1,7 +1,11 @@
 /*
  * The MIT License
  *
+<<<<<<< HEAD
  * Copyright (c) 1997-2019 The University of Utah
+=======
+ * Copyright (c) 1997-2020 The University of Utah
+>>>>>>> origin/master
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -78,9 +82,12 @@ ParticleModelFactory::register_all_tasks( ProblemSpecP& db )
     //Currently, this allocates the source terms for the DQMOM transport
     // for both the production and new kokkos line of code. Thus, it
     // always needs to be 'on' for both forks.
-    std::string task_name = "dqmom_no_inversion";
+    std::string task_name = "[DQMOMNoInversion]";
     TaskInterface::TaskBuilder* tsk = scinew DQMOMNoInversion::Builder( task_name, 0, N );
+<<<<<<< HEAD
     _pre_update_particle_tasks.push_back(task_name);
+=======
+>>>>>>> origin/master
     register_task( task_name, tsk, db->findBlock("DQMOM") );
 
   } else if (db->findBlock("LagrangianParticles")){
@@ -111,7 +118,6 @@ ParticleModelFactory::register_all_tasks( ProblemSpecP& db )
     }
   }
 
-  std::vector<std::string> temp_model_list;
   bool has_rate_dep = false;
   bool has_rate_vel = false;
   bool has_rate_enth = false;
@@ -150,7 +156,11 @@ ParticleModelFactory::register_all_tasks( ProblemSpecP& db )
               ExampleParticleModel<CCVariable<double> ,CCVariable<double> >::Builder(task_name, 0, model_name, N);
 
             register_task( task_name, tsk, db_model );
+<<<<<<< HEAD
             _post_update_particle_tasks.push_back(task_name);
+=======
+            m_particle_models.push_back(task_name);
+>>>>>>> origin/master
 
           } else {
             throw InvalidValue("Error: Independent grid type not recognized.",__FILE__,__LINE__);
@@ -160,8 +170,6 @@ ParticleModelFactory::register_all_tasks( ProblemSpecP& db )
         } else {
           throw InvalidValue("Error: Dependent grid type not recognized.",__FILE__,__LINE__);
         }
-
-        temp_model_list.insert(temp_model_list.end(), task_name); // order hack
 
       } else if  ( type == "drag" ) {
 
@@ -178,7 +186,11 @@ ParticleModelFactory::register_all_tasks( ProblemSpecP& db )
             DragModel<constCCVariable<double>, CCVariable<double> >::Builder(task_name, 0, model_name, N);
 
             register_task( task_name, tsk, db_model );
+<<<<<<< HEAD
             _post_update_particle_tasks.push_back(task_name);
+=======
+            m_particle_models.push_back(task_name);
+>>>>>>> origin/master
 
           } else {
             throw InvalidValue("Error: Independent grid type not recognized.",__FILE__,__LINE__);
@@ -189,8 +201,6 @@ ParticleModelFactory::register_all_tasks( ProblemSpecP& db )
           throw InvalidValue("Error: Dependent grid type not recognized.",__FILE__,__LINE__);
         }
 
-        temp_model_list.insert(temp_model_list.end(), task_name); // order hack
-
       } else if  ( type == "wdrag" ) {
 
         const int nQn_part = ArchesCore::get_num_env( db, ArchesCore::DQMOM_METHOD );
@@ -200,7 +210,11 @@ ParticleModelFactory::register_all_tasks( ProblemSpecP& db )
           std::string task_name_N = task_name + "_qn" + ienv.str();
           TaskInterface::TaskBuilder* tsk = scinew WDragModel<CCVariable<double> >::Builder(task_name_N, 0, i);
           register_task( task_name_N, tsk, db_model );
+<<<<<<< HEAD
           _dqmom_model_task.push_back(task_name_N);
+=======
+          m_particle_models.push_back(task_name_N);
+>>>>>>> origin/master
         }
       } else if  ( type == "char_oxidation_ps" ) {
 
@@ -211,7 +225,11 @@ ParticleModelFactory::register_all_tasks( ProblemSpecP& db )
           std::string task_name_N = task_name + "_qn" + ienv.str();
           TaskInterface::TaskBuilder* tsk = scinew CharOxidationps<CCVariable<double> >::Builder(task_name_N, 0, i);
           register_task( task_name_N, tsk, db_model );
+<<<<<<< HEAD
           _dqmom_model_task.push_back(task_name_N);
+=======
+          m_particle_models.push_back(task_name_N);
+>>>>>>> origin/master
         }
 
       } else if  ( type == "gravity" ) {
@@ -229,7 +247,11 @@ ParticleModelFactory::register_all_tasks( ProblemSpecP& db )
             BodyForce<CCVariable<double>, CCVariable<double> >::Builder(task_name, 0, model_name, N);
 
             register_task( task_name, tsk, db_model );
+<<<<<<< HEAD
             _post_update_particle_tasks.push_back(task_name);
+=======
+            m_particle_models.push_back(task_name);
+>>>>>>> origin/master
 
           } else {
             throw InvalidValue("Error: Independent grid type not recognized.",__FILE__,__LINE__);
@@ -240,8 +262,11 @@ ParticleModelFactory::register_all_tasks( ProblemSpecP& db )
           throw InvalidValue("Error: Dependent grid type not recognized.",__FILE__,__LINE__);
         }
 
+<<<<<<< HEAD
         temp_model_list.insert(temp_model_list.end(), task_name); // order hack
 
+=======
+>>>>>>> origin/master
       } else if  ( type == "particle_face_velocity" ) {
 
         std::string dependent_type;
@@ -257,7 +282,11 @@ ParticleModelFactory::register_all_tasks( ProblemSpecP& db )
           FaceParticleVel<CCVariable<double> >::Builder(task_name, 0, model_name);
 
           register_task( task_name, tsk, db_model );
+<<<<<<< HEAD
           _dqmom_variables.push_back(task_name);
+=======
+          m_dqmom_transport_variables.push_back(task_name);
+>>>>>>> origin/master
 
         }
 
@@ -276,54 +305,66 @@ ParticleModelFactory::register_all_tasks( ProblemSpecP& db )
           Constant<CCVariable<double> >::Builder(task_name, 0, model_name, N);
 
           register_task( task_name, tsk, db_model );
+<<<<<<< HEAD
           _post_update_particle_tasks.push_back(task_name);
+=======
+          m_particle_models.push_back(task_name);
+>>>>>>> origin/master
 
-          //else lagrangian particle type...need to add
         } else {
           throw InvalidValue("Error: Dependent grid type not recognized.",__FILE__,__LINE__);
         }
-
-        temp_model_list.insert(temp_model_list.end(), task_name); // order hack
 
       } else if ( type == "coal_density" ){
 
         TaskInterface::TaskBuilder* tsk = scinew CoalDensity::Builder(task_name,0,N);
         register_task( task_name, tsk, db_model );
+<<<<<<< HEAD
 
         _coal_models.push_back(task_name);
+=======
+>>>>>>> origin/master
 
-        _post_update_particle_tasks.push_back(task_name);
-
-        temp_model_list.insert(temp_model_list.begin(), task_name); //order hack
+        m_particle_properties.push_back(task_name);
 
       } else if ( type == "coal_temperature" ) {
 
         TaskInterface::TaskBuilder* tsk = scinew CoalTemperature::Builder(task_name,0,N);
         register_task( task_name, tsk, db_model );
+<<<<<<< HEAD
 
         _coal_models.push_back(task_name);
         _post_update_particle_tasks.push_back(task_name);
+=======
+>>>>>>> origin/master
 
-        temp_model_list.insert(temp_model_list.begin(), task_name); // order hack
+        m_particle_properties.push_back(task_name);
 
       } else if ( type == "burnout" ) {
 
         TaskInterface::TaskBuilder* tsk = scinew Burnout::Builder(task_name,0,N);
         register_task( task_name, tsk, db_model );
+<<<<<<< HEAD
 
         _coal_models.push_back(task_name);
         _post_update_particle_tasks.push_back(task_name);
+=======
+>>>>>>> origin/master
 
-        temp_model_list.insert(temp_model_list.begin(), task_name); // order hack
+        m_particle_properties.push_back(task_name);
 
       } else if ( type == "deposition_velocity" ) {
 
         TaskInterface::TaskBuilder* tsk = scinew DepositionVelocity::Builder(task_name,0,N,_materialManager);
         register_task( task_name, tsk, db_model );
+<<<<<<< HEAD
 
         _coal_models.push_back(task_name);
         _post_update_particle_tasks.push_back(task_name);
+=======
+>>>>>>> origin/master
 
+        // This model is added to the particle models below per the hack
         has_rate_vel = true; // order hack
         rate_vel_name = task_name; // order hack
 
@@ -332,8 +373,7 @@ ParticleModelFactory::register_all_tasks( ProblemSpecP& db )
         TaskInterface::TaskBuilder* tsk = scinew DepositionEnthalpy::Builder(task_name,0,N,_materialManager);
         register_task( task_name, tsk, db_model );
 
-        _coal_models.push_back(task_name);
-        _post_update_particle_tasks.push_back(task_name);
+        // This model is added to the particle models below per the hack
         has_rate_enth = true; // order hack
         rate_enth_name = task_name; // order hack
 
@@ -341,16 +381,24 @@ ParticleModelFactory::register_all_tasks( ProblemSpecP& db )
 
         TaskInterface::TaskBuilder* tsk = scinew PartVariablesDQMOM::Builder(task_name,0);
         register_task( task_name, tsk, db_model );
+<<<<<<< HEAD
         _dqmom_variables.push_back(task_name);
+=======
+        m_dqmom_transport_variables.push_back(task_name);
+>>>>>>> origin/master
 
       } else if ( type == "rate_deposition" ) {
 
         TaskInterface::TaskBuilder* tsk = scinew RateDeposition::Builder(task_name,0,N);
         register_task( task_name, tsk, db_model );
+<<<<<<< HEAD
 
         _coal_models.push_back(task_name);
         _post_update_particle_tasks.push_back(task_name);
+=======
+>>>>>>> origin/master
 
+        //This model is added below per the hack
         has_rate_dep = true; // order hack
         rate_dep_name = task_name; // order hack
 
@@ -359,10 +407,7 @@ ParticleModelFactory::register_all_tasks( ProblemSpecP& db )
         TaskInterface::TaskBuilder* tsk = scinew TotNumDensity::Builder(task_name, 0);
         register_task( task_name, tsk, db_model );
 
-        //_active_tasks.push_back(task_name);
-        _post_update_particle_tasks.push_back(task_name);
-
-        temp_model_list.insert(temp_model_list.begin(), task_name); // order hack
+        m_particle_properties.push_back(task_name);
 
       } else if  ( type == "fowy_devolatilization" ) {
 
@@ -379,8 +424,12 @@ ParticleModelFactory::register_all_tasks( ProblemSpecP& db )
             FOWYDevol<CCVariable<double> >::Builder(task_name, 0, model_name, N);
 
             register_task( task_name, tsk, db_model );
+<<<<<<< HEAD
             //_active_tasks.push_back(task_name);
             _post_update_particle_tasks.push_back(task_name);
+=======
+            m_particle_models.push_back(task_name);
+>>>>>>> origin/master
 
           } else {
             throw InvalidValue("Error: Independent grid type not recognized: "+independent_type,__FILE__,__LINE__);
@@ -389,8 +438,6 @@ ParticleModelFactory::register_all_tasks( ProblemSpecP& db )
         } else {
           throw InvalidValue("Error: Dependent grid type not recognized.",__FILE__,__LINE__);
         }
-
-        temp_model_list.insert(temp_model_list.end(), task_name); // order hack
 
       } else if  ( type == "shaddix_oxidation" ) {
 
@@ -407,13 +454,11 @@ ParticleModelFactory::register_all_tasks( ProblemSpecP& db )
 
           register_task( task_name, tsk, db_model );
           //_active_tasks.push_back(task_name);
-          _post_update_particle_tasks.push_back(task_name);
+          m_particle_models.push_back(task_name);
 
         } else {
           throw InvalidValue("Error: Dependent grid type not recognized.",__FILE__,__LINE__);
         }
-
-        temp_model_list.insert(temp_model_list.end(), task_name); // order hack
 
       } else if  ( type == "shaddix_enthalpy" ) {
 
@@ -429,13 +474,11 @@ ParticleModelFactory::register_all_tasks( ProblemSpecP& db )
 
           register_task( task_name, tsk, db_model );
           //_active_tasks.push_back(task_name);
-          _post_update_particle_tasks.push_back(task_name);
+          m_particle_models.push_back(task_name);
 
         } else {
           throw InvalidValue("Error: Dependent grid type not recognized.",__FILE__,__LINE__);
         }
-
-        temp_model_list.insert(temp_model_list.end(), task_name); // order hack
 
       } else {
 
@@ -447,16 +490,14 @@ ParticleModelFactory::register_all_tasks( ProblemSpecP& db )
 
     //---- order hack ----
     if ( has_rate_dep ){
-      temp_model_list.push_back(rate_dep_name);
+      m_deposition_models.push_back(rate_dep_name);
     }
     if ( has_rate_vel ){
-      temp_model_list.push_back(rate_vel_name);
+      m_deposition_models.push_back(rate_vel_name);
     }
     if ( has_rate_enth ){
-      temp_model_list.push_back(rate_enth_name);
+      m_deposition_models.push_back(rate_enth_name);
     }
-
-    _post_update_particle_tasks = temp_model_list;
     //---- end order hack ---
 
   }

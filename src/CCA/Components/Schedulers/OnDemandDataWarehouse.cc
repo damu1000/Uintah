@@ -1,7 +1,11 @@
 /*
  * The MIT License
  *
+<<<<<<< HEAD
  * Copyright (c) 1997-2019 The University of Utah
+=======
+ * Copyright (c) 1997-2020 The University of Utah
+>>>>>>> origin/master
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -99,7 +103,7 @@ namespace {
   struct addsetDB_tag{};
   struct delsetDB_tag{};
   struct task_access_tag{};
-  
+
   using  varDB_monitor         = Uintah::CrowdMonitor<varDB_tag>;
   using  levelDB_monitor       = Uintah::CrowdMonitor<levelDB_tag>;
   using  psetDB_monitor        = Uintah::CrowdMonitor<psetDB_tag>;
@@ -279,6 +283,7 @@ OnDemandDataWarehouse::put(       Variable * var
 
   if ((castVar.reduction = dynamic_cast<ReductionVariableBase*>(var)) != nullptr) {
     put(*castVar.reduction, label, patch ? patch->getLevel() : nullptr, matlIndex);
+<<<<<<< HEAD
   }
   else if ((castVar.sole = dynamic_cast<SoleVariableBase*>(var)) != nullptr) {
     put(*castVar.sole, label, patch ? patch->getLevel() : nullptr, matlIndex);
@@ -289,6 +294,18 @@ OnDemandDataWarehouse::put(       Variable * var
   else if ((castVar.particle = dynamic_cast<ParticleVariableBase*>(var)) != nullptr) {
     put(*castVar.particle, label);
   }
+=======
+  }
+  else if ((castVar.sole = dynamic_cast<SoleVariableBase*>(var)) != nullptr) {
+    put(*castVar.sole, label, patch ? patch->getLevel() : nullptr, matlIndex);
+  }
+  else if ((castVar.perpatch = dynamic_cast<PerPatchBase*>(var)) != nullptr) {
+    put(*castVar.perpatch, label, matlIndex, patch);
+  }
+  else if ((castVar.particle = dynamic_cast<ParticleVariableBase*>(var)) != nullptr) {
+    put(*castVar.particle, label);
+  }
+>>>>>>> origin/master
   else if ((castVar.grid = dynamic_cast<GridVariableBase*>(var)) != nullptr) {
     put(*castVar.grid, label, matlIndex, patch);
   }
@@ -413,7 +430,11 @@ OnDemandDataWarehouse::getReductionVariable( const VarLabel * label
                                            , int              matlIndex
                                            , const Level    * level
                                            ) const
+<<<<<<< HEAD
 {  
+=======
+{
+>>>>>>> origin/master
   if (m_level_DB.exists(label, matlIndex, level)) {
     ReductionVariableBase* var = dynamic_cast<ReductionVariableBase*>(m_level_DB.get(label, matlIndex, level));
     return var;
@@ -453,8 +474,8 @@ OnDemandDataWarehouse::getTypeDescriptionSize(const TypeDescription::Type& type)
       break;
     }
     case TypeDescription::float_type : {
-          return sizeof(float);
-          break;
+      return sizeof(float);
+      break;
     }
     case TypeDescription::int_type : {
       return sizeof(int);
@@ -979,10 +1000,15 @@ OnDemandDataWarehouse::reduceMPI( const VarLabel       * label
       var = dynamic_cast<ReductionVariableBase*>( m_level_DB.get( label, matlIndex, level ) );
     }
     else {
+      //  Create and initialize the variable if it doesn't exist
       var = dynamic_cast<ReductionVariableBase*>( label->typeDescription()->createInstance() );
       var->setBenignValue();
 
+<<<<<<< HEAD
       // put it in the DB so the next get won't fail and so we won't have to delete it manually
+=======
+      DOUT(g_mpi_dbg, "Rank-" << d_myworld->myRank() << " reduceMPI: initializing (" <<label->getName() <<")" );
+>>>>>>> origin/master
       m_level_DB.put( label, matlIndex, level, var, d_scheduler->copyTimestep(), true );
     }
 
@@ -999,8 +1025,10 @@ OnDemandDataWarehouse::reduceMPI( const VarLabel       * label
       ASSERTEQ( datatype, senddatatype );
     }
     count += sendcount;
-
   }
+  
+  //__________________________________
+  //
   int packsize;
   Uintah::MPI::Pack_size( count, datatype, d_myworld->getGlobalComm( nComm ), &packsize );
   std::vector<char> sendbuf( packsize );
@@ -1020,12 +1048,14 @@ OnDemandDataWarehouse::reduceMPI( const VarLabel       * label
   }
 
   std::vector<char> recvbuf( packsize );
-
-  DOUT(g_mpi_dbg, "Rank-" << d_myworld->myRank() << " allreduce, name " << label->getName() << " level " << (level ? level->getID() : -1));
+  
+  DOUT(g_mpi_dbg, "Rank-" << d_myworld->myRank() << " allreduce, name " << label->getName() 
+       << " sendbuf.size() " << sendbuf.size() << " level " << (level ? level->getID() : -1));
 
   int error = Uintah::MPI::Allreduce( &sendbuf[0], &recvbuf[0], count, datatype, op, d_myworld->getGlobalComm( nComm ) );
 
-  DOUT(g_mpi_dbg, "Rank-" << d_myworld->myRank() << " allreduce, done " << label->getName() << " level " << (level ? level->getID() : -1));
+  DOUT(g_mpi_dbg, "Rank-" << d_myworld->myRank() << " allreduce, done " << label->getName() 
+      << " recvbuf.size() " << recvbuf.size() << " level " << (level ? level->getID() : -1));
 
   if( error ) {
     DOUT(true, "reduceMPI: Uintah::MPI::Allreduce error: " << error);
@@ -1045,6 +1075,7 @@ OnDemandDataWarehouse::reduceMPI( const VarLabel       * label
     }
     var->putMPIData( recvbuf, unpackindex );
   }
+  
   if( matls != inmatls ) {
     delete matls;
   }
@@ -1083,7 +1114,11 @@ OnDemandDataWarehouse::override( const ReductionVariableBase & var
   checkPutAccess( label, matlIndex, nullptr, true );
 
   printDebuggingPutInfo( label, matlIndex, level, __LINE__ );
+<<<<<<< HEAD
   
+=======
+
+>>>>>>> origin/master
   // Put it in the database, replace whatever may already be there
   m_level_DB.put( label, matlIndex, level, var.clone(), true, true );
 }
@@ -1100,7 +1135,11 @@ OnDemandDataWarehouse::override( const SoleVariableBase & var
   checkPutAccess(label, matlIndex, nullptr, true);
 
   printDebuggingPutInfo( label, matlIndex, level, __LINE__ );
+<<<<<<< HEAD
   
+=======
+
+>>>>>>> origin/master
   // Put it in the database, replace whatever may already be there
   m_level_DB.put(label, matlIndex, level, var.clone(), d_scheduler->copyTimestep(), true);
 }
@@ -1245,7 +1284,11 @@ OnDemandDataWarehouse::queryPSetDB(       psetDBType & subsetDB
                                   ,       IntVector    low
                                   ,       IntVector    high
                                   , const VarLabel   * pos_var
+<<<<<<< HEAD
                                   ,       bool         exact
+=======
+                                  ,       bool         exact /* = false */
+>>>>>>> origin/master
                                   )
 {
   ParticleSubset* subset = nullptr;
@@ -1474,7 +1517,11 @@ OnDemandDataWarehouse::getParticleSubset(       int        matlIndex
           continue;
         }
       }
+<<<<<<< HEAD
       
+=======
+
+>>>>>>> origin/master
       // get the particle subset for this patch
       ParticleSubset* pset = getParticleSubset( matlIndex, neighbor, newLow, newHigh, posvar );
 
@@ -2166,7 +2213,11 @@ OnDemandDataWarehouse::put(       GridVariableBase & var
    // error would have been thrown above if the any reallocation would be needed
    ASSERT(no_realloc);
    printDebuggingPutInfo( label, matlIndex, patch, __LINE__ );
+<<<<<<< HEAD
    
+=======
+
+>>>>>>> origin/master
    m_var_DB.put(label, matlIndex, patch, var.clone(), d_scheduler->copyTimestep(),true);
 }
 
@@ -2288,9 +2339,9 @@ OnDemandDataWarehouse::getLevel(       constGridVariableBase & constGridVar
       gridVar->copyPatch(tmpVar, lo, hi);
     }
     catch (InternalError& e) {
-      std::cout << "OnDemandDataWarehouse::getLevel ERROR: failed copying patch data.\n " 
+      std::cout << "OnDemandDataWarehouse::getLevel ERROR: failed copying patch data.\n "
                 << " Level- " << level->getIndex()
-                << " patch "<< lo << " " << hi 
+                << " patch "<< lo << " " << hi
                 << " variable range: " << tmpVar->getLow() << " "<< tmpVar->getHigh() << std::endl;
       throw e;
     }
@@ -2336,7 +2387,11 @@ OnDemandDataWarehouse::putLevelDB(       GridVariableBase * gridVar
   bool init = (d_scheduler->copyTimestep()) || !(m_level_DB.exists( label, matlIndex, level ));
 
   printDebuggingPutInfo( label, matlIndex, level, __LINE__ );
+<<<<<<< HEAD
   
+=======
+
+>>>>>>> origin/master
   m_level_DB.put( label, matlIndex, level, gridVar, init, true );
 }
 
@@ -2372,7 +2427,7 @@ OnDemandDataWarehouse::getRegionModifiable(       GridVariableBase & var
                                           )
 {
   var.allocate(reqLow, reqHigh);
-  
+
   TypeDescription::Type varType = label->typeDescription()->getType();
   Patch::VariableBasis basis = Patch::translateTypeToBasis( varType, false );
 
@@ -2502,45 +2557,50 @@ OnDemandDataWarehouse::getRegionModifiable(       GridVariableBase & var
   //
   // compute the number of cells in the region
   long requestedCells = level->getTotalCellsInRegion( varType, label->getBoundaryLayer(), reqLow, reqHigh );
-  
+
   // In non-cubic levels there may be overlapping patches that need to be accounted for.
   std::pair<int, int> overLapCells_range = std::make_pair( 0,0 );
-  
+
   if ( level->isNonCubic() ){
     overLapCells_range = level->getOverlapCellsInRegion( patches, reqLow, reqHigh);
   }
-  
+
   //  The number of cells copied = requested cells  OR is within the range of possible overlapping cells
   // In domains with multiple overlapping patches (inside corners in 3D) the number of cells copied can fall
   // within a range
   bool cond1 = ( nCellsCopied != requestedCells );
   bool cond2 = ( nCellsCopied < requestedCells + overLapCells_range.first );
   bool cond3 = ( nCellsCopied > requestedCells + overLapCells_range.second );
-    
+
   if ( nCellsCopied == 0  || ( cond1 && cond2 && cond3 ) ) {
-    
+
     DOUT(true,  d_myworld->myRank() << "  Unknown Variable " << *label << ", matl " << matlIndex << ", L-" << level->getIndex()
               << ", DW " << getID() << ", Variable exists in DB: " << foundInDB << "\n"
-              << "   Requested region: " << reqLow << " " << reqHigh 
-              << ", Physical Units: " << level->getCellPosition(reqLow) << ", " << level->getCellPosition(reqHigh) << "\n" 
-              << "   #copied cells: " << nCellsCopied << ", #requested cells: " << requestedCells 
+              << "   Requested region: " << reqLow << " " << reqHigh
+              << ", Physical Units: " << level->getCellPosition(reqLow) << ", " << level->getCellPosition(reqHigh) << "\n"
+              << "   #copied cells: " << nCellsCopied << ", #requested cells: " << requestedCells
               << ",  #overlapping Cells min:" << overLapCells_range.first << " max: " << overLapCells_range.second
               << "\n cond1: " << cond1 << " cond2: " << cond2 << " cond3 " << cond3 );
 
     if (missing_patches.size() > 0) {
-      DOUT(true, "  Patches on which the variable wasn't found:"); 
+      DOUT(true, "  Patches on which the variable wasn't found:");
 
       for (size_t i = 0u; i < missing_patches.size(); i++) {
+
+<<<<<<< HEAD
+      for (size_t i = 0u; i < missing_patches.size(); i++) {
       
+=======
+>>>>>>> origin/master
         const Patch* patch =  missing_patches[i];
         IntVector patchLo =  patch->getExtraCellLowIndex();
         IntVector patchHi =  patch->getExtraCellHighIndex();
-    
+
         IntVector regionLo = Uintah::Max( reqLow,  patchLo );
         IntVector regionHi = Uintah::Min( reqHigh, patchHi );
         IntVector diff( regionHi - regionLo );
         int intersectionCells = diff.x() * diff.y() * diff.z();
-      
+
         DOUT(true, "  " << *missing_patches[i] << " cells in missing patches: " << intersectionCells );
       }
     }
@@ -2656,7 +2716,11 @@ OnDemandDataWarehouse::emitPIDX(       PIDXOutputContext & pc
     case TypeDescription::SFCZVariable :
       //get list
       {
+<<<<<<< HEAD
          std::vector<Variable*> varlist;
+=======
+        std::vector<Variable*> varlist;
+>>>>>>> origin/master
         m_var_DB.getlist( label, matlIndex, patch, varlist );
 
         GridVariableBase* v = nullptr;
@@ -2943,9 +3007,13 @@ void OnDemandDataWarehouse::getNeighborPatches( const VarLabel                  
     if (neighbor && (neighbor != patch)) {
       IntVector low  = Max( neighbor->getExtraLowIndex(  basis, label->getBoundaryLayer() ), lowIndex );
       IntVector high = Min( neighbor->getExtraHighIndex( basis, label->getBoundaryLayer() ), highIndex );
-      
+
       patch->cullIntersection( basis, label->getBoundaryLayer(), neighbor, low, high );
+<<<<<<< HEAD
       
+=======
+
+>>>>>>> origin/master
       if (low == high) {
         continue;
       }
@@ -2965,7 +3033,11 @@ void OnDemandDataWarehouse::getValidNeighbors( const VarLabel                   
                                              ,       Ghost::GhostType              gtype
                                              ,       int                           numGhostCells
                                              ,       std::vector<ValidNeighbors> & validNeighbors
+<<<<<<< HEAD
                                              ,       bool                          ignoreMissingNeighbors
+=======
+                                             ,       bool                          ignoreMissingNeighbors /* = false */
+>>>>>>> origin/master
                                              )
 {
 
@@ -2990,13 +3062,21 @@ void OnDemandDataWarehouse::getValidNeighbors( const VarLabel                   
     if( neighbor && (neighbor != patch) ) {
       IntVector low  = Max( neighbor->getExtraLowIndex( basis, label->getBoundaryLayer() ), lowIndex );
       IntVector high = Min( neighbor->getExtraHighIndex( basis, label->getBoundaryLayer() ),highIndex );
-      
+
       patch->cullIntersection( basis, label->getBoundaryLayer(), neighbor, low, high );
+<<<<<<< HEAD
       
       if (low == high) {
         continue;
       }
       
+=======
+
+      if (low == high) {
+        continue;
+      }
+
+>>>>>>> origin/master
       if (m_var_DB.exists( label, matlIndex, neighbor )) {
         std::vector<Variable*> varlist;
         // Go through the main var plus any foreign vars for this label/material/patch
@@ -3322,9 +3402,10 @@ OnDemandDataWarehouse::transferFrom(       DataWarehouse  * from
 //______________________________________________________________________
 //
 void
-OnDemandDataWarehouse::logMemoryUse(       std::ostream&       out,
-                                           unsigned long&      total,
-                                     const std::string&        tag )
+OnDemandDataWarehouse::logMemoryUse(       std::ostream  & out
+                                   ,       unsigned long & total
+                                   , const std::string   & tag
+                                   )
 {
   int dwid = d_generation;
   m_var_DB.logMemoryUse(out, total, tag, dwid);
@@ -3890,7 +3971,7 @@ OnDemandDataWarehouse::abortTimeStep()
   // BJW - time step aborting does not work with MPI - disabling.
   if( d_myworld->nRanks() == 0 ) {
     Patch * patch = nullptr;
-  
+
     if (exists(VarLabel::find(abortTimeStep_name), -1, patch)) {
       bool_or_vartype ats_var;
       get( ats_var, VarLabel::find(abortTimeStep_name) );
@@ -3909,7 +3990,7 @@ bool
 OnDemandDataWarehouse::recomputeTimeStep()
 {
   Patch * patch = nullptr;
-  
+
   if (exists(VarLabel::find(recomputeTimeStep_name), -1, patch)) {
     bool_or_vartype rts_var;
     get( rts_var, VarLabel::find(recomputeTimeStep_name) );
@@ -3976,7 +4057,11 @@ OnDemandDataWarehouse::printDebuggingPutInfo( const VarLabel * label
     if( level ){
       L_indx = level->getIndex();
     }
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> origin/master
     std::ostringstream mesg;
     mesg << d_myworld->myRank() << " Putting (line: "<<line<< ") ";
     mesg << std::left;

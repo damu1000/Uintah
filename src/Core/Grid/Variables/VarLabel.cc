@@ -1,7 +1,11 @@
 /*
  * The MIT License
  *
+<<<<<<< HEAD
  * Copyright (c) 1997-2019 The University of Utah
+=======
+ * Copyright (c) 1997-2020 The University of Utah
+>>>>>>> origin/master
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -52,7 +56,6 @@ std::map<std::string, VarLabel*> VarLabel::g_all_labels;
 
 //______________________________________________________________________
 //
-
 VarLabel*
 VarLabel::create( const std::string     & name
                 , const TypeDescription * td
@@ -71,7 +74,7 @@ VarLabel::create( const std::string     & name
       if (boundaryLayer != dup->m_boundary_layer) {
         SCI_THROW(InternalError(std::string("Multiple VarLabels for " + dup->getName() + " defined with different # of boundary layers"), __FILE__, __LINE__));
       }
-    
+
 #if !defined(_AIX) && !defined(__APPLE__)
       // AIX uses lib.a's, therefore the "same" var labels are different...
       // Need to look into fixing this in a better way...
@@ -90,11 +93,17 @@ VarLabel::create( const std::string     & name
     }
     label->addReference();
   }
+<<<<<<< HEAD
   g_label_mutex.unlock(); 
   
+=======
+  g_label_mutex.unlock();
+
+>>>>>>> origin/master
   return label;
 }
-
+//______________________________________________________________________
+//
 bool
 VarLabel::destroy(const VarLabel* label)
 {
@@ -120,7 +129,8 @@ VarLabel::destroy(const VarLabel* label)
 
   return false;
 }
-
+//______________________________________________________________________
+//
 VarLabel::VarLabel( const std::string             & name
                   , const Uintah::TypeDescription * td
                   , const IntVector               & boundaryLayer
@@ -132,7 +142,8 @@ VarLabel::VarLabel( const std::string             & name
   , m_var_type(vartype)
 {
 }
-
+//______________________________________________________________________
+//
 void
 VarLabel::printAll()
 {
@@ -142,26 +153,49 @@ VarLabel::printAll()
     std::cout << (*iter).second->m_name << std::endl;
   }
 }
-
+//______________________________________________________________________
+//
 VarLabel*
 VarLabel::find( const std::string &  name )
 {
   auto found = g_all_labels.find( name );
 
-   if( found == g_all_labels.end() ) {
-      return nullptr;
-   }
-   else {
-      return found->second;
-   }
+  if( found == g_all_labels.end() ) {
+    return nullptr;
+  }
+  else {
+    return found->second;
+  }
 }
 
+//______________________________________________________________________
+//    If the varLabel isn't found throw an exception
+VarLabel*
+VarLabel::find( const std::string & name,
+                const std::string & mesg )
+{
+  VarLabel* label = VarLabel::find(name);
+
+  if( label == nullptr ) {
+    std::ostringstream warn;
+    warn << mesg;
+    warn << " --- Could not find the VarLabel (" << name << " ).";
+    throw InternalError(warn.str(), __FILE__, __LINE__);
+  }
+  return label;
+}
+
+//______________________________________________________________________
+//
 VarLabel*
 VarLabel::particlePositionLabel()
 {
   return find(s_particle_position_name);
 }
 
+
+//______________________________________________________________________
+//
 std::string
 VarLabel::getFullName( int matlIndex, const Patch * patch ) const
 {
@@ -177,8 +211,10 @@ VarLabel::getFullName( int matlIndex, const Patch * patch ) const
   out << ")";
 
   return out.str();
-}                             
+}
 
+//______________________________________________________________________
+//
 void
 VarLabel::allowMultipleComputes()
 {

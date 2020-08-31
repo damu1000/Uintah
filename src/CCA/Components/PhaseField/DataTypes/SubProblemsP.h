@@ -23,20 +23,68 @@
  */
 
 /**
+<<<<<<< HEAD
  * @file CCA/Components/PhaseField/DataTypes/SubProblemsP.h
+=======
+<<<<<<< HEAD:src/CCA/Components/PhaseField/AMR/detail/amr_interface0.h
+ * @file CCA/Components/PhaseField/AMR/detail/amr_interface0.h
+=======
+ * @file CCA/Components/PhaseField/DataTypes/SubProblemsP.h
+>>>>>>> origin/master:src/CCA/Components/PhaseField/DataTypes/SubProblemsP.h
+>>>>>>> origin/master
  * @author Jon Matteo Church [j.m.church@leeds.ac.uk]
  * @date 2018/12
  */
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD:src/CCA/Components/PhaseField/AMR/detail/amr_interface0.h
+#ifndef Packages_Uintah_CCA_Components_PhaseField_AMR_detail_amr_interface0_h
+#define Packages_Uintah_CCA_Components_PhaseField_AMR_detail_amr_interface0_h
+
+#include <CCA/Components/PhaseField/Util/Definitions.h>
+=======
+>>>>>>> origin/master
 #ifndef Packages_Uintah_CCA_Components_PhaseField_DataTypes_SubProblemsP_h
 #define Packages_Uintah_CCA_Components_PhaseField_DataTypes_SubProblemsP_h
 
 #include <Core/Util/Handle.h>
+<<<<<<< HEAD
+=======
+>>>>>>> origin/master:src/CCA/Components/PhaseField/DataTypes/SubProblemsP.h
+>>>>>>> origin/master
 
 namespace Uintah
 {
 namespace PhaseField
 {
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD:src/CCA/Components/PhaseField/AMR/detail/amr_interface0.h
+namespace detail
+{
+
+/**
+ * @brief Interface for amr
+ *
+ * groups together various methods to get info about amr patches and levels which
+ * depend on the different types of variable representation allowing to choose
+ * the relevant implementation at compile time
+ *
+ * @tparam VAR type of variable representation
+ */
+template < VarType VAR > class amr_interface0;
+
+} // namespace detail
+} // namespace PhaseField
+} // namespace Uintah
+
+#include <CCA/Components/PhaseField/AMR/detail/amr_interface0_CC.h>
+#include <CCA/Components/PhaseField/AMR/detail/amr_interface0_NC.h>
+
+#endif // Packages_Uintah_CCA_Components_PhaseField_AMR_detail_amr_interface0_h
+=======
+>>>>>>> origin/master
 
 template <typename Problem> struct SubProblems;
 
@@ -70,3 +118,7 @@ swapbytes (
 } // namespace Uintah
 
 #endif // Packages_Uintah_CCA_Components_PhaseField_DataTypes_SubProblemsP_h
+<<<<<<< HEAD
+=======
+>>>>>>> origin/master:src/CCA/Components/PhaseField/DataTypes/SubProblemsP.h
+>>>>>>> origin/master

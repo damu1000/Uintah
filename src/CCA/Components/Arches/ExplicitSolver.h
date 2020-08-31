@@ -1,7 +1,11 @@
 /*
  * The MIT License
  *
+<<<<<<< HEAD
  * Copyright (c) 1997-2019 The University of Utah
+=======
+ * Copyright (c) 1997-2020 The University of Utah
+>>>>>>> origin/master
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -514,6 +518,8 @@ public:
   //Diagnostics
   bool d_printTotalKE;
   double d_ke_limit;
+
+  bool d_using_TI_turb{false};                  ///< Are we using the Task Interface turbulence model? 
 
   const VarLabel* d_x_vel_label;
   const VarLabel* d_y_vel_label;

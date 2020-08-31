@@ -1,7 +1,11 @@
 /*
  * The MIT License
  *
+<<<<<<< HEAD
  * Copyright (c) 1997-2019 The University of Utah
+=======
+ * Copyright (c) 1997-2020 The University of Utah
+>>>>>>> origin/master
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -23,7 +27,11 @@
  */
 
 //----- Arches.cc ----------------------------------------------
+<<<<<<< HEAD
 #include <CCA/Components/Arches/Arches.h>
+=======
+#include <CCA/Components/Arches/Arches.h> 
+>>>>>>> origin/master
 #include <CCA/Components/Arches/ArchesParticlesHelper.h>
 #include <CCA/Components/Arches/ArchesMaterial.h>
 #include <CCA/Components/Arches/ArchesStatsEnum.h>
@@ -78,7 +86,7 @@ Arches::Arches(const ProcessorGroup* myworld,
   // thresholds are met. This setting has the same affect as the above
   // along with the puts in the data warehouse (see ExplicitSolve.cc).
 
-  //     outputIfInvalidNextDelT( DELTA_T_MIN | DELTA_T_MAX );
+  // outputIfInvalidNextDelT( DELTA_T_MIN | DELTA_T_MAX );
   // checkpointIfInvalidNextDelT( DELTA_T_MIN );
 
 #ifdef ADD_PERFORMANCE_STATS 
@@ -304,6 +312,10 @@ Arches::scheduleAnalysis( const LevelP& level,
   }
 }
 
+<<<<<<< HEAD
+=======
+//--------------------------------------------------------------------------------------------------
+>>>>>>> origin/master
 // An optional call for the application to check their reduction vars.
 void
 Arches::checkReductionVars( const ProcessorGroup * pg,

@@ -1,7 +1,11 @@
 c
 c The MIT License
 c
+<<<<<<< HEAD
 c Copyright (c) 1997-2019 The University of Utah
+=======
+c Copyright (c) 1997-2020 The University of Utah
+>>>>>>> origin/master
 c
 c Permission is hereby granted, free of charge, to any person obtaining a copy
 c of this software and associated documentation files (the "Software"), to

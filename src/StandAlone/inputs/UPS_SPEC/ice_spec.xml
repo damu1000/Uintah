@@ -84,6 +84,11 @@
           <verticalDir                  spec="REQUIRED INTEGER '0,2'" />
           <principalDir                 spec="REQUIRED INTEGER '0,2'" />
           <halfChannelHeight            spec="REQUIRED DOUBLE  'positive'"/>
+<<<<<<< HEAD
+=======
+          <channelFloor                 spec="OPTIONAL DOUBLE"/>
+          <channelCeiling               spec="OPTIONAL DOUBLE"/>
+>>>>>>> origin/master
         </powerLawProfile2> 
         
         <DNS_Moser                      spec="OPTIONAL NO_DATA">

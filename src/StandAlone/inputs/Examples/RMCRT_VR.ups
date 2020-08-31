@@ -136,7 +136,11 @@
 
     <Radiometer>
       <viewAngle>       180         </viewAngle>
+<<<<<<< HEAD
       <orientation>     [-1,0,0]    </orientation>
+=======
+      <normalVector>    [-1,0,0]    </normalVector>
+>>>>>>> origin/master
       <locationsMin>    [0,0,0]     </locationsMin>
       <locationsMax>    [1,1,1]     </locationsMax>
       <nRays>          10           </nRays>

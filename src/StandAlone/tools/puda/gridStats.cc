@@ -1,7 +1,11 @@
 /*
  * The MIT License
  *
+<<<<<<< HEAD
  * Copyright (c) 1997-2019 The University of Utah
+=======
+ * Copyright (c) 1997-2020 The University of Utah
+>>>>>>> origin/master
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -84,11 +88,26 @@ Uintah::gridstats( DataArchive* da, CommandLineFlags & clf )
       cout << "Total Number of Cells:" << hi-lo << "\n";
       cout << "dx:                   " << level->dCell() << "\n";
 
+<<<<<<< HEAD
       for(Level::const_patch_iterator iter = level->patchesBegin();
           iter != level->patchesEnd(); iter++){
         const Patch* patch = *iter;
         cout << *patch << "\n";
         cout << "\t   BC types: x- " << patch->getBCType(Patch::xminus) << ", x+ "<<patch->getBCType(Patch::xplus)
+=======
+      for( auto iter = level->patchesBegin(); iter != level->patchesEnd(); iter++){
+        const Patch* patch = *iter;
+        
+        IntVector lo = patch->getExtraNodeLowIndex();
+        IntVector hi = patch->getExtraNodeHighIndex();
+        
+        Point loNode = patch->getNodePosition( lo );
+        Point hiNode = patch->getNodePosition( hi );
+        
+        cout << *patch << "\n"
+             << "\t   Spatial extents (including extra cells): " << loNode << " " << hiNode << "\n"
+             << "\t   BC types: x- " << patch->getBCType(Patch::xminus) << ", x+ "<<patch->getBCType(Patch::xplus)
+>>>>>>> origin/master
              << ", y- "<< patch->getBCType(Patch::yminus) << ", y+ "<< patch->getBCType(Patch::yplus)
              << ", z- "<< patch->getBCType(Patch::zminus) << ", z+ "<< patch->getBCType(Patch::zplus) << "\n";
       }

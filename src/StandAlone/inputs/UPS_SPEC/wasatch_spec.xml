@@ -74,6 +74,39 @@
       </OscillatingCylinder>                             
    </GeometryExpression>                                                     
 
+	<!-- provides a constant velocity fan model via momentum source to achieve a target velocity -->
+	<!-- 	  This expression will automatically create as many source terms as needed to set the desired velocities. -->
+	<!-- Use a FanModel to define momentum source terms to mimic drone rotors 
+	 This expression will create up to three momentum source terms based on the dimensions
+	 of the flow. THe momentum source terms will be named based on the fan name such that
+	 [FanName]_source_x, [FanName]_source_y, and [FanName]_source_z
+	 YOU MUST add those sources manually to the momentum equations.
+	 Also, this expression will automatically create geometric location for the 
+	 fan rotors based on the CommonGeometry, those are named: [FanName]_location_x etc... -->    
+	<FanModel   spec="MULTIPLE NO_DATA"
+			  attribute1="name REQUIRED STRING">					
+	<TargetVelocities spec="REQUIRED VECTOR"/>
+	<geom_object  spec="REQUIRED"/>	<!--This can be set from a common geometry or defined in here -->      
+	</FanModel>
+
+
+	<!-- provides a scalar source model to achieve a target interior value -->
+	<!-- 	  This expression will automatically create as many source terms as needed to set the desired velocities. -->
+	<!-- Use a FanModel to define momentum source terms to mimic drone rotors 
+	 This expression will create up to three momentum source terms based on the dimensions
+	 of the flow. THe momentum source terms will be named based on the fan name such that
+	 [SourceName]_source
+	 YOU MUST add those sources manually to the momentum equations.
+	 Also, this expression will automatically create geometric location for the 
+	 fan rotors based on the CommonGeometry, those are named: [SourceName]_location etc... -->    
+	<TargetValueSource   spec="MULTIPLE NO_DATA"
+			             attribute1="name REQUIRED STRING"
+			             attribute2="targetfieldname REQUIRED STRING"
+			             attribute3="targetvalue OPTIONAL DOUBLE">					
+		<NameTag spec="OPTIONAL"/> <!-- nametag if we are setting another expression as a value -->
+		<geom_object  spec="REQUIRED"/>	<!--This can be set from a common geometry or defined in here -->      
+	</TargetValueSource>
+
     <!-- Spec for basic expression types -->
     <BasicExpression spec="MULTIPLE NO_DATA"
                      attribute1="type REQUIRED STRING 'SVOL,XVOL,YVOL,ZVOL,PARTICLE'"
@@ -514,7 +547,7 @@
                         
       <!-- Interpolate fields from different locations -->
       <InterpolateExpression  spec="OPTIONAL NO_DATA"
-                              attribute1="type REQUIRED STRING 'SVOL,XVOL,YVOL,ZVOL, PARTICLE">
+                              attribute1="type REQUIRED STRING 'SVOL,XVOL,YVOL,ZVOL,SSURFX,SSURFY,SSURFZ, PARTICLE">
           <ParticleInfo spec="OPTIONAL NO_DATA" need_applies_to="type PARTICLE"
                         attribute1="size REQUIRED STRING"
                         attribute2="px REQUIRED STRING"
@@ -700,6 +733,8 @@
 
     <BasicExpression      spec="MULTIPLE" />
 
+	<FanModel      spec="MULTIPLE" />
+	<TargetValueSource      spec="MULTIPLE" />
     <BCExpression         spec="MULTIPLE" />
  
     <MomentInitialization spec="MULTIPLE"/>
@@ -1230,6 +1265,12 @@
           enthalpy are being transported.
         -->
         <ModelBasedOnMixtureFractionAndHeatLoss spec="OPTIONAL NO_DATA">
+          <MixtureFraction  spec="REQUIRED NO_DATA">
+            <NameTag        spec="REQUIRED"/>z
+          </MixtureFraction>
+          <Enthalpy  spec="REQUIRED NO_DATA">
+            <NameTag        spec="REQUIRED"/>
+          </Enthalpy>
           <DensityWeightedMixtureFraction spec="REQUIRED NO_DATA">
             <NameTag                      spec="REQUIRED" />
           </DensityWeightedMixtureFraction>
@@ -1451,6 +1492,18 @@
         <NameTag        spec="REQUIRED" />        
       </FieldExpression>                    
     </FieldClipping>
+
+   <!-- ================== -->
+   <!-- Test epression tree execution within an expression -->
+   <!-- ================== -->
+
+   <TestNestedExpression spec="OPTIONAL NO_DATA">
+       <NameTag spec="REQUIRED"/>
+       <numIterations      spec="REQUIRED INTEGER"/>
+       <dependentVariables spec="REQUIRED NO_DATA">
+         <NameTag spec="MULTIPLE" />
+       </dependentVariables>
+   </TestNestedExpression>
 
   </Wasatch>
 

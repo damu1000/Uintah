@@ -84,6 +84,16 @@ void BoundaryCondition_new::problemSetup( ProblemSpecP& db, std::string eqn_name
             // NOTE: this will use the "value" entry as the normal component of the velocity
             swirlInfo my_info;
             db_BCType->require("swirl_no", my_info.swirl_no);
+<<<<<<< HEAD
+=======
+            my_info.swirl_no *= 3./2.;
+            // swirl number definition as equation 5.14 from Combustion Aerodynamics 
+            // J.M. BEER and N.A. CHIGIER 1983 pag 107 
+            // assuming: 
+            // constant axial velocity
+            // constant density 
+            // constant tangential velocity 
+>>>>>>> origin/master
 
             std::string str_vec; // This block sets the default centroid to the origin unless otherwise specified by swirl_cent
             bool Luse_origin =   db_face->getAttribute("origin", str_vec);
@@ -131,7 +141,9 @@ void BoundaryCondition_new::problemSetup( ProblemSpecP& db, std::string eqn_name
   //
 
 }
-
+//______________________________________________________________________
+//
+//______________________________________________________________________
 void
 BoundaryCondition_new::setupTabulatedBC( ProblemSpecP& db, std::string eqn_name, MixingRxnModel* table )
 {
@@ -268,6 +280,10 @@ BoundaryCondition_new::setupTabulatedBC( ProblemSpecP& db, std::string eqn_name,
   }
 }
 
+
+//______________________________________________________________________
+//
+//______________________________________________________________________
 void
 BoundaryCondition_new::readInputFile( std::string file_name, BoundaryCondition_new::FFInfo& struct_result )
 {
@@ -556,8 +572,9 @@ void BoundaryCondition_new::setAreaFraction( const Patch* patch,
   }
 }
 
-//---------DIRICHLET-------------
-
+//______________________________________________________________________
+//          DIRICHLET
+//______________________________________________________________________
 void BoundaryCondition_new::Dirichlet::applyBC( const Patch* patch, Patch::FaceType face,
                                                 int child, std::string varname, std::string face_name,
                                                 CCVariable<double>& phi )
@@ -583,8 +600,10 @@ void BoundaryCondition_new::Dirichlet::applyBC( const Patch* patch, Patch::FaceT
   }
 }
 
-//---------NEUMANN-------------
 
+//______________________________________________________________________
+//          NEUMANN
+//______________________________________________________________________
 void BoundaryCondition_new::Neumann::applyBC( const Patch* patch, Patch::FaceType face,
                                               int child, std::string varname, std::string face_name,
                                               CCVariable<double>& phi )
@@ -613,8 +632,10 @@ void BoundaryCondition_new::Neumann::applyBC( const Patch* patch, Patch::FaceTyp
   }
 }
 
-//---------FROMFILE-------------
 
+//______________________________________________________________________
+//  From a file
+//______________________________________________________________________
 void BoundaryCondition_new::FromFile::setupBC( ProblemSpecP& db, const std::string eqn_name )
 {
 
@@ -679,6 +700,9 @@ void BoundaryCondition_new::FromFile::setupBC( ProblemSpecP& db, const std::stri
   }
 }
 
+//______________________________________________________________________
+//
+//______________________________________________________________________
 void BoundaryCondition_new::FromFile::applyBC( const Patch* patch, Patch::FaceType face,
                                                int child, std::string varname, std::string face_name,
                                                CCVariable<double>& phi )
@@ -709,6 +733,9 @@ void BoundaryCondition_new::FromFile::applyBC( const Patch* patch, Patch::FaceTy
   }
 }
 
+//______________________________________________________________________
+//
+//______________________________________________________________________
 std::map<IntVector, double>
 BoundaryCondition_new::FromFile::readInputFile( std::string file_name )
 {
@@ -739,8 +766,9 @@ BoundaryCondition_new::FromFile::readInputFile( std::string file_name )
   return result;
 }
 
-//---------TABULATED-------------
-
+//______________________________________________________________________
+//  TABULATED
+//______________________________________________________________________
 void BoundaryCondition_new::Tabulated::setupBC( ProblemSpecP& db, const std::string eqn_name )
 { }
 
@@ -877,6 +905,9 @@ void BoundaryCondition_new::Tabulated::extra_setupBC( ProblemSpecP& db, std::str
   }
 }
 
+//______________________________________________________________________
+//
+//______________________________________________________________________
 void BoundaryCondition_new::Tabulated::applyBC( const Patch* patch, Patch::FaceType face,
                                                int child, std::string varname, std::string face_name,
                                                CCVariable<double>& phi )
@@ -906,40 +937,39 @@ void BoundaryCondition_new::Tabulated::applyBC( const Patch* patch, Patch::FaceT
   }
 }
 
-  /** @brief This method sets the boundary value of a scalar to
-             a value such that the interpolated value on the face results
-             in the actual boundary condition. Note that the boundary condition
-             from the input file can be overridden by the last two arguments. */
+//______________________________________________________________________
+//
+//______________________________________________________________________
   template< class T >
   void
-  BoundaryCondition_new::setExtraCellScalarValueBC(const ProcessorGroup*,
-                                 const Patch* patch,
-                                 CCVariable< T >& scalar,
-                                 const std::string varname,
-                                 bool  change_bc,
-                                 const std::string override_bc)
+  BoundaryCondition_new::setExtraCellScalarValueBC(const ProcessorGroup *,
+                                                   const Patch          * patch,
+                                                   CCVariable< T >      & scalar,
+                                                   const std::string      varname,
+                                                   bool  change_bc,
+                                                   const std::string override_bc)
   {
-
     using std::vector;
     using std::string;
 
-    std::vector<Patch::FaceType>::const_iterator iter;
-    std::vector<Patch::FaceType> bf;
+    vector<Patch::FaceType>::const_iterator iter;
+    vector<Patch::FaceType> bf;
     patch->getBoundaryFaces(bf);
-    Vector Dx = patch->dCell();
 
+    //__________________________________
+    //
     for (iter = bf.begin(); iter !=bf.end(); iter++){
       Patch::FaceType face = *iter;
 
       //get the face direction
       IntVector insideCellDir = patch->faceDirection(face);
+      
       //get the number of children
       int numChildren = patch->getBCDataArray(face)->getNumberChildren(d_matl_id); //assumed one material
 
       for (int child = 0; child < numChildren; child++){
 
         double bc_value = -9;
-        Vector bc_v_value(0,0,0);
         std::string bc_s_value = "NA";
 
         Iterator bound_ptr;
@@ -959,77 +989,93 @@ void BoundaryCondition_new::Tabulated::applyBC( const Patch* patch, Patch::FaceT
           foundIterator =
             getIteratorBCValue<double>( patch, face, child, varname, d_matl_id, bc_value, bound_ptr );
         }
+        
+        //__________________________________
+        // bulletproofing
+        if( ! foundIterator){
+          std::ostringstream warn;
+          warn << "ERROR: setExtraCellScalarValueBC: Boundary conditions were not set or specified correctly, face:" 
+               << patch->getFaceName(face) << ", variable: " << varname << ", " << " Kind: " << bc_kind  
+               << ", numChildren: " << numChildren << " \n";
+          throw InternalError(warn.str(), __FILE__, __LINE__);
+        }
+        
+        //__________________________________
+        //
+        if (bc_kind == "Dirichlet" || bc_kind == "ForcedDirichlet") {
 
-        if (foundIterator) {
-          // --- notation ---
-          // bp1: boundary cell + 1 or the interior cell one in from the boundary
-          if (bc_kind == "Dirichlet" || bc_kind == "ForcedDirichlet") {
-
-            for (bound_ptr.reset(); !bound_ptr.done(); bound_ptr++) {
-              IntVector bp1(*bound_ptr - insideCellDir);
-              scalar[*bound_ptr] = bc_value;
-            }
-
-          } else if (bc_kind == "Neumann") {
-
-            IntVector axes = patch->getFaceAxes(face);
-            int P_dir = axes[0];  // principal direction
-            double plus_minus_one = (double) patch->faceDirection(face)[P_dir];
-            double dx = Dx[P_dir];
-
-            for (bound_ptr.reset(); !bound_ptr.done(); bound_ptr++) {
-              IntVector bp1(*bound_ptr - insideCellDir);
-              scalar[*bound_ptr] = scalar[bp1] + plus_minus_one * dx * bc_value;
-            }
-          } else if (bc_kind == "FromFile") {
-
-            ScalarToBCValueMap::iterator i_scalar_bc_storage = scalar_bc_from_file.find( face_name );
-
-            for (bound_ptr.reset(); !bound_ptr.done(); bound_ptr++) {
-
-              IntVector rel_bc = *bound_ptr - i_scalar_bc_storage->second.relative_ijk;
-              CellToValueMap::iterator iter = i_scalar_bc_storage->second.values.find( rel_bc ); //<----WARNING ... May be slow here
-              if ( iter != i_scalar_bc_storage->second.values.end() ){
-
-                double file_bc_value = iter->second;
-                IntVector bp1(*bound_ptr - insideCellDir);
-                scalar[*bound_ptr] = file_bc_value;
-
-              } else if ( i_scalar_bc_storage->second.default_type == "Neumann" ){
-
-                IntVector bp1(*bound_ptr - insideCellDir);
-                scalar[*bound_ptr] = i_scalar_bc_storage->second.default_value;
-
-              } else if ( i_scalar_bc_storage->second.default_type == "Dirichlet" ){
-
-                IntVector bp1(*bound_ptr - insideCellDir);
-                scalar[*bound_ptr] = i_scalar_bc_storage->second.default_value;
-
-              }
-            }
-          } else if ( bc_kind == "Tabulated") {
-
-            MapDoubleMap::iterator i_face = _tabVarsMap.find( face_name );
-
-            if ( i_face != _tabVarsMap.end() ){
-
-              DoubleMap::iterator i_var = i_face->second.find( varname );
-              double tab_bc_value = i_var->second;
-
-              for (bound_ptr.reset(); !bound_ptr.done(); bound_ptr++) {
-                IntVector bp1(*bound_ptr - insideCellDir);
-                scalar[*bound_ptr] = tab_bc_value;
-              }
-
-            }
-          } else {
-            throw InvalidValue( "Error: Cannot determine boundary condition type for variable: "+varname, __FILE__, __LINE__);
+          for (bound_ptr.reset(); !bound_ptr.done(); bound_ptr++) {
+            scalar[*bound_ptr] = bc_value;
           }
+        } 
+        //__________________________________
+        //
+        else if (bc_kind == "Neumann") {
+
+          IntVector axes = patch->getFaceAxes(face);
+          int P_dir = axes[0];  // principal direction
+          double plus_minus_one = (double) patch->faceDirection(face)[P_dir];
+          Vector Dx = patch->dCell();
+          double dx = Dx[P_dir];
+
+          for ( bound_ptr.reset(); !bound_ptr.done(); bound_ptr++ ) {
+            IntVector adjCell(*bound_ptr - insideCellDir);
+            scalar[*bound_ptr] = scalar[adjCell] + plus_minus_one * dx * bc_value;
+          }
+        } 
+        //__________________________________
+        //
+        else if (bc_kind == "FromFile") {
+
+          ScalarToBCValueMap::iterator i_scalar_bc_storage = scalar_bc_from_file.find( face_name );
+
+          for ( bound_ptr.reset(); !bound_ptr.done(); bound_ptr++ ) {
+
+            IntVector rel_bc = *bound_ptr - i_scalar_bc_storage->second.relative_ijk;
+            CellToValueMap::iterator iter = i_scalar_bc_storage->second.values.find( rel_bc ); //<----WARNING ... May be slow here
+            
+            if ( iter != i_scalar_bc_storage->second.values.end() ){
+              double file_bc_value = iter->second;
+              scalar[*bound_ptr] = file_bc_value;
+
+            } 
+            else if ( i_scalar_bc_storage->second.default_type == "Neumann" ){
+              scalar[*bound_ptr] = i_scalar_bc_storage->second.default_value;
+
+            } 
+            else if ( i_scalar_bc_storage->second.default_type == "Dirichlet" ){
+              scalar[*bound_ptr] = i_scalar_bc_storage->second.default_value;
+
+            }
+          }
+        } 
+        //__________________________________
+        //
+        else if ( bc_kind == "Tabulated") {
+
+          MapDoubleMap::iterator i_face = _tabVarsMap.find( face_name );
+
+          if ( i_face != _tabVarsMap.end() ){
+
+            DoubleMap::iterator i_var = i_face->second.find( varname );
+            double tab_bc_value = i_var->second;
+
+            for ( bound_ptr.reset(); !bound_ptr.done(); bound_ptr++ ) {
+              scalar[*bound_ptr] = tab_bc_value;
+            }
+          }
+        } 
+        else {
+          throw InvalidValue( "ERROR: setExtraCellScalarValueBC: Cannot determine boundary condition type for variable: "+varname, __FILE__, __LINE__);
         }
       }
     }
   }
 
+
+//______________________________________________________________________
+//
+//______________________________________________________________________
   void
   BoundaryCondition_new::checkBCs(
     const Patch* patch, const std::string variable, const int matlIndex ){

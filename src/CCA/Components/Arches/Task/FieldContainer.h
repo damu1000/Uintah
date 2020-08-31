@@ -240,7 +240,7 @@ namespace Uintah{
       //--------------------------------------------------------------------------------------------
       //UINTAH VARIABLE TASK ACCESS:
 
-      /** @brief Get a modifiable uintah variable **/
+      /** @brief Get a const uintah variable without DW spec. **/
       template <typename T>
       inline T* get_const_field( const std::string name ){
 
@@ -266,7 +266,7 @@ namespace Uintah{
 
       }
 
-      /** @brief Get a modifiable uintah variable with specified DW **/
+      /** @brief Get a const uintah variable with specified DW **/
       template <typename T>
       inline T* get_const_field( const std::string name, WHICH_DW which_dw ){
 
@@ -293,13 +293,6 @@ namespace Uintah{
 
         return field;
 
-      }
-
-      /** @brief Get a modifiable uintah variable and allow the user to manage the memory **/
-      template <typename T>
-      void get_unmanage_const_field( const std::string name, T& field ){
-
-        VariableInformation ivar = get_variable_information( name, true );
       }
 
       /** @brief Get a modifiable uintah variable **/
@@ -434,6 +427,7 @@ namespace Uintah{
 
       }
 
+<<<<<<< HEAD
       /** @brief Get a user managed variable. **/
       template <typename T>
       void get_unmanaged_field( const std::string name, T& field ){
@@ -466,6 +460,8 @@ namespace Uintah{
         }
       }
 
+=======
+>>>>>>> origin/master
       /** @brief Return a reference to the NEW DW **/
       DataWarehouse* getNewDW(){
         return _new_dw;

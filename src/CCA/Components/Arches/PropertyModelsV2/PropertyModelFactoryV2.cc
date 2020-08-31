@@ -27,6 +27,10 @@
 #include <CCA/Components/Arches/PropertyModelsV2/UnweightVariable.h>
 #include <CCA/Components/Arches/PropertyModelsV2/ConsScalarDiffusion.h>
 #include <CCA/Components/Arches/PropertyModelsV2/GasKineticEnergy.h>
+<<<<<<< HEAD
+=======
+#include <CCA/Components/Arches/PropertyModelsV2/TimeVaryingProperty.h>
+>>>>>>> origin/master
 #include <libxml/parser.h>
 #include <libxml/tree.h>
 
@@ -224,6 +228,33 @@ PropertyModelFactoryV2::register_all_tasks( ProblemSpecP& db )
           throw InvalidValue("Error: Property grid type not recognized for model: "+name,__FILE__,__LINE__);
         }
         register_task( name, tsk, db_model );
+<<<<<<< HEAD
+=======
+        _pre_update_property_tasks.push_back(name);
+
+      } else if ( type == "time_varying"){
+
+        std::string var_type = "NA";
+        db_model->findBlock("grid")->getAttribute("type",var_type);
+
+        TaskInterface::TaskBuilder* tsk;
+        if ( var_type == "CC" ){
+          tsk = scinew TimeVaryingProperty<CCVariable<double> >::Builder(name, 0);
+          _pre_update_property_tasks.push_back(name);
+        } else if ( var_type == "FX" ){
+          tsk = scinew TimeVaryingProperty<SFCXVariable<double> >::Builder(name, 0);
+          _pre_update_property_tasks.push_back(name);
+        } else if ( var_type == "FY" ){
+          tsk = scinew TimeVaryingProperty<SFCYVariable<double> >::Builder(name, 0);
+          _pre_update_property_tasks.push_back(name);
+        } else if ( var_type == "FZ" ){
+          tsk = scinew TimeVaryingProperty<SFCZVariable<double> >::Builder(name, 0);
+          _pre_update_property_tasks.push_back(name);
+        } else {
+          throw InvalidValue("Error: Property grid type not recognized for model: "+name,__FILE__,__LINE__);
+        }
+        register_task( name, tsk, db_model );
+>>>>>>> origin/master
         _pre_update_property_tasks.push_back(name);
 
       } else {
@@ -251,7 +282,11 @@ PropertyModelFactoryV2::register_all_tasks( ProblemSpecP& db )
           for ( ProblemSpecP db_src = db_source->findBlock("src"); db_src != nullptr; db_src = db_src->findNextBlock("src")){
             std::string radiation_model;
             db_src->getAttribute("type", radiation_model);
+<<<<<<< HEAD
             if (radiation_model == "do_radiation" || radiation_model== "rmcrt_radiation"){
+=======
+            if (radiation_model == "do_radiation" ){
+>>>>>>> origin/master
               std::string task_name="sumRadiation::abskt";
               TaskInterface::TaskBuilder* tsk = scinew sumRadiation::Builder( task_name, 0 );
               register_task( task_name, tsk, db_m );
@@ -334,10 +369,17 @@ PropertyModelFactoryV2::register_all_tasks( ProblemSpecP& db )
   if ( db->findBlock("KMomentum") ){
 
     using namespace ArchesCore;
+<<<<<<< HEAD
     m_u_vel_name = parse_ups_for_role( UVELOCITY, db, ArchesCore::default_uVel_name );
     m_v_vel_name = parse_ups_for_role( VVELOCITY, db, ArchesCore::default_vVel_name );
     m_w_vel_name = parse_ups_for_role( WVELOCITY, db, ArchesCore::default_wVel_name );
     m_density_name = parse_ups_for_role( DENSITY, db, "density" );
+=======
+    m_u_vel_name = parse_ups_for_role( UVELOCITY_ROLE, db, ArchesCore::default_uVel_name );
+    m_v_vel_name = parse_ups_for_role( VVELOCITY_ROLE, db, ArchesCore::default_vVel_name );
+    m_w_vel_name = parse_ups_for_role( WVELOCITY_ROLE, db, ArchesCore::default_wVel_name );
+    m_density_name = parse_ups_for_role( DENSITY_ROLE, db, "density" );
+>>>>>>> origin/master
 
     //
     // // compute u from rhou

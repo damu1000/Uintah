@@ -1,7 +1,11 @@
 /*
  * The MIT License
  *
+<<<<<<< HEAD
  * Copyright (c) 1997-2019 The University of Utah
+=======
+ * Copyright (c) 1997-2020 The University of Utah
+>>>>>>> origin/master
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -298,6 +302,14 @@ ExplicitSolver::problemSetup( const ProblemSpecP & params,
   d_archesLevelIndex = grid->numLevels()-1; // this is the finest level
 
   //------------------------------------------------------------------------------------------------
+  //Looking to see if we are using the turb models abstracted into the task Interface
+  if ( db->findBlock("TurbulenceModels")){
+    if ( db->findBlock("TurbulenceModels")->findBlock("model")){
+      d_using_TI_turb = true;
+    }
+  }
+
+  //------------------------------------------------------------------------------------------------
   //Look for coal information
   if( db->findBlock("ParticleProperties") ) {
     string particle_type;
@@ -399,7 +411,6 @@ ExplicitSolver::problemSetup( const ProblemSpecP & params,
 
     }
 
-
     // Now go through sources and initialize all defined sources and call
     // their respective problemSetup
     if (sources_db) {
@@ -419,12 +430,29 @@ ExplicitSolver::problemSetup( const ProblemSpecP & params,
 
     }
 
-  }
-  else {
+  } else {
 
     proc0cout << "No defined transport equations found." << endl;
 
   }
+
+  //The RMCRT radiatometer model (not RMCRT as divQ) was implemeted originally as a src,
+  // which has an abstraction problem from the user point of view and creates an implementation
+  // issue, specifically with some inputs overiding others due to input file ordering of specs.
+  // As such, to avoid clashes with two radiation models (say DO specifying
+  // the divQ and RMCRT acting as a radiometer) we need to look for it separately
+  // here and put it into the src factory. This avoids a potential bug where
+  // one radiation model may cancel out settings with the other. It also preserves how the code
+  // actually operates without a rewrite of the model.
+  ProblemSpecP db_radiometer = db->getRootNode()->findBlock("CFD")->findBlock("ARCHES")->findBlock("Radiometer");
+  if ( db_radiometer != nullptr ){
+    SourceTermFactory& src_factory = SourceTermFactory::self();
+    std::string label;
+    db_radiometer->getAttribute("label", label);
+    SourceTermBase& the_src = src_factory.retrieve_source_term( label );
+    the_src.problemSetup( db_radiometer );
+  }
+
 
   if ( db->findBlock("PropertyModels") ) {
 
@@ -1251,15 +1279,16 @@ ExplicitSolver::sched_initialize( const LevelP& level,
 
   d_tabulated_properties->set_bcHelper( m_bcHelper[level->getIndex()] );
 
+  SourceTermFactory& srcFactory = SourceTermFactory::self();
+  srcFactory.set_bcHelper( m_bcHelper[level->getIndex()]);
+
   if ( level->getIndex() == d_archesLevelIndex ){
 
     //formerly known as paramInit
     sched_initializeVariables( level, sched );
 
-
     // initialize hypre variables
     d_pressSolver->scheduleInitialize( level, sched, matls);
-
 
     //------------------ New Task Interface (start) ------------------------------------------------
 
@@ -1273,6 +1302,7 @@ ExplicitSolver::sched_initialize( const LevelP& level,
 
     i_trans_fac->second->set_bcHelper( m_bcHelper[level->getID()] );
     i_util_fac->second->set_bcHelper( m_bcHelper[level->getID()] );
+    i_property_models_fac->second->set_bcHelper( m_bcHelper[level->getID()] );
 
     const bool dont_pack_tasks = false;
     TaskFactoryBase::TaskMap all_tasks;
@@ -1302,7 +1332,6 @@ ExplicitSolver::sched_initialize( const LevelP& level,
     sched_scalarInit( level, sched );
 
     //------------------ New Task Interface (start) ------------------------------------------------
-    //property models v2
     i_property_models_fac->second->schedule_initialization( level, sched, matls, false );
     //------------------ New Task Interface (end) ------------------------------------------------
 
@@ -1355,11 +1384,11 @@ ExplicitSolver::sched_initialize( const LevelP& level,
 
     sched_getCCVelocities(level, sched);
 
-    d_turbModel->sched_reComputeTurbSubmodel(sched, level, matls, d_init_timelabel);
-
-    //--- New interface
-    _task_factory_map["turbulence_model_factory"]->schedule_task_group( "all_tasks", TaskInterface::TIMESTEP_EVAL, dont_pack_tasks, level, sched, matls );
-    // ----
+    if ( !d_using_TI_turb ){
+      d_turbModel->sched_reComputeTurbSubmodel(sched, level, matls, d_init_timelabel);
+    } else {
+      _task_factory_map["turbulence_model_factory"]->schedule_task_group( "all_tasks", TaskInterface::INITIALIZE, dont_pack_tasks, level, sched, matls );
+    }
 
     //----------------------
     //DQMOM initialization
@@ -1465,8 +1494,10 @@ ExplicitSolver::sched_initializeVariables( const LevelP& level,
   tsk->computes(d_lab->d_pressurePredLabel);
   tsk->computes(d_lab->d_pressureIntermLabel);
   tsk->computes(d_lab->d_densityCPLabel);
-  tsk->computes(d_lab->d_viscosityCTSLabel);
-  tsk->computes(d_lab->d_turbViscosLabel);
+  if ( !d_using_TI_turb ){
+    tsk->computes(d_lab->d_viscosityCTSLabel);
+    tsk->computes(d_lab->d_turbViscosLabel);
+  }
   tsk->computes(d_lab->d_oldDeltaTLabel);
   tsk->computes(d_lab->d_conv_scheme_x_Label);
   tsk->computes(d_lab->d_conv_scheme_y_Label);
@@ -1535,6 +1566,7 @@ ExplicitSolver::sched_restartInitialize( const LevelP& level, SchedulerP& sched 
       SourceTermBase* src = isrc->second;
       src->sched_restartInitialize(level, sched);
     }
+    srcFactory.set_bcHelper( m_bcHelper[level->getIndex()]); 
 
     //__________________________________
     //  initialize property models
@@ -1655,8 +1687,10 @@ ExplicitSolver::initializeVariables(const ProcessorGroup* ,
     allocateAndInitializeToC( d_lab->d_pressureIntermLabel, new_dw, indx, patch, 0.0 );
     allocateAndInitializeToC( d_lab->d_densityCPLabel     , new_dw, indx, patch, 0.0 );
     allocateAndInitializeToC( d_lab->d_viscosityCTSLabel  , new_dw, indx, patch, 0.0 );
-    allocateAndInitializeToC( d_lab->d_turbViscosLabel    , new_dw, indx, patch, 0.0 );
-    allocateAndInitializeToC( d_lab->d_conv_scheme_x_Label, new_dw, indx, patch, 0.0 );
+    if ( !d_using_TI_turb ){
+      allocateAndInitializeToC( d_lab->d_turbViscosLabel    , new_dw, indx, patch, 0.0 );
+      allocateAndInitializeToC( d_lab->d_conv_scheme_x_Label, new_dw, indx, patch, 0.0 );
+    }
     allocateAndInitializeToC( d_lab->d_conv_scheme_y_Label, new_dw, indx, patch, 0.0 );
     allocateAndInitializeToC( d_lab->d_conv_scheme_z_Label, new_dw, indx, patch, 0.0 );
 
@@ -1780,6 +1814,9 @@ int ExplicitSolver::sched_nonlinearSolve(const LevelP& level,
 
   }
 
+  //-------- carry forward the geometry modifier variable --------
+  d_boundaryCondition->sched_computeAlphaG( sched, level, matls, true );
+
   //copy the temperature into a radiation temperature variable:
   d_boundaryCondition->sched_create_radiation_temperature( sched, level, matls, false, true );
 
@@ -1892,14 +1929,14 @@ int ExplicitSolver::sched_nonlinearSolve(const LevelP& level,
         }
 
 
-        i_particle_models->second->schedule_task_group( "dqmom_variables",
+        i_particle_models->second->schedule_task_group( "dqmom_transport_variables",
                                                          TaskInterface::TIMESTEP_EVAL,
                                                          dont_pack_tasks, level, sched,
                                                          matls, curr_level );
         // schedule the models for evaluation
         modelFactory.sched_coalParticleCalculation( level, sched, curr_level );// compute drag, devol, char, etc models..
 
-        i_particle_models->second->schedule_task_group( "dqmom_model_task",
+        i_particle_models->second->schedule_task_group( "particle_models",
                                                          TaskInterface::TIMESTEP_EVAL,
                                                          dont_pack_tasks, level, sched,
                                                          matls, curr_level );
@@ -1911,10 +1948,10 @@ int ExplicitSolver::sched_nonlinearSolve(const LevelP& level,
 
         } else {
 
-          i_particle_models->second->schedule_task_group( "pre_update_property_models",
-                                                          TaskInterface::TIMESTEP_EVAL,
-                                                          dont_pack_tasks, level, sched,
-                                                          matls, curr_level);
+          i_particle_models->second->schedule_task( "[DQMOMNoInversion]",
+                                                    TaskInterface::TIMESTEP_EVAL,
+                                                    level, sched,
+                                                    matls, curr_level);
 
         }
 
@@ -2091,9 +2128,13 @@ int ExplicitSolver::sched_nonlinearSolve(const LevelP& level,
       }
     }
 
-    //ParticleModels evaluated after the RK averaging.
+    //Particle Properties dependent on the latest DW IC's
     //All particle transport should draw from the "latest" DW (old for rk = 0, new for rk > 0)
-    i_particle_models->second->schedule_task_group("post_update_particle_models", TaskInterface::TIMESTEP_EVAL,
+    i_particle_models->second->schedule_task_group("particle_properties", TaskInterface::TIMESTEP_EVAL,
+      dont_pack_tasks, level, sched, matls, curr_level );
+
+    // Deposition (called out specifically because it has a specified order)
+    i_particle_models->second->schedule_task_group("deposition_models", TaskInterface::TIMESTEP_EVAL,
       dont_pack_tasks, level, sched, matls, curr_level );
 
 

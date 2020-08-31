@@ -1,7 +1,11 @@
 /*
  * The MIT License
  *
+<<<<<<< HEAD
  * Copyright (c) 1997-2019 The University of Utah
+=======
+ * Copyright (c) 1997-2020 The University of Utah
+>>>>>>> origin/master
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -63,15 +67,17 @@ namespace Uintah {
 //______________________________________________________________________
 //
 namespace {
+
   Dout g_dbg(         "KokkosOMP_DBG"        , "KokkosOpenMPScheduler", "general debugging info for KokkosOpenMPScheduler"  , false );
   Dout g_queuelength( "KokkosOMP_QueueLength", "KokkosOpenMPScheduler", "report task queue length for KokkosOpenMPScheduler", false );
 
   Uintah::MasterLock g_scheduler_mutex{}; // main scheduler lock for multi-threaded task selection
 
   volatile int  g_num_tasks_done{0};
-  
+
   bool g_have_hypre_task{false};
   DetailedTask* g_HypreTask;
+
 }
 
 
@@ -218,7 +224,7 @@ KokkosOpenMPScheduler::execute( int tgnum       /* = 0 */
   // This only happens if "-emit_taskgraphs" is passed to sus
   makeTaskGraphDoc(m_detailed_tasks, my_rank);
 
-  mpi_info_.reset( 0 );
+  m_mpi_info.reset( 0 );
 
   g_num_tasks_done = 0;
 

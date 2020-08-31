@@ -85,7 +85,12 @@ namespace WasatchCore{
       Expr::ExpressionFactory& factory   = *gc_[ADVANCE_SOLUTION]->exprFactory;
 
       typedef typename TurbulentDiffusivity::Builder TurbDiffT;
+<<<<<<< HEAD
       factory.register_expression( scinew TurbDiffT( turbDiffTag_, densityTag_, turbulenceParams.turbSchmidt, turbViscTag ) );
+=======
+      if (!factory.have_entry(turbDiffTag_))
+        factory.register_expression( scinew TurbDiffT( turbDiffTag_, densityTag_, turbulenceParams.turbSchmidt, turbViscTag ) );
+>>>>>>> origin/master
     } // if(enableTurbulence_)
 
     // define the primitive variable and solution variable tags and trap errors
@@ -314,6 +319,16 @@ namespace WasatchCore{
          sourceTermParams=sourceTermParams->findNextBlock("SourceTermExpression") ) {
       srcTags.push_back( parse_nametag( sourceTermParams->findBlock("NameTag") ) );
     }
+    
+    for( Uintah::ProblemSpecP sourceTermParams=params_->findBlock("TargetValueSource");
+        sourceTermParams != nullptr;
+        sourceTermParams=sourceTermParams->findNextBlock("TargetValueSource") ) {
+      
+      Expr::ExpressionFactory& factory = *gc_[ADVANCE_SOLUTION]->exprFactory;
+      
+      srcTags.push_back( parse_nametag( sourceTermParams->findBlock("NameTag") ) );
+    }
+
   }
 
   //------------------------------------------------------------------
@@ -336,7 +351,11 @@ namespace WasatchCore{
     }
 
     // for variable density flows:
+<<<<<<< HEAD
     if( hasConvection_ && flowTreatment_ == LOWMACH ){
+=======
+    if( flowTreatment_ == LOWMACH ){
+>>>>>>> origin/master
       const Expr::Tag rhsNP1Tag     = Expr::Tag(rhsTag_.name(), Expr::STATE_NP1);
       infoNP1_[PRIMITIVE_VARIABLE]  = primVarNP1Tag_;
 
@@ -350,6 +369,7 @@ namespace WasatchCore{
       }
 
       if(isStrong_){
+<<<<<<< HEAD
         factory.register_expression( new typename PrimVar<FieldT,SVolField>::Builder( primVarNP1Tag_, this->solnvar_np1_tag(), densityNP1Tag_ ) );
         factory.register_expression( new typename Expr::PlaceHolder<FieldT>::Builder(primVarTag_) );
       }
@@ -365,6 +385,26 @@ namespace WasatchCore{
         factory.register_expression( new divuBuilder(tagNames.divu, 0.0)); // set the value to zero so that we can later add sources to it
       }
 
+=======
+        const Expr::ExpressionID primVarNP1ID = 
+        factory.register_expression( new typename PrimVar<FieldT,SVolField>::Builder( primVarNP1Tag_, this->solnvar_np1_tag(), densityNP1Tag_ ) );
+        factory.register_expression( new typename Expr::PlaceHolder<FieldT>::Builder(primVarTag_) );
+
+        gc_[ADVANCE_SOLUTION]->rootIDs.insert(primVarNP1ID);
+      }
+
+      const Expr::Tag scalEOSTag (primVarTag_.name() + "_EOS_Coupling", Expr::STATE_NONE);
+      const Expr::Tag dRhoDfTag = tagNames.derivative_tag(densityTag_,primVarTag_);
+      factory.register_expression( scinew ScalarEOSBuilder( scalEOSTag, infoNP1_, srcTags, densityNP1Tag_, dRhoDfTag, isStrong_) );
+
+      // register an expression for divu. divu is just a constant expression to which we add the
+      // necessary couplings from the scalars that represent the equation of state.
+      if( !factory.have_entry( tagNames.divu ) ) { // if divu has not been registered yet, then register it!
+        typedef typename Expr::ConstantExpr<SVolField>::Builder divuBuilder;
+        factory.register_expression( new divuBuilder(tagNames.divu, 0.0)); // set the value to zero so that we can later add sources to it
+      }
+
+>>>>>>> origin/master
       factory.attach_dependency_to_expression(scalEOSTag, tagNames.divu);
     }
 

@@ -1,7 +1,11 @@
 /*
  * The MIT License
  *
+<<<<<<< HEAD
  * Copyright (c) 1997-2019 The University of Utah
+=======
+ * Copyright (c) 1997-2020 The University of Utah
+>>>>>>> origin/master
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -107,17 +111,32 @@ namespace Uintah{
 
       //__________________________________
       //
+<<<<<<< HEAD
       void sched_initialize_sigmaT4( const LevelP  & level,
                                      SchedulerP    & sched );
+=======
+      void sched_initialize_VarLabel( const LevelP   & level,
+                                      SchedulerP     & sched,
+                                      const VarLabel * label );
+>>>>>>> origin/master
 
       //__________________________________
       //
       template< class T>
+<<<<<<< HEAD
       void initialize_sigmaT4( const ProcessorGroup *,
                                const PatchSubset    * patches,
                                const MaterialSubset *,
                                DataWarehouse        *,
                                DataWarehouse        * new_dw );
+=======
+      void initialize_VarLabel( const ProcessorGroup *,
+                                const PatchSubset    * patches,
+                                const MaterialSubset *,
+                                DataWarehouse        *,
+                                DataWarehouse        * new_dw,
+                                const VarLabel       * label);
+>>>>>>> origin/master
 
 
       //__________________________________
@@ -177,6 +196,26 @@ namespace Uintah{
                                           void* stream,
                                           int deviceID );
 
+<<<<<<< HEAD
+=======
+      void sched_carryForward_VarLabels ( const LevelP & level,
+                                          SchedulerP   & sched,
+                                          const std::vector< const VarLabel* > varLabels);
+
+      void carryForward_VarLabels(DetailedTask* dtask,
+                                  Task::CallBackEvent event,
+                                  const ProcessorGroup*,
+                                  const PatchSubset* patches,
+                                  const MaterialSubset* matls,
+                                  DataWarehouse* old_dw,
+                                  DataWarehouse* new_dw,
+                                  void* old_TaskGpuDW,
+                                  void* new_TaskGpuDW,
+                                  void* stream,
+                                  int deviceID,
+                                  const std::vector< const VarLabel* > varLabels);
+
+>>>>>>> origin/master
       void sched_CarryForward_Var ( const LevelP& level,
                                     SchedulerP& scheduler,
                                     const VarLabel* variable,
@@ -233,10 +272,17 @@ namespace Uintah{
         , NUM_GRAPHS
       };
 
+<<<<<<< HEAD
       enum Algorithm{ dataOnion,            
                       coarseLevel, 
                       singleLevel, 
                       radiometerOnly 
+=======
+      enum Algorithm{ dataOnion,
+                      coarseLevel,
+                      singleLevel,
+                      radiometerOnly
+>>>>>>> origin/master
                     };
 
 

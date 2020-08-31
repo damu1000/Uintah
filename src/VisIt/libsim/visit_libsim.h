@@ -66,7 +66,7 @@ namespace Uintah {
 
 class SimulationController;
 
-/* Simulation Mode */
+// Simulation Mode
 #define VISIT_SIMMODE_UNKNOWN  0
 #define VISIT_SIMMODE_RUNNING  1
 #define VISIT_SIMMODE_STOPPED  2
@@ -100,12 +100,20 @@ typedef struct visit_simulation_data
   // Simulation control members
   int  runMode {VISIT_SIMMODE_RUNNING};  // What the libsim is doing.
   int  simMode {VISIT_SIMMODE_RUNNING};  // What the simulation is doing.
+<<<<<<< HEAD
 
   bool isProc0 {0};
 
   bool first {0};
   
   bool timeRange {0};
+=======
+
+  bool isProc0 {false};
+  bool first {false};
+  
+  bool timeRange {false};
+>>>>>>> origin/master
   int timeStart  {0};
   int timeStep   {1};
   int timeStop   {0};
@@ -116,7 +124,11 @@ typedef struct visit_simulation_data
   int imageWidth  {480};
   int imageFormat {2};
 
+<<<<<<< HEAD
   int  stopAtTimeStep     {false};
+=======
+  int  stopAtTimeStep     {0};
+>>>>>>> origin/master
   bool stopAtLastTimeStep {false};
 
   // The first row is the strip chart name.
@@ -141,7 +153,10 @@ typedef struct visit_simulation_data
   std::vector< unsigned int > nodeStart  {0};
   std::vector< unsigned int > nodeStop   {0};
   std::vector< unsigned int > nodeCores  {0};
+<<<<<<< HEAD
   std::vector< unsigned int > nodeMemory {0};
+=======
+>>>>>>> origin/master
 
   unsigned int maxNodes, maxCores, xNode, yNode;
 

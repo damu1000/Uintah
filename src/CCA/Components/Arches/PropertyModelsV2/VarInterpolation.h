@@ -4,7 +4,6 @@
 #include <CCA/Components/Arches/Task/TaskInterface.h>
 #include <CCA/Components/Arches/GridTools.h>
 
-
 namespace Uintah{
 
   template <typename T, typename IT>
@@ -151,7 +150,7 @@ void VarInterpolation<T,IT>::register_initialize(
 template <typename T, typename IT>
 void VarInterpolation<T,IT>::initialize( const Patch* patch, ArchesTaskInfoManager* tsk_info ){
 
-  IT& int_var = tsk_info->get_uintah_field_add<IT>(m_inter_var_name);
+  IT& int_var = tsk_info->get_field<IT>(m_inter_var_name);
   int_var.initialize(0.0);
 
 }
@@ -172,27 +171,15 @@ void VarInterpolation<T,IT>::register_timestep_eval(
 template <typename T, typename IT>
 void VarInterpolation<T,IT>::eval( const Patch* patch, ArchesTaskInfoManager* tsk_info ){
 
-  IT& int_var = tsk_info->get_uintah_field_add<IT>(m_inter_var_name);
-  T& var = tsk_info->get_const_uintah_field_add<T >(m_var_name);
+  IT& int_var = tsk_info->get_field<IT>(m_inter_var_name);
+  T& var = tsk_info->get_field<T >(m_var_name);
 
   const int ioff = m_ijk_off[0];
   const int joff = m_ijk_off[1];
   const int koff = m_ijk_off[2];
 
   Uintah::BlockRange range( patch->getCellLowIndex(), patch->getCellHighIndex() );
-  ArchesCore::OneDInterpolator my_interpolant( int_var, var, ioff, joff, koff );
-
-  if ( m_int_scheme == ArchesCore::SECONDCENTRAL ) {
-
-    ArchesCore::SecondCentral ci;
-    Uintah::parallel_for( range, my_interpolant, ci );
-
-  } else if ( m_int_scheme== ArchesCore::FOURTHCENTRAL ){
-
-    ArchesCore::FourthCentral ci;
-    Uintah::parallel_for( range, my_interpolant, ci );
-
-  }
+  ArchesCore::doInterpolation( range, int_var, var, ioff, joff, koff, m_int_scheme );
 
 }
 }

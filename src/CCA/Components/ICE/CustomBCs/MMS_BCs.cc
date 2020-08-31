@@ -1,7 +1,11 @@
 /*
  * The MIT License
  *
+<<<<<<< HEAD
  * Copyright (c) 1997-2019 The University of Utah
+=======
+ * Copyright (c) 1997-2020 The University of Utah
+>>>>>>> origin/master
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -24,8 +28,6 @@
 
 #include <CCA/Components/ICE/CustomBCs/MMS_BCs.h>
 #include <CCA/Components/ICE/Materials/ICEMaterial.h>
-#include <Core/Exceptions/InternalError.h>
-#include <Core/Exceptions/ProblemSetupException.h>
 #include <Core/Grid/Grid.h>
 #include <Core/Grid/MaterialManager.h>
 #include <Core/Math/MiscMath.h>

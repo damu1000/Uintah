@@ -31,12 +31,12 @@ CO::problemSetup( ProblemSpecP& db ){
   m_disc = scinew Discretization_new();
 
   db->getAttribute("label", m_CO_model_name);
+
   m_CO_diff_name=m_CO_model_name+"_diff";
   m_CO_conv_name=m_CO_model_name+"_conv";
+  m_defect_name = m_CO_model_name + "_defect"; 
+  m_rate_name = m_CO_model_name + "_rate"; 
 
-  db->require("CO_defect_label",m_defect_name);
-
-  db->getWithDefault("CO_rate_label"     , m_rate_name              , m_CO_model_name+"_rate");
   db->getWithDefault("density_label"     , m_rho_table_name         , "density");
   db->getWithDefault("temperature_label" , m_temperature_table_name , "temperature");
   db->getWithDefault("CO_label"          , m_CO_table_name          , "CO");
@@ -49,6 +49,10 @@ CO::problemSetup( ProblemSpecP& db ){
   db->getWithDefault("A"                 , m_A                      , 2.61e12);// kmole/m3/s
   db->getWithDefault("Ea"                , m_Ea                     , 45566.0);// kcal/kmole
   db->getWithDefault("Tcrit"             , m_T_crit                 , 1150);
+
+  if ( db->findBlock("new_on_restart")){ 
+    m_new_on_restart = true; 
+  }
 
   if ( db->findBlock("conv_scheme")){
     db->require("conv_scheme",m_conv_scheme);
@@ -99,11 +103,11 @@ CO::register_initialize( VIVec& variable_registry , const bool pack_tasks){
 void
 CO::initialize( const Patch* patch, ArchesTaskInfoManager* tsk_info ){
 
-  CCVariable<double>& CO      = tsk_info->get_uintah_field_add<CCVariable<double> >( m_CO_model_name );
-  CCVariable<double>& CO_diff = tsk_info->get_uintah_field_add<CCVariable<double> >( m_CO_diff_name );
-  CCVariable<double>& CO_conv = tsk_info->get_uintah_field_add<CCVariable<double> >( m_CO_conv_name );
-  CCVariable<double>& d       = tsk_info->get_uintah_field_add<CCVariable<double> >( m_defect_name );
-  CCVariable<double>& rate    = tsk_info->get_uintah_field_add<CCVariable<double> >( m_rate_name );
+  CCVariable<double>& CO = tsk_info->get_field<CCVariable<double> >( m_CO_model_name );
+  CCVariable<double>& CO_diff = tsk_info->get_field<CCVariable<double> >( m_CO_diff_name );
+  CCVariable<double>& CO_conv = tsk_info->get_field<CCVariable<double> >( m_CO_conv_name );
+  CCVariable<double>& d = tsk_info->get_field<CCVariable<double> >( m_defect_name );
+  CCVariable<double>& rate = tsk_info->get_field<CCVariable<double> >( m_rate_name );
 
   CO.initialize(0.0);
   CO_diff.initialize(0.0);
@@ -122,7 +126,7 @@ void CO::register_timestep_init( VIVec& variable_registry , const bool packed_ta
   register_variable( m_CO_model_name , AFC::COMPUTES, variable_registry);
   register_variable( m_CO_model_name , AFC::REQUIRES, 0, AFC::OLDDW, variable_registry );
   register_variable( m_defect_name, AFC::COMPUTES, variable_registry );
-  register_variable( m_defect_name , AFC::REQUIRES, 0, AFC::OLDDW, variable_registry );
+    register_variable( m_defect_name , AFC::REQUIRES, 0, AFC::OLDDW, variable_registry );
   register_variable( m_CO_diff_name, AFC::COMPUTES, variable_registry );
   register_variable( m_CO_conv_name, AFC::COMPUTES, variable_registry );
   register_variable( m_rate_name, AFC::COMPUTES, variable_registry );
@@ -132,13 +136,13 @@ void CO::register_timestep_init( VIVec& variable_registry , const bool packed_ta
 //--------------------------------------------------------------------------------------------------
 void CO::timestep_init( const Patch* patch, ArchesTaskInfoManager* tsk_info ){
 
-  CCVariable<double>& CO          = tsk_info->get_uintah_field_add<CCVariable<double>>( m_CO_model_name );
-  constCCVariable<double>& CO_old = tsk_info->get_const_uintah_field_add<constCCVariable<double>>( m_CO_model_name );
-  CCVariable<double>& defect      = tsk_info->get_uintah_field_add<CCVariable<double>>( m_defect_name );
-  constCCVariable<double>& defect_old = tsk_info->get_const_uintah_field_add<constCCVariable<double>>( m_defect_name );
-  CCVariable<double>& CO_diff     = tsk_info->get_uintah_field_add<CCVariable<double>>(m_CO_diff_name);
-  CCVariable<double>& CO_conv     = tsk_info->get_uintah_field_add<CCVariable<double>>(m_CO_conv_name);
-  CCVariable<double>& rate        = tsk_info->get_uintah_field_add<CCVariable<double>>(m_rate_name);
+  CCVariable<double>& CO = tsk_info->get_field<CCVariable<double>>( m_CO_model_name );
+  constCCVariable<double>& CO_old = tsk_info->get_field<constCCVariable<double>>( m_CO_model_name );
+  CCVariable<double>& defect = tsk_info->get_field<CCVariable<double>>( m_defect_name );
+  constCCVariable<double>& defect_old = tsk_info->get_field<constCCVariable<double>>( m_defect_name );
+  CCVariable<double>& CO_diff = tsk_info->get_field<CCVariable<double>>(m_CO_diff_name);
+  CCVariable<double>& CO_conv = tsk_info->get_field<CCVariable<double>>(m_CO_conv_name);
+  CCVariable<double>& rate = tsk_info->get_field<CCVariable<double>>(m_rate_name);
 
   Uintah::BlockRange range(patch->getExtraCellLowIndex(), patch->getExtraCellHighIndex());
   Uintah::parallel_for( range, [&](int i, int j, int k){
@@ -164,8 +168,8 @@ CO::register_timestep_eval( std::vector<AFC::VariableInformation>& variable_regi
   register_variable( m_CO_conv_name  , AFC::MODIFIES , 0 , AFC::NEWDW , variable_registry , time_substep );
 
   // OLDDW variables
-  register_variable( m_CO_model_name          , AFC::REQUIRES , 2 , AFC::OLDDW , variable_registry , time_substep );
-  register_variable( m_defect_name            , AFC::REQUIRES , 0 , AFC::OLDDW , variable_registry , time_substep );
+    register_variable( m_CO_model_name          , AFC::REQUIRES , 2 , AFC::OLDDW , variable_registry , time_substep );
+    register_variable( m_defect_name            , AFC::REQUIRES , 0 , AFC::OLDDW , variable_registry , time_substep );
   register_variable( m_CO_table_name          , AFC::REQUIRES , 0 , AFC::OLDDW , variable_registry , time_substep );
   register_variable( m_H2O_table_name         , AFC::REQUIRES , 0 , AFC::OLDDW , variable_registry , time_substep );
   register_variable( m_O2_table_name          , AFC::REQUIRES , 0 , AFC::OLDDW , variable_registry , time_substep );
@@ -241,28 +245,28 @@ CO::eval( const Patch* patch, ArchesTaskInfoManager* tsk_info ){
   */
 
   const double dt = tsk_info->get_dt();
-  constCCVariable<double>& ym_new          = tsk_info->get_const_uintah_field_add<constCCVariable<double> >( m_CO_table_name, AFC::NEWDW );
-  constCCVariable<double>& rho_new         = tsk_info->get_const_uintah_field_add<constCCVariable<double> >( m_rho_table_name, AFC::NEWDW );
-  constCCVariable<double>& y_old           = tsk_info->get_const_uintah_field_add<constCCVariable<double> >( m_CO_model_name, AFC::OLDDW );
-  constCCVariable<double>& d_old           = tsk_info->get_const_uintah_field_add<constCCVariable<double> >( m_defect_name, AFC::OLDDW );
-  constCCVariable<double>& ym_old          = tsk_info->get_const_uintah_field_add<constCCVariable<double> >( m_CO_table_name, AFC::OLDDW );
-  constCCVariable<double>& rho_old         = tsk_info->get_const_uintah_field_add<constCCVariable<double> >( m_rho_table_name, AFC::OLDDW );
-  constCCVariable<double>& H2O_old         = tsk_info->get_const_uintah_field_add<constCCVariable<double> >( m_H2O_table_name, AFC::OLDDW );
-  constCCVariable<double>& O2_old          = tsk_info->get_const_uintah_field_add<constCCVariable<double> >( m_O2_table_name, AFC::OLDDW );
-  constCCVariable<double>& invMW_old       = tsk_info->get_const_uintah_field_add<constCCVariable<double> >( m_MW_table_name, AFC::OLDDW );
-  constCCVariable<double>& temperature_old = tsk_info->get_const_uintah_field_add<constCCVariable<double> >( m_temperature_table_name, AFC::OLDDW );
-  constCCVariable<double>& mu_t            = tsk_info->get_const_uintah_field_add<constCCVariable<double> >( m_turb_visc, AFC::OLDDW );
-  constCCVariable<double>& volFraction     = tsk_info->get_const_uintah_field_add<constCCVariable<double> >( m_vol_frac, AFC::OLDDW );
-  constCCVariable<Vector>& areaFraction    = tsk_info->get_const_uintah_field_add<constCCVariable<Vector> >( m_area_frac, AFC::OLDDW );
-  constSFCXVariable<double>& uVel          = tsk_info->get_const_uintah_field_add<constSFCXVariable<double> >( m_u_vel, AFC::OLDDW );
-  constSFCYVariable<double>& vVel          = tsk_info->get_const_uintah_field_add<constSFCYVariable<double> >( m_v_vel, AFC::OLDDW );
-  constSFCZVariable<double>& wVel          = tsk_info->get_const_uintah_field_add<constSFCZVariable<double> >( m_w_vel, AFC::OLDDW );
+  constCCVariable<double>& ym_new = tsk_info->get_field<constCCVariable<double> >( m_CO_table_name, AFC::NEWDW );
+  constCCVariable<double>& rho_new = tsk_info->get_field<constCCVariable<double> >( m_rho_table_name, AFC::NEWDW );
+  constCCVariable<double>& y_old = tsk_info->get_field<constCCVariable<double> >( m_CO_model_name, AFC::OLDDW );
+  constCCVariable<double>& d_old = tsk_info->get_field<constCCVariable<double> >( m_defect_name, AFC::OLDDW );
+  constCCVariable<double>& ym_old = tsk_info->get_field<constCCVariable<double> >( m_CO_table_name, AFC::OLDDW );
+  constCCVariable<double>& rho_old = tsk_info->get_field<constCCVariable<double> >( m_rho_table_name, AFC::OLDDW );
+  constCCVariable<double>& H2O_old = tsk_info->get_field<constCCVariable<double> >( m_H2O_table_name, AFC::OLDDW );
+  constCCVariable<double>& O2_old = tsk_info->get_field<constCCVariable<double> >( m_O2_table_name, AFC::OLDDW );
+  constCCVariable<double>& invMW_old = tsk_info->get_field<constCCVariable<double> >( m_MW_table_name, AFC::OLDDW );
+  constCCVariable<double>& temperature_old = tsk_info->get_field<constCCVariable<double> >( m_temperature_table_name, AFC::OLDDW );
+  constCCVariable<double>& mu_t = tsk_info->get_field<constCCVariable<double> >( m_turb_visc, AFC::OLDDW );
+  constCCVariable<double>& volFraction = tsk_info->get_field<constCCVariable<double> >( m_vol_frac, AFC::OLDDW );
+  constCCVariable<Vector>& areaFraction = tsk_info->get_field<constCCVariable<Vector> >( m_area_frac, AFC::OLDDW );
+  constSFCXVariable<double>& uVel = tsk_info->get_field<constSFCXVariable<double> >( m_u_vel, AFC::OLDDW );
+  constSFCYVariable<double>& vVel = tsk_info->get_field<constSFCYVariable<double> >( m_v_vel, AFC::OLDDW );
+  constSFCZVariable<double>& wVel = tsk_info->get_field<constSFCZVariable<double> >( m_w_vel, AFC::OLDDW );
 
-  CCVariable<double>& y_new    = tsk_info->get_uintah_field_add<CCVariable<double> >( m_CO_model_name );
-  CCVariable<double>& d_new    = tsk_info->get_uintah_field_add<CCVariable<double> >( m_defect_name );
-  CCVariable<double>& rate_new = tsk_info->get_uintah_field_add<CCVariable<double> >( m_rate_name );
-  CCVariable<double>& y_diff   = tsk_info->get_uintah_field_add<CCVariable<double> >( m_CO_diff_name );
-  CCVariable<double>& y_conv   = tsk_info->get_uintah_field_add<CCVariable<double> >( m_CO_conv_name );
+  CCVariable<double>& y_new = tsk_info->get_field<CCVariable<double> >( m_CO_model_name );
+  CCVariable<double>& d_new = tsk_info->get_field<CCVariable<double> >( m_defect_name );
+  CCVariable<double>& rate_new = tsk_info->get_field<CCVariable<double> >( m_rate_name );
+  CCVariable<double>& y_diff = tsk_info->get_field<CCVariable<double> >( m_CO_diff_name );
+  CCVariable<double>& y_conv = tsk_info->get_field<CCVariable<double> >( m_CO_conv_name );
 
   Vector Dx = patch->dCell();
   double vol = Dx.x()*Dx.y()*Dx.z();
@@ -325,4 +329,23 @@ CO::eval( const Patch* patch, ArchesTaskInfoManager* tsk_info ){
   m_boundary_condition->setScalarValueBC( 0, patch, y_new, m_CO_model_name );
 
 }
+
+void
+CO::register_restart_initialize( VIVec& variable_registry , const bool packed_tasks){
+  if ( m_new_on_restart ){ 
+    register_variable( m_CO_model_name, ArchesFieldContainer::COMPUTES, variable_registry ); 
+    register_variable( m_CO_model_name+"_defect", ArchesFieldContainer::COMPUTES, variable_registry ); 
+  }
+}
+
+void  CO::restart_initialize( const Patch* patch, ArchesTaskInfoManager* tsk_info ){
+
+  CCVariable<double>& CO = tsk_info->get_field<CCVariable<double> >( m_CO_model_name );
+  CCVariable<double>& d  = tsk_info->get_field<CCVariable<double> >( m_CO_model_name+"_defect" );
+
+  CO.initialize(0.0);
+  d.initialize(0.0); 
+}
+
+
 } //namespace Uintah

@@ -43,12 +43,34 @@
 
 #include <Core/OS/ProcessInfo.h>
 #include <Core/Parallel/Parallel.h>
+#include <Core/Util/SysUtils.h>
 
 #include <VisIt/interfaces/warehouseInterface.h>
 
 #include <stdio.h>
 
 namespace Uintah {
+
+void nameCleanup( std::string &str )
+{
+  size_t found;
+  while( (found = str.find_first_of(":")) != std::string::npos)
+  {
+    str[found] = '_';
+  }  
+  // while( (found = str.find_first_of(" ")) != std::string::npos)
+  // {
+  //   str[found] = '_';
+  // }  
+  // while( (found = str.find_first_of("(")) != std::string::npos)
+  // {
+  //   str[found] = '_';
+  // }  
+  // while( (found = str.find_first_of(")")) != std::string::npos)
+  // {
+  //   str[found] = '_';
+  // }  
+}
 
 // ****************************************************************************
 //  Method: visit_SimGetCustomUIData
@@ -164,11 +186,19 @@ visit_handle visit_SimGetMetaData(void *cbdata)
   if(VisIt_SimulationMetaData_alloc(&md) == VISIT_OKAY)
   {
     // Set the simulation state.
+<<<<<<< HEAD
 
     // NOTE visit_SimGetMetaData is called as a results of calling
     // visit_CheckState which calls VisItTimeStepChanged at this point
     // the sim->runMode will always be VISIT_SIMMODE_RUNNING.
 
+=======
+
+    // NOTE visit_SimGetMetaData is called as a results of calling
+    // visit_CheckState which calls VisItTimeStepChanged at this point
+    // the sim->runMode will always be VISIT_SIMMODE_RUNNING.
+
+>>>>>>> origin/master
     // To get the "Simulation status" in the Simulation window correct
     // one needs to call VisItUI_setValueS("SIMULATION_MODE", "Stopped", 1);
     if(sim->runMode == VISIT_SIMMODE_FINISHED ||
@@ -405,7 +435,11 @@ visit_handle visit_SimGetMetaData(void *cbdata)
 
       addRectilinearMesh( md, meshes_added, mesh_for_this_var, sim);
       
+<<<<<<< HEAD
       // Per and per node ids on the simulation patch mesh and
+=======
+      // Per rank and per node ids on the simulation patch mesh and
+>>>>>>> origin/master
       // possibly machine mesh.
       visit_handle vmd = VISIT_INVALID_HANDLE;
 
@@ -463,7 +497,11 @@ visit_handle visit_SimGetMetaData(void *cbdata)
 
       std::string mesh_layout[2] = {"/Sim", "/"+sim->hostName};
 
+<<<<<<< HEAD
       const char *patch_names[3] = {"Patch/Id", "Patch/Rank", "Patch/Node"};
+=======
+      const char *patch_names[3] = {"Patch/Id", "Patch/Rank", "Patch/Node" };
+>>>>>>> origin/master
 
       for( unsigned k=0; k<1+addMachineData; ++k )
       {
@@ -494,9 +532,38 @@ visit_handle visit_SimGetMetaData(void *cbdata)
           // Only put the patch id on the machine patch mesh.
           if( k == 1 )
             break;
+<<<<<<< HEAD
+=======
         }
       }
 
+      // Per rank and per node performance data on the simulation
+      // patch mesh and possibly machine rank mesh.
+      mesh_name[1] = "Machine_" + sim->hostName + "/Local";
+      
+      // Runtime data on both the sim and machine.
+      for( unsigned k=0; k<1+addMachineData; ++k )
+      {
+        // Add in the infrastructure runtime stats.
+        addReductionStats( md, sim->simController->getRuntimeStats(),
+                           "Processor/Runtime/", mesh_name[k],
+                           (addMachineData ? mesh_layout[k] : "") );
+          
+        // Add in the mpi runtime stats.
+        if( mpiScheduler ) {
+          addReductionStats( md, mpiScheduler->m_mpi_info,
+                             "Processor/MPI/", mesh_name[k],
+                             (addMachineData ? mesh_layout[k] : "") );
+>>>>>>> origin/master
+        }
+        
+        // Add in the application runtime stats.
+        addReductionStats( md, appInterface->getApplicationStats(),
+                           "Processor/Application/", mesh_name[k],
+                           (addMachineData ? mesh_layout[k] : "") );
+      }
+
+<<<<<<< HEAD
       // Per rank and per node performance data on the simulation
       // patch mesh and possibly machine rank mesh.
       mesh_name[1] = "Machine_" + sim->hostName + "/Local";
@@ -536,12 +603,32 @@ visit_handle visit_SimGetMetaData(void *cbdata)
       // patch is patches on the each core.
       for( unsigned int i=0; i<5; ++i )
       {
+=======
+    // If there is a machine layout then the performance data can be
+    // placed on the machine mesh.
+    if( addMachineData )
+    {
+      // Number of additioanl threads.
+      unsigned int addThreads = (Uintah::Parallel::getNumThreads() - 1 > 1);
+      unsigned int addComms   = (sim->myworld->nRanks() > 1);
+
+      // If there is a machine layout then there is a global, local,
+      // and patch machine mesh. The global is all of the nodes and
+      // cores. The local is the nodes and cores actually used. The
+      // patch is patches on the each core.
+      for( unsigned int i=0; i<6; ++i )
+      {
+>>>>>>> origin/master
         // Set the mesh’s properties.
         std::string meshName = "Machine_" + sim->hostName;
 
         unsigned int nLoops = 1;
         
+<<<<<<< HEAD
         if( i == 0 && sim->switchNodeList.size() > 1 ) { // Global rank mesh
+=======
+        if( i == 0 && sim->switchNodeList.size() > 0 ) { // Global rank mesh
+>>>>>>> origin/master
           meshName += "/Global";
         }
         else if( i == 1 ) { // Local rank mesh
@@ -553,10 +640,20 @@ visit_handle visit_SimGetMetaData(void *cbdata)
         else if( i == 3 && addThreads ) { // Local thread mesh
           meshName += "/Thread";
         }
+<<<<<<< HEAD
         else if( i == 4 && addComms ) { // Local communication  mesh
             meshName += "/Communication";
             nLoops = mpiScheduler->getNumTaskGraphs();
         }
+=======
+        else if( i == 4 && addComms ) { // Local communication mesh
+            meshName += "/Communication";
+            nLoops = mpiScheduler->getNumTaskGraphs();
+        }
+        else if( i == 5 && mpiScheduler ) { // Local thread mesh
+          meshName += "/Tasks";
+        }
+>>>>>>> origin/master
         else
           continue;
 
@@ -704,6 +801,35 @@ visit_handle visit_SimGetMetaData(void *cbdata)
           }
         }
       }
+<<<<<<< HEAD
+=======
+
+      // Tasks
+      if( mpiScheduler )
+      {
+        // Add in the tasks runtime stats which go on to the
+        // machine local and patch meshes.
+        std::string varName[2] = { "Processor/Machine/Tasks/",
+                                   "Patch/Tasks/" };
+        
+        std::string meshName[2] = { "Machine_" + sim->hostName + "/Local",
+                                    "Patch_Mesh" };
+
+        for( unsigned int j=0; j<2; ++j )
+        {
+          addMapIndividualStats( md, mpiScheduler->m_task_info,
+                                 varName[j], "",
+                                 meshName[j] );
+        }
+
+        varName[0] = "Processor/Machine/Tasks/All/";
+        meshName[0] = "Machine_" + sim->hostName + "/Tasks";
+        
+        addMapAllStats( md, mpiScheduler->m_task_info,
+                        varName[0], "",
+                        meshName[0] );
+      }
+>>>>>>> origin/master
       
       const int nVars = 4;
       std::string vars[nVars] = {"NodeID",
@@ -754,6 +880,7 @@ visit_handle visit_SimGetMetaData(void *cbdata)
         
         addVectorStats( md, unifiedScheduler->m_thread_info,
                         "Processor/Machine/Thread/", meshName );
+<<<<<<< HEAD
 
         const int nVars = 1;
         std::string vars[nVars] = { "ThreadID" };
@@ -779,6 +906,8 @@ visit_handle visit_SimGetMetaData(void *cbdata)
             VisIt_SimulationMetaData_addVariable(md, vmd);
           }
         }
+=======
+>>>>>>> origin/master
       }
 
       // Additional comms.
@@ -793,12 +922,15 @@ visit_handle visit_SimGetMetaData(void *cbdata)
           std::string statIndex = (nTaskGraphs == 1 ? "" :
                                    "/" + std::to_string(k));
 
+<<<<<<< HEAD
           // Add in the communication reduction runtime stats which go
           // on to the local machine mesh (i.e. the rank).
           addMapReductionStats( md, mpiScheduler->getTaskGraph(k)->getDetailedTasks()->getCommInfo(),
                                 "Processor/Machine/Communication/", statIndex,
                                 "Machine_" + sim->hostName + "/Local" );
 
+=======
+>>>>>>> origin/master
           // Add in the communication runtime stats which go on to the
           // machine communication and communication meshes.
           std::string varName[2] = { "Processor/Machine/Communication/",
@@ -806,11 +938,63 @@ visit_handle visit_SimGetMetaData(void *cbdata)
           std::string meshName[2] = { "Machine_" + sim->hostName + "/Communication",
                                       "Communication_" + sim->hostName };
 
+<<<<<<< HEAD
           for( unsigned int j=0; j<2; ++j )
           {
             addMapStats( md, mpiScheduler->getTaskGraph(k)->getDetailedTasks()->getCommInfo(),
                          varName[j], statIndex,
                          meshName[j] + statIndex );
+=======
+          // Add in the communication across each task pairs.
+          for (auto& info: mpiScheduler->getTaskGraph(k)->getDetailedTasks()->getCommInfo()) {
+            std::pair< std::string, std::string > taskPair = info.first;
+    
+            std::string taskPairName = taskPair.first + "|" + taskPair.second;
+
+            // Comment out this code so to get all tasks.
+            if( taskPairName != "All|Tasks" )
+              continue;
+
+            // Add in the communication reduction runtime stats which go
+            // on to the application mesh.
+            addMapReductionStats( md, info.second,
+                                  "Patch/Communication/" + taskPairName + "/", statIndex,
+                                  "Patch_Mesh");
+
+            // Add in the communication reduction runtime stats which go
+            // on to the local machine mesh (i.e. the rank).
+            addMapReductionStats( md, info.second,
+                                  "Processor/Machine/Communication/" + taskPairName + "/", statIndex,
+                                  "Machine_" + sim->hostName + "/Local" );
+
+            for( unsigned int j=0; j<2; ++j )
+            {
+              addMapAllStats( md, info.second,
+                              varName[j] + taskPairName + "/", statIndex,
+                              meshName[j] + statIndex );
+            }
+          }
+
+          // Add in the communication across all tasks.
+          
+          // Add in the communication reduction runtime stats which go
+          // on to the application mesh.
+          // addMapReductionStats( md, mpiScheduler->getTaskGraph(k)->getDetailedTasks()->getCommInfo(),
+          //                       "Patch/Communication/AllTasks/", statIndex,
+          //                       "Patch_Mesh");
+
+          // Add in the communication reduction runtime stats which go
+          // on to the local machine mesh (i.e. the rank).
+          // addMapReductionStats( md, mpiScheduler->getTaskGraph(k)->getDetailedTasks()->getCommInfo(),
+          //                       "Processor/Machine/Communication/AllTasks/", statIndex,
+          //                       "Machine_" + sim->hostName + "/Local" );
+
+          for( unsigned int j=0; j<2; ++j )
+          {
+            // addMapAllStats( md, mpiScheduler->getTaskGraph(k)->getDetailedTasks()->getCommInfo(),
+            //              varName[j] + "AllTasks/", statIndex,
+            //              meshName[j] + statIndex );
+>>>>>>> origin/master
 
             const int nVars = 1;
             std::string vars[nVars] = { "CommID" };
@@ -1254,7 +1438,14 @@ visit_handle visit_SimGetMesh(int domain, const char *meshname, void *cbdata)
       index = stoi( meshName.substr(found + 1) );
     }
     
+<<<<<<< HEAD
     MapInfoMapper< unsigned int, CommunicationStatsEnum, unsigned int > &comm_info = scheduler->getTaskGraph(index)->getDetailedTasks()->getCommInfo();
+=======
+    std::pair< std::string, std::string > allTasks("All", "Tasks");
+    
+    MapInfoMapper< unsigned int, CommunicationStatsEnum, unsigned int > &comm_info =
+      scheduler->getTaskGraph(index)->getDetailedTasks()->getCommInfo()[allTasks];
+>>>>>>> origin/master
     
     unsigned int nComms = comm_info.size();
     
@@ -1273,6 +1464,35 @@ visit_handle visit_SimGetMesh(int domain, const char *meshname, void *cbdata)
     }
  
     visit_handle meshH = VISIT_INVALID_HANDLE;
+<<<<<<< HEAD
+
+    if(VisIt_PointMesh_alloc(&meshH) == VISIT_OKAY)
+    {
+      visit_handle cordsH = VISIT_INVALID_HANDLE;
+
+      if(VisIt_VariableData_alloc(&cordsH) == VISIT_OKAY)
+      {
+        VisIt_VariableData_setDataD(cordsH, VISIT_OWNER_VISIT,
+                                    3, nComms, values);
+
+        VisIt_PointMesh_setCoords(meshH, cordsH );
+      }
+
+      // No need to delete as the flag is VISIT_OWNER_VISIT so VisIt
+      // owns the data (VISIT_OWNER_SIM - indicates the simulation owns
+      // the data). However pd needs to be deleted.
+    }
+
+    return meshH;
+  }
+  else if( meshName.find("Machine_") == 0 )
+  {
+    // nConnections are for quads so the type plus four points.
+    const unsigned int nQuadVals = 5;
+    unsigned int nConnections = 0;
+    int* connections = nullptr;
+=======
+>>>>>>> origin/master
 
     if(VisIt_PointMesh_alloc(&meshH) == VISIT_OKAY)
     {
@@ -1312,6 +1532,16 @@ visit_handle visit_SimGetMesh(int domain, const char *meshname, void *cbdata)
       if( sim->myworld->myRank() != 0 )
         return VISIT_INVALID_HANDLE;
 
+<<<<<<< HEAD
+    // Create a quad for each rank on a node.
+    if( meshName.find("/Global") != std::string::npos )
+    {    
+      // Only rank 0 return the global mesh.
+      if( sim->myworld->myRank() != 0 )
+        return VISIT_INVALID_HANDLE;
+
+=======
+>>>>>>> origin/master
       // Total size of the layout - add one to have gap between nodes.
       const unsigned int xMax = sim->switchNodeList.size() * (sim->xNode+1);
       const unsigned int yMax = sim->maxNodes              * (sim->yNode+1);
@@ -1434,23 +1664,160 @@ visit_handle visit_SimGetMesh(int domain, const char *meshname, void *cbdata)
       connections[nConnections++] = (+0) * xMax + (+1);
     }
 
+<<<<<<< HEAD
     // For each rank create a quad for it's patches.
     else if( meshName.find("/Patch" ) != std::string::npos )
+=======
+    // Create a quad for each rank on a node.
+    if( meshName.find("/Thread") != std::string::npos )
+>>>>>>> origin/master
     {
-      const PatchSubset* myPatches =
-        lb->getPerProcessorPatchSet(gridP)->getSubset( domain );
+      // Indexes for the switch, node, and core.
+      unsigned int s = sim->switchIndex;
+      unsigned int n = sim->nodeIndex;
+      unsigned int c = sim->myworld->myNode_myRank();
+      unsigned int nRanks = sim->myworld->myNode_nRanks();
+      
+      unsigned int nSockets = sysGetNumSockets();
+      unsigned int nCoresPerSocket = sysGetNumCoresPerSockets();
+      unsigned int nThreadsPerCore = sysGetNumThreadsPerCore();
+      unsigned int nThreads = 0;
 
-      const unsigned int nPatches = myPatches->size();
+      // If the number of ranks is one then not taking advantage of
+      // the sockets.
+      if( nRanks == 1 )
+      {
+        nThreads = nSockets * nCoresPerSocket * nThreadsPerCore;
+      }      
+      // If the number of ranks greater than one then it must equal
+      // the number of sockets.
+      else if( nRanks == nSockets )
+      {
+        nThreads = nCoresPerSocket * nThreadsPerCore;
+      }
+      // Over subscribed - what to do ??
+      else
+      {
+        return VISIT_INVALID_HANDLE;
+      }
 
+      // Over subscribed - what to do ??
+      if( nThreads < (unsigned int) Uintah::Parallel::getNumThreads() )
+      {
+        return VISIT_INVALID_HANDLE;
+      }
+
+      // Connections are for quads so the type plus four points.
+      connections = new int[ nThreads * nQuadVals ];
+
+      // Total size of the layout for one thread;
+      const unsigned int xMax = 2;
+      const unsigned int yMax = 2;
+        
+      // Set all of the points as rectilinear grid.
+      nPts = nThreads * xMax * yMax;
+      xPts = new float[nPts];
+      yPts = new float[nPts];
+      // zPts = new float[nPts];
+
+      // Get the node x y location based on the x/y node size.
+      unsigned int bx = s * (sim->xNode+1);
+      unsigned int by = n * (sim->yNode+1);
+
+      float dx = 1.0 / (float) nThreadsPerCore;
+      
+      // Loop through each thread.
+      for( unsigned int t=0; t<nThreads; ++t )
+      {
+        unsigned int threadID = c + t * nRanks;
+
+        unsigned int core        = threadID % (nSockets*nCoresPerSocket);
+        unsigned int hyperThread = threadID / (nSockets*nCoresPerSocket);
+          
+        // Get the core x y location based on the xNode size.
+        float lx = bx + core % sim->xNode + hyperThread * dx;
+        float ly = by + core / sim->xNode;
+        
+        for( unsigned int j=0; j<yMax; ++j)
+        {
+          for( unsigned int i=0; i<xMax; ++i)
+          {
+            xPts[t*xMax*yMax+j*xMax+i] = lx + i * dx;
+            yPts[t*xMax*yMax+j*xMax+i] = ly + j;
+            // zPts[t*xMax*yMax+j*xMax+i] = 0;
+          }
+        }
+
+        // All cells are quads
+        connections[nConnections++] = VISIT_CELL_QUAD;
+        
+        // Set the index based on a rectilinear grid.
+        connections[nConnections++] = t*xMax*yMax + (+0) * xMax + (+0);
+        connections[nConnections++] = t*xMax*yMax + (+1) * xMax + (+0);
+        connections[nConnections++] = t*xMax*yMax + (+1) * xMax + (+1);
+        connections[nConnections++] = t*xMax*yMax + (+0) * xMax + (+1);
+      }
+    }
+
+    // For each rank create a quad for it's patches, point
+    // communication rank, or tasks.
+    else if( meshName.find("/Patch" ) != std::string::npos ||
+             meshName.find("/Communication") != std::string::npos ||
+             meshName.find("/Tasks") != std::string::npos )
+    {
+      unsigned int nValues = 0;
+
+      if( meshName.find("/Patch") != std::string::npos ) {
+        const PatchSubset* myPatches =
+          lb->getPerProcessorPatchSet(gridP)->getSubset( domain );
+
+        nValues = myPatches->size();
+      }
+      else if( meshName.find("/Communication") != std::string::npos ) {
+      
+        SchedulerCommon *scheduler = dynamic_cast<SchedulerCommon*>
+          (sim->simController->getSchedulerP().get_rep());
+      
+        // There may be multiple communication matrices, the index
+        // will be last.
+        unsigned int index = 0;    
+        if( scheduler->getNumTaskGraphs() > 1 ) {
+          size_t found = meshName.find_last_of("/");
+          
+          index = stoi( meshName.substr(found + 1) );
+        }
+
+<<<<<<< HEAD
       if( nPatches == 0 )
         return VISIT_INVALID_HANDLE;
 
+=======
+        std::pair< std::string, std::string > allTasks("All", "Tasks");
+        
+        MapInfoMapper< unsigned int, CommunicationStatsEnum, unsigned int > &comm_info =
+          scheduler->getTaskGraph(index)->getDetailedTasks()->getCommInfo()[allTasks];
+      
+        nValues = comm_info.size();
+      }
+      else if( meshName.find("/Tasks") != std::string::npos ) {
+        
+        MPIScheduler *mpiScheduler = dynamic_cast<MPIScheduler*>
+          (sim->simController->getSchedulerP().get_rep());
+        
+        nValues = mpiScheduler->m_task_info.size();
+      }
+      
+      // Some ranks may not have patches, threads or be communicating.
+      if( nValues == 0 )
+        return VISIT_INVALID_HANDLE;
+      
+>>>>>>> origin/master
       // Total size of the layout. Try to make rectangles.
-      unsigned int xMax = sqrt(nPatches);
+      unsigned int xMax = sqrt(nValues);
       unsigned int yMax = xMax;
 
-      // Make sure to cover all the patches - may be blank areas.
-      while( xMax * yMax < nPatches )
+      // Make sure to cover all the thread - may be blank areas.
+      while( xMax * yMax < nValues )
         ++yMax;
 
       // Add one to get the far boundary.
@@ -1491,9 +1858,9 @@ visit_handle visit_SimGetMesh(int domain, const char *meshname, void *cbdata)
       }
 
       // Connections are for quads so the type plus four points.
-      connections = new int[ nPatches * nQuadVals ];
+      connections = new int[ nValues * nQuadVals ];
 
-      for (unsigned int  p = 0; p < nPatches; ++p) {
+      for (unsigned int  p = 0; p < nValues; ++p) {
 
         // Get an x y index based on the xMax size.
         unsigned int px = p % (xMax-1);
@@ -1964,6 +2331,7 @@ visit_handle visit_SimGetVariable(int domain, const char *varname, void *cbdata)
 
   // Machine mesh only variables: NodeID, MPI/Node, MPI/Rank, and MPI/Comm/Rank
   if( varName.find("Processor/Communication/") == 0 )
+<<<<<<< HEAD
   {
     {
       SchedulerCommon *scheduler = dynamic_cast<SchedulerCommon*>
@@ -2202,10 +2570,76 @@ visit_handle visit_SimGetVariable(int domain, const char *varname, void *cbdata)
                 << "Uintah Processor/Machine/Thread " << i
                 << " variable \"" << statName << "\"  " << "does not exist.";
 
+=======
+  {
+    {
+      SchedulerCommon *scheduler = dynamic_cast<SchedulerCommon*>
+        (sim->simController->getSchedulerP().get_rep());
+      
+      // There may be multiple communication matrices, the index will be last.
+      unsigned int index = 0;
+      if( scheduler->getNumTaskGraphs() > 1 ) {
+        size_t found = varName.find_last_of("/");
+        
+        index = stoi( varName.substr(found + 1) );
+        varName = varName.substr(0, found);
+      }
+
+      std::pair< std::string, std::string > allTasks("All", "Tasks");
+      
+      std::map< std::pair< std::string, std::string >,
+                MapInfoMapper< unsigned int, CommunicationStatsEnum, unsigned int > > &comm_info =
+        scheduler->getTaskGraph(index)->getDetailedTasks()->getCommInfo();
+      
+      unsigned int nValues = comm_info[allTasks].size();
+
+      // Some nodes may not be communicating.
+      if( nValues == 0 )
+        return varH;
+      
+      double *values = new double[ nValues ];
+      
+      if( varName.find("Processor/Communication/CommID") == 0 ) {
+        for( unsigned int i=0; i<nValues; ++i)
+          values[i] = comm_info[allTasks].getKey(i);
+      }
+      else if( varName.find("Processor/Communication/") == 0 ) {
+
+        // Lop off the prefix
+        size_t found = std::string("Processor/Communication/").size();
+        std::string statName = varName.substr(found);
+
+        // Task pair name and the stat
+        found = statName.find("/");
+        std::string pairName = statName.substr(0, found);
+        statName = statName.substr(found + 1);
+
+        found = pairName.find("|");
+        std::string toTaskName   = pairName.substr(0, found);
+        std::string fromTaskName = pairName.substr(found + 1);
+
+        std::pair< std::string, std::string > taskPair( toTaskName, fromTaskName );
+        
+        for( unsigned int i=0; i<nValues; ++i) {
+
+          unsigned int key = comm_info[taskPair].getKey(i);
+            
+          if( comm_info[taskPair][key].exists(statName) )
+            values[i] = comm_info[taskPair][key].getRankValue(statName);
+          else {
+            values[i] = 0;
+            
+            std::stringstream msg;
+            msg << "Visit libsim - for domain " << domain << "  "
+                << "Uintah Processor/Machine/Communication/" << pairName << "  " << key
+                << " variable \"" << statName << "\"  " << "does not exist.";
+            
+>>>>>>> origin/master
             VisItUI_setValueS("SIMULATION_MESSAGE_ERROR", msg.str().c_str(), 1);
           }
         }
       }
+<<<<<<< HEAD
 
       if(VisIt_VariableData_alloc(&varH) == VISIT_OKAY)
       {
@@ -2319,22 +2753,133 @@ visit_handle visit_SimGetVariable(int domain, const char *varname, void *cbdata)
   TimeStepInfo* &stepInfo = sim->stepInfo;
 
   // int timeStep = sim->cycle;
+=======
+      else
+      {
+        for( unsigned int i=0; i<nValues; ++i)
+          values[i] = 0;
 
-  bool isParticleVar = false;
-  bool isInternalVar = false;
-  bool isMachineMeshVar = false;
+        std::stringstream msg;
+        msg << "Visit libsim - " << domain << "  "
+            << "Uintah variable \"" << varName << "\"  "
+            << "does not exist.";
+        
+        VisItUI_setValueS("SIMULATION_MESSAGE_ERROR", msg.str().c_str(), 1);
+      }
 
+      if(VisIt_VariableData_alloc(&varH) == VISIT_OKAY)
+      {
+        VisIt_VariableData_setDataD(varH, VISIT_OWNER_VISIT, 1, nValues, values);
+        
+        // No need to delete as the flag is VISIT_OWNER_VISIT so VisIt
+        // owns the data (VISIT_OWNER_SIM - indicates the simulation
+        // owns the data).
+      }
+
+      return varH;
+    }
+  }
+  // Machine mesh only variables: NodeID, MPI/Node, MPI/Rank, and MPI/Comm/Rank
+  else if( varName.find("Processor/Machine/") == 0 )
+  {
+    // At the present time all vars are local.
+    // bool global = (varName.find("Global") != std::string::npos);
+    // bool local  = (varName.find("Local" ) != std::string::npos);
+    // bool thread = (varName.find("Thread") != std::string::npos);
+    // bool task   = (varName.find("Task  ") != std::string::npos);
+
+    bool global = false;
+
+    bool local = (varName.find("Processor/Machine/NodeID") == 0 ||
+                  varName.find("Processor/Machine/MPI/Node") == 0 ||
+                  varName.find("Processor/Machine/MPI/Rank") == 0 ||
+                  varName.find("Processor/Machine/MPI/Comm/Rank") ||
+                  varName.find("Processor/Machine/Tasks/") == 0);
+
+    bool thread        = (varName.find("Processor/Machine/Thread") == 0 );
+    bool communication = (varName.find("Processor/Machine/Communication") == 0 );
+    bool task          = (varName.find("Processor/Machine/Tasks/All") == 0 );
+
+    // Only rank 0 return the whole of the mesh.
+    // if( global && sim->myworld->myRank() != 0 )
+    //   return VISIT_INVALID_HANDLE;
+
+    if( global )
+    {
+    //   unsigned int totalCores =
+    //     sim->switchNodeList.size() * sim->maxNodes * sim->maxCores;
+
+    //   nValues = 0;
+    //   values = new int[ totalCores ];
+>>>>>>> origin/master
+
+    //   for( unsigned int i=0; i<totalCores; ++i)
+    //     values[i] = 0;
+    
+    //   // Loop through each switch.
+    //   for( unsigned int s=0; s<sim->switchNodeList.size(); ++s )
+    //   {
+    //     unsigned int nCores = 0;
+
+    //     // Loop through each node.
+    //     for( unsigned int n=0; n<sim->switchNodeList[s].size(); ++n )
+    //     {
+    //       for( unsigned int i=0; i<sim->nodeCores.size(); ++i )
+    //       {
+    //         if( sim->nodeStart[i] <= sim->switchNodeList[s][n] &&
+    //             sim->switchNodeList[s][n] <= sim->nodeStop[i] )
+    //         {
+    //           nCores  = sim->nodeCores[i];
+    //           break;
+    //         }
+    //       }
+
+    //       // Loop through each core.
+    //       for( unsigned int i=0; i<nCores; ++i )
+    //       {
+    //         if( varName.find("Processor/Machine/NodeID") == 0 )
+    //           values[nValues++] = atoi(sim->hostNode.c_str());
+    //         else if( varName.find("Processor/Machine/MPI/Node") == 0 )
+    //           values[nValues++] = sim->myworld->myNode();
+    //         else if( varName.find("Processor/Machine/MPI/Rank") == 0 )
+    //           values[nValues++] = sim->myworld->myRank();
+    //         else if( varName.find("Processor/Machine/MPI/Comm/Rank") == 0 )
+    //           values[nValues++] = sim->myworld->myNode_myRank();
+    //       }
+    //     }
+    //   }
+    }
+
+<<<<<<< HEAD
   // Get the var name sans the material. If a patch or processor
   // variable then the var name will be either "Patch" or "Processor".
   size_t found = varName.find("/");
   std::string matl = varName.substr(found + 1);
   varName = varName.substr(0, found);
+=======
+    else if( local && !task )
+    {
+      unsigned int nValues = 1;  // 1 Core
+      double *values = new double[ nValues ];
 
-  // Get the varType except for processor and patch based data which
-  // does not come from the data warehouse but instead from internal
-  // structures.
-  std::string varType("");
+      if( varName.find("Processor/Machine/NodeID") == 0 )
+        values[0] = atoi(sim->hostNode.c_str());
+      else if( varName.find("Processor/Machine/MPI/Node") == 0 )
+        values[0] = sim->myworld->myNode();
+      else if( varName.find("Processor/Machine/MPI/Rank") == 0 )
+        values[0] = sim->myworld->myRank();
+      else if( varName.find("Processor/Machine/MPI/Comm/Rank") == 0 )
+        values[0] = sim->myworld->myNode_myRank();
+      else if( varName.find("Processor/Machine/Tasks/") == 0 ) {
+>>>>>>> origin/master
 
+        MPIScheduler *mpiScheduler = dynamic_cast<MPIScheduler*>
+          (sim->simController->getSchedulerP().get_rep());
+        
+        size_t found = varName.find_last_of("/");
+        std::string statName = varName.substr(found + 1);
+
+<<<<<<< HEAD
   if( strncmp(varname, "Patch/Id", 8) == 0 )
   {
     isInternalVar = true;
@@ -2342,11 +2887,33 @@ visit_handle visit_SimGetVariable(int domain, const char *varname, void *cbdata)
 
     // If the machine profile is available get the sim or host name.
     if( addMachineData )
-    {
-      std::string hostName = std::string(varname);
-      found = hostName.find_last_of("/");
-      hostName = hostName.substr(found + 1);
+=======
+        varName = varName.substr(0, found);
+        found = std::string("Processor/Machine/Tasks/").size();
+        std::string taskName = varName.substr(found);
 
+        values[0] = mpiScheduler->m_task_info[taskName].getRankValue(statName);
+      }
+      
+      if(VisIt_VariableData_alloc(&varH) == VISIT_OKAY)
+      {
+        VisIt_VariableData_setDataD(varH, VISIT_OWNER_VISIT, 1, nValues, values);
+        
+        // No need to delete as the flag is VISIT_OWNER_VISIT so VisIt
+        // owns the data (VISIT_OWNER_SIM - indicates the simulation
+        // owns the data).
+      }
+
+      return varH;
+    }
+
+    else if( task )
+>>>>>>> origin/master
+    {
+      MPIScheduler *mpiScheduler = dynamic_cast<MPIScheduler*>
+        (sim->simController->getSchedulerP().get_rep());
+
+<<<<<<< HEAD
       isMachineMeshVar = (hostName == sim->hostName);
     }
   }
@@ -2397,6 +2964,361 @@ visit_handle visit_SimGetVariable(int domain, const char *varname, void *cbdata)
       found = hostName.find_last_of("/");
       hostName = hostName.substr(found + 1);
 
+=======
+      MapInfoMapper< std::string, TaskStatsEnum, double >
+        &task_info = mpiScheduler->m_task_info;
+      
+      unsigned int nValues = task_info.size();
+      double *values = new double[ nValues ];
+
+      size_t found = varName.find_last_of("/");
+      std::string statName = varName.substr(found + 1);
+
+      for( unsigned int i=0; i<nValues; ++i ) {
+
+        std::string taskName = task_info.getKey(i);
+        
+        values[i] = task_info[taskName].getRankValue(statName);
+      }
+
+      if(VisIt_VariableData_alloc(&varH) == VISIT_OKAY)
+      {
+        VisIt_VariableData_setDataD(varH, VISIT_OWNER_VISIT, 1, nValues, values);
+        
+        // No need to delete as the flag is VISIT_OWNER_VISIT so VisIt
+        // owns the data (VISIT_OWNER_SIM - indicates the simulation
+        // owns the data).
+      }
+
+      return varH;
+    }
+    
+    else if( thread )
+    {
+      unsigned int nThreads = Uintah::Parallel::getNumThreads();
+
+      // Some ranks may not have any threads.
+      if( nThreads == 0 )
+        return varH;
+      
+      UnifiedScheduler *unifiedScheduler = dynamic_cast<UnifiedScheduler*>
+        (sim->simController->getSchedulerP().get_rep());
+
+      unsigned int nRanks = sim->myworld->myNode_nRanks();
+      
+      unsigned int nSockets = sysGetNumSockets();
+      unsigned int nCoresPerSocket = sysGetNumCoresPerSockets();
+      unsigned int nThreadsPerCore = sysGetNumThreadsPerCore();
+
+      unsigned int nValues = 0;
+      double *values;
+
+      // If the number of ranks is one then not taking advantage of
+      // the sockets.
+      if( nRanks == 1 )
+      {
+        nValues = nSockets * nCoresPerSocket * nThreadsPerCore;
+      }      
+      // If the number of ranks greater than one then it must equal
+      // the number of sockets.
+      else if( nRanks == nSockets )
+      {
+        nValues = nCoresPerSocket * nThreadsPerCore;
+      }
+      // Over subscribed - what to do ??
+      else
+      {
+        return varH;
+      }
+
+      // Over subscribed - what to do ??
+      if( nValues < nThreads )
+      {
+        return varH;
+      }
+
+      size_t found = std::string("Processor/Machine/Thread/").size();
+      std::string statName = varName.substr(found);
+
+      // MPI rank wise thread reduction variable
+      if( statName.find_last_of("/") != std::string::npos )
+      {
+        nValues = 1;    
+        values = new double[ nValues ];
+
+        size_t found = statName.find_last_of("/");
+        std::string reductionType = statName.substr(found + 1);
+        statName = statName.substr(0, found);
+
+        if( reductionType == "Size" )
+          values[0] = unifiedScheduler->m_thread_info.size();
+        else if( reductionType == "Sum" )
+          values[0] = unifiedScheduler->m_thread_info.getSum( statName );
+        else if( reductionType == "Average" )
+          values[0] = unifiedScheduler->m_thread_info.getAverage( statName );
+        else if( reductionType == "Minimum" )
+          values[0] = unifiedScheduler->m_thread_info.getMinimum( statName );
+        else if( reductionType == "Maximum" )
+          values[0] = unifiedScheduler->m_thread_info.getMaximum( statName );
+        else if( reductionType == "StdDev" )
+          values[0] = unifiedScheduler->m_thread_info.getStdDev( statName );
+      }
+      // Thread wise variables
+      else {
+
+        // Set the initial values to -1 so they can be skipped when
+        // visualized.
+        values = new double[ nValues ];
+
+        for( unsigned int i=0; i<nValues; ++i)
+          values[i] = -1;
+
+        // Get the thread values based on the affinity so they are
+        // mapped to the correct core.
+        for( unsigned int i=0; i<nThreads; ++i) {
+          if( unifiedScheduler->m_thread_info[i].exists("Affinity") &&
+              unifiedScheduler->m_thread_info[i].exists(statName) )
+          {
+            unsigned int core =
+              unifiedScheduler->m_thread_info[i].getRankValue("Affinity");
+            values[core] =
+              unifiedScheduler->m_thread_info[i].getRankValue(statName);
+          }
+          else
+          {
+            std::stringstream msg;
+            msg << "Visit libsim - for domain " << domain << "  "
+                << "Uintah Processor/Machine/Thread " << i
+                << " variable \"" << statName << "\"  " << "does not exist.";
+
+            VisItUI_setValueS("SIMULATION_MESSAGE_ERROR", msg.str().c_str(), 1);
+          }
+        }
+      }
+
+      if(VisIt_VariableData_alloc(&varH) == VISIT_OKAY)
+      {
+        VisIt_VariableData_setDataD(varH, VISIT_OWNER_VISIT, 1, nValues, values);
+        
+        // No need to delete as the flag is VISIT_OWNER_VISIT so VisIt
+        // owns the data (VISIT_OWNER_SIM - indicates the simulation
+        // owns the data).
+      }
+
+      return varH;
+    }
+
+    else if( communication )
+    {
+      SchedulerCommon *scheduler = dynamic_cast<SchedulerCommon*>
+        (sim->simController->getSchedulerP().get_rep());
+
+      // There may be multiple communication matrices, the index will be last.
+      unsigned int index = 0;
+
+      if( scheduler->getNumTaskGraphs() > 1 ) {
+        size_t found = varName.find_last_of("/");
+        
+        index = stoi( varName.substr(found + 1) );
+        varName = varName.substr(0, found);
+      }
+
+      std::pair< std::string, std::string > allTasks("All", "Tasks");
+      
+      std::map< std::pair< std::string, std::string >,
+                MapInfoMapper< unsigned int, CommunicationStatsEnum, unsigned int > > &comm_info =
+        scheduler->getTaskGraph(index)->getDetailedTasks()->getCommInfo();
+      
+      unsigned int nValues = comm_info[allTasks].size();
+      double *values;
+      
+      // Some nodes may not be communicating.
+      if( nValues == 0 )
+        return varH;
+      
+      size_t found = std::string("Processor/Machine/Communication/").size();
+      std::string statName = varName.substr(found);
+
+      // The communication id is the other MPI rank.
+      if( statName.find("CommID") == 0 ) {
+
+        values = new double[ nValues ];
+
+        for( unsigned int i=0; i<nValues; ++i)
+          values[i] = comm_info[allTasks].getKey(i);
+      }
+
+      else {
+
+        // Lop off the prefix
+        found = std::string("Processor/Machine/Communication/").size();
+        statName = varName.substr(found);
+
+        // Task pair name and the stat
+        found = statName.find("/");
+        std::string pairName = statName.substr(0, found);
+        statName = statName.substr(found + 1);
+
+        found = pairName.find("|");
+        std::string toTaskName   = pairName.substr(0, found);
+        std::string fromTaskName = pairName.substr(found + 1);
+
+        std::pair< std::string, std::string > taskPair( toTaskName, fromTaskName );
+
+        // Reduction variable
+        if( statName.find("/") != std::string::npos )
+        {
+          nValues = 1;    
+          values = new double[ nValues ];
+          
+          size_t found = statName.find_last_of("/");
+          std::string reductionType = statName.substr(found + 1);
+          statName = statName.substr(0, found);
+          
+          if( reductionType == "Size" )
+            values[0] = comm_info[taskPair].size();
+          else if( reductionType == "Sum" )
+            values[0] = comm_info[taskPair].getSum( statName );
+          else if( reductionType == "Average" )
+            values[0] = comm_info[taskPair].getAverage( statName );
+          else if( reductionType == "Minimum" )
+            values[0] = comm_info[taskPair].getMinimum( statName );
+          else if( reductionType == "Maximum" )
+            values[0] = comm_info[taskPair].getMaximum( statName );
+          else if( reductionType == "StdDev" )
+            values[0] = comm_info[taskPair].getStdDev( statName );
+        }
+        else {
+          values = new double[ nValues ];
+          
+          // Access is via keys only so get the first key
+          // unsigned int key = comm_info[taskPair].getKey(0);
+          
+          for( unsigned int i=0; i<nValues; ++i) {
+            
+            unsigned int key = comm_info[taskPair].getKey(i);
+            
+            if( comm_info[taskPair][key].exists(statName) )
+              values[i] = comm_info[taskPair][key].getRankValue(statName);
+            else {
+              values[i] = 0;
+              
+              std::stringstream msg;
+              msg << "Visit libsim - for domain " << domain << "  "
+                  << "Uintah Processor/Machine/Communication/" << pairName << "  " << key
+                  << " variable \"" << statName << "\"  " << "does not exist.";
+              
+              VisItUI_setValueS("SIMULATION_MESSAGE_ERROR", msg.str().c_str(), 1);
+            }
+          }
+        }
+      }
+
+      if(VisIt_VariableData_alloc(&varH) == VISIT_OKAY)
+      {
+        VisIt_VariableData_setDataD(varH, VISIT_OWNER_VISIT, 1, nValues, values);
+        
+        // No need to delete as the flag is VISIT_OWNER_VISIT so VisIt
+        // owns the data (VISIT_OWNER_SIM - indicates the simulation
+        // owns the data).
+      }
+
+      return varH;
+    }
+  }
+
+  // Variables that can be on the simulation mesh and the machine mesh.
+  SchedulerP schedulerP = sim->simController->getSchedulerP();
+  LoadBalancer * lb     = sim->simController->getLoadBalancer();
+  GridP gridP           = sim->gridP;
+
+  TimeStepInfo* &stepInfo = sim->stepInfo;
+
+  // int timeStep = sim->cycle;
+
+  bool isParticleVar = false;
+  bool isInternalVar = false;
+  bool isMachineMeshVar = false;
+
+  // Get the var name sans the material. If a patch or processor
+  // variable then the var name will be either "Patch" or "Processor".
+  size_t found = varName.find("/");
+  std::string matl = varName.substr(found + 1);
+  varName = varName.substr(0, found);
+
+  // Get the varType except for processor and patch based data which
+  // does not come from the data warehouse but instead from internal
+  // structures.
+  std::string varType("");
+
+  if( strncmp(varname, "Patch/Id", 8) == 0 )
+  {
+    isInternalVar = true;
+    varType = "Patch_Mesh";
+
+    // If the machine profile is available get the sim or host name.
+    if( addMachineData )
+    {
+      std::string hostName = std::string(varname);
+      found = hostName.find_last_of("/");
+      hostName = hostName.substr(found + 1);
+
+      isMachineMeshVar = (hostName == sim->hostName);
+    }
+  }
+  else if( strncmp(varname, "Patch/Communication", 19) == 0 ||
+           strncmp(varname, "Patch/Rank",          10) == 0 ||
+           strncmp(varname, "Patch/Node",          10) == 0 ||
+           strncmp(varname, "Patch/Tasks",         11) == 0 ||
+           strncmp(varname, "Patch/Bounds/Low",    16) == 0 ||
+           strncmp(varname, "Patch/Bounds/High",   17) == 0 )
+  {
+    isInternalVar = true;
+    varType = "Patch_Mesh";
+  }
+  else if( strncmp(varname, "Patch/Nodes", 11) == 0 )
+  {
+    isInternalVar = true;
+    varType = "NC_Mesh";
+  }
+  else if( strncmp(varname, "Nodes/", 6) == 0 ||
+           strncmp(varname, "Ranks/", 6) == 0 )
+  {
+    isInternalVar = true;
+
+    if(strncmp(&(varname[6]), "Particle_Mesh", 13) == 0)
+    {
+      isParticleVar = true;
+
+      varType = "Particle_Mesh";
+
+      // Get the material sans "Particle_Mesh".
+      varName = std::string(varname);
+      found = varName.find_last_of("/");
+      matl = varName.substr(found + 1);
+    }
+    else
+    {
+      // Get the mesh type.
+      varName = std::string(varname);
+      found = varName.find_last_of("/");
+      varType = varName.substr(found + 1);
+    }
+  }
+
+  else if( varName == "Processor" )
+  {
+    isInternalVar = true;
+    varType = "Patch_Mesh";
+
+    // If the machine profile is available get the sim or host name.
+    if( addMachineData )
+    {
+      std::string hostName = std::string(varname);
+      found = hostName.find_last_of("/");
+      hostName = hostName.substr(found + 1);
+
+>>>>>>> origin/master
       isMachineMeshVar = (hostName == sim->hostName);
     }
   }
@@ -2616,16 +3538,28 @@ visit_handle visit_SimGetVariable(int domain, const char *varname, void *cbdata)
         
         // MPI Scheduler Timing stats
         else if( strncmp( varname, "Processor/MPI/", 14 ) == 0 &&
+<<<<<<< HEAD
                  mpiScheduler && mpiScheduler->mpi_info_.exists(varName) )
+=======
+                 mpiScheduler && mpiScheduler->m_mpi_info.exists(varName) )
+>>>>>>> origin/master
         {
           double val;
           
           if( procLevelName == "Node/Average" )
+<<<<<<< HEAD
             val = mpiScheduler->mpi_info_.getNodeAverage( varName );
           else if( procLevelName == "Node/Sum" )
             val = mpiScheduler->mpi_info_.getNodeSum( varName );
           else // if( procLevelName == "Rank" )
             val = mpiScheduler->mpi_info_.getRankValue( varName );
+=======
+            val = mpiScheduler->m_mpi_info.getNodeAverage( varName );
+          else if( procLevelName == "Node/Sum" )
+            val = mpiScheduler->m_mpi_info.getNodeSum( varName );
+          else // if( procLevelName == "Rank" )
+            val = mpiScheduler->m_mpi_info.getRankValue( varName );
+>>>>>>> origin/master
           
           for (int i=0; i<gd->num*gd->components; ++i)
             gd->data[i] = val;
@@ -2694,6 +3628,71 @@ visit_handle visit_SimGetVariable(int domain, const char *varname, void *cbdata)
             gd->data[i] = val;
         }
       }
+
+      // Patch Task Pair Communication
+      else if( strncmp(varname, "Patch/Communication", 19) == 0 )
+      {
+        varName = std::string(varname);
+        
+        gd->num = 1;        // Using the simulation patch mesh
+        gd->components = 1;     
+        gd->data = new double[gd->num * gd->components];
+
+        SchedulerCommon *scheduler = dynamic_cast<SchedulerCommon*>
+          (sim->simController->getSchedulerP().get_rep());
+
+        // There may be multiple communication matrices, the index will be last.
+        unsigned int index = 0;
+
+        if( scheduler->getNumTaskGraphs() > 1 ) {
+          size_t found = varName.find_last_of("/");
+        
+          index = stoi( varName.substr(found + 1) );
+          varName = varName.substr(0, found);
+        }
+
+        std::map< std::pair< std::string, std::string >,
+                  MapInfoMapper< unsigned int, CommunicationStatsEnum, unsigned int > > &comm_info =
+          scheduler->getTaskGraph(index)->getDetailedTasks()->getCommInfo();
+      
+        // Lop off the prefix
+        size_t found = std::string("Patch/Communication/").size();
+        std::string statName = varName.substr(found);
+
+        // Task pair name and the stat
+        found = statName.find("/");
+        std::string pairName = statName.substr(0, found);
+        statName = statName.substr(found + 1);
+
+        found = pairName.find("|");
+        std::string toTaskName   = pairName.substr(0, found);
+        std::string fromTaskName = pairName.substr(found + 1);
+
+        std::pair< std::string, std::string > taskPair( toTaskName, fromTaskName );
+
+        // Get the reduction
+        found = statName.find("/");
+        std::string reductionType = statName.substr(found + 1);
+        statName = statName.substr(0, found);
+
+        double val = 0;
+
+        if( reductionType == "Size" )
+          val = comm_info[taskPair].size();
+        else if( reductionType == "Sum" )
+          val = comm_info[taskPair].getSum( statName );
+        else if( reductionType == "Average" )
+          val = comm_info[taskPair].getAverage( statName );
+        else if( reductionType == "Minimum" )
+          val = comm_info[taskPair].getMinimum( statName );
+        else if( reductionType == "Maximum" )
+          val = comm_info[taskPair].getMaximum( statName );
+        else if( reductionType == "StdDev" )
+          val = comm_info[taskPair].getStdDev( statName );
+
+        for (int i=0; i<gd->num*gd->components; ++i)
+          gd->data[i] = val;
+      }
       // Patch processor rank
       else if( strncmp(varname, "Patch/Rank", 10) == 0 )
       {
@@ -2718,6 +3717,33 @@ visit_handle visit_SimGetVariable(int domain, const char *varname, void *cbdata)
         for (int i=0; i<gd->num*gd->components; ++i)
           gd->data[i] = val;
       }
+<<<<<<< HEAD
+=======
+      // Patch task processor 
+      else if( strncmp(varname, "Patch/Tasks", 11) == 0 )
+      { 
+        gd->num = 1;        // Using the simulation patch mesh
+        gd->components = 1;     
+        gd->data = new double[gd->num * gd->components];
+
+        MPIScheduler *mpiScheduler = dynamic_cast<MPIScheduler*>
+          (sim->simController->getSchedulerP().get_rep());
+        
+        varName = std::string(varname);
+
+        size_t found = varName.find_last_of("/");
+        std::string statName = varName.substr(found + 1);
+
+        varName = varName.substr(0, found);
+        found = std::string("Patch/Tasks/").size();
+        std::string taskName = varName.substr(found);
+
+        double val = mpiScheduler->m_task_info[taskName].getRankValue(statName);
+
+        for (int i=0; i<gd->num*gd->components; ++i)
+          gd->data[i] = val;
+      }
+>>>>>>> origin/master
       else if( strncmp(varname, "Patch/Bounds/Low",  16) == 0 ||
                strncmp(varname, "Patch/Bounds/High", 17) == 0)
       {
@@ -3231,6 +4257,23 @@ void addMeshNodeRankSIL( visit_handle md, std::string meshName, visit_simulation
       }
     }
     
+<<<<<<< HEAD
+=======
+    // if( nSwitches > 1 ) {
+    //   for( unsigned int s=0; s<nSwitches; ++s ) {
+    //     int index;
+    //     VisIt_VariableMetaData_addEnumNameValue( smd_switch, sim->myworld->getSwitchName( n ).c_str(), nRanks+nNodes+s, &index );
+    //     switch_enum_id[n] = index;
+    //   }
+      
+    //   for( unsigned int n=0; n<nNodes; ++n ) {
+    //     unsigned int s = sim->myworld->getSwitchIndexFromNode( r );
+        
+    //     VisIt_VariableMetaData_addEnumGraphEdge(smd_switch, switch_enum_id[s], node_enum_id[r], "Switches" );
+    //   }
+    // }
+    
+>>>>>>> origin/master
     VisIt_SimulationMetaData_addVariable(md, smd_node);
     VisIt_SimulationMetaData_addVariable(md, smd_rank);
   }

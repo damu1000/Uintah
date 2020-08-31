@@ -1,7 +1,11 @@
 /*
  * The MIT License
  *
+<<<<<<< HEAD
  * Copyright (c) 1997-2019 The University of Utah
+=======
+ * Copyright (c) 1997-2020 The University of Utah
+>>>>>>> origin/master
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -229,12 +233,17 @@ TimeStepInfo* getTimeStepInfo(DataArchive *archive,
 
       for( unsigned int m=0; m<5; ++m )
       {
+<<<<<<< HEAD
         IntVector iLow, iHigh, iExtraLow, iExtraHigh;
+=======
+        IntVector iLow, iHigh;
+>>>>>>> origin/master
 
         // If the user wants to see extra cells, just include them and
         // let VisIt believe they are part of the original data. This is
         // accomplished by setting <meshtype>_low and <meshtype>_high to
         // the extra cell boundaries so that VisIt is none the wiser.
+<<<<<<< HEAD
         if (loadExtraGeometry == NO_EXTRA_GEOMETRY)
         {
           iLow  = patch->getLowIndex (basis[m]);
@@ -282,8 +291,60 @@ TimeStepInfo* getTimeStepInfo(DataArchive *archive,
         
           // iLow  = Uintah::Max(lLow,  iLow);
           // iHigh = Uintah::Min(lHigh, iHigh);
+=======
+        if (loadExtraGeometry == CELLS)
+        {
+          iLow  = patch->getExtraLowIndex (basis[m], IntVector(0,0,0));
+          iHigh = patch->getExtraHighIndex(basis[m], IntVector(0,0,0));
+>>>>>>> origin/master
         }
+        else if (loadExtraGeometry == PATCHES)
+        {
+          iLow  = patch->getLowIndex (basis[m]);
+          iHigh = patch->getHighIndex(basis[m]);
+
+          IntVector iExtraLow  = patch->getExtraLowIndex (basis[m], IntVector(0,0,0));
+          IntVector iExtraHigh = patch->getExtraHighIndex(basis[m], IntVector(0,0,0));
+
+          // Extend the patch when extra elements are present. In this
+          // case if extra elements are present instead of just adding
+          // the extra element add in additional elements to make up a
+          // complete patch.
+          for (int i=0; i<3; ++i) {
+            
+            if( iLow[i] != iExtraLow[i] )
+              iLow[i] -= level->getRefinementRatio()[i];
+            
+            if( iHigh[i] != iExtraHigh[i] )
+              iHigh[i] += level->getRefinementRatio()[i];
+          }
+
+          // // Clamp: don't exceed the limits
+          // IntVector lLow, lHigh;
         
+          // if( basis[m] == Patch::NodeBased ) {         
+          //   level->findNodeIndexRange( lLow, lHigh );
+          // }
+          // else if( basis[m] == Patch::CellBased ) {
+          //   level->findCellIndexRange( lLow, lHigh );
+          // }
+          // else {
+          //   lLow  = iLow;
+          //   lHigh = iHigh;
+          // }
+        
+<<<<<<< HEAD
+=======
+          // iLow  = Uintah::Max(lLow,  iLow);
+          // iHigh = Uintah::Min(lHigh, iHigh);
+        }
+        else //if (loadExtraGeometry == NO_EXTRA_GEOMETRY)
+        {
+          iLow  = patch->getLowIndex (basis[m]);
+          iHigh = patch->getHighIndex(basis[m]);
+        }
+                
+>>>>>>> origin/master
         patchInfo.setBounds(&iLow[0], &iHigh[0], meshTypes[m]);
       }
 
@@ -416,6 +477,7 @@ static GridDataRaw* readGridData(DataArchive *archive,
       archive->queryRegion(cvar, variable_name, material,
                            coarserLevel, timestep, clow, chigh);
       cp = cvar.getPointer();
+<<<<<<< HEAD
       
       cvardims = cvar.getHighIndex() - cvar.getLowIndex();
       
@@ -424,6 +486,16 @@ static GridDataRaw* readGridData(DataArchive *archive,
 
       //   int kd = (k-low[2]) * dims[1] * dims[0];
       
+=======
+      
+      cvardims = cvar.getHighIndex() - cvar.getLowIndex();
+      
+      // Copy the coarse level data to all points on the fine level.
+      // for (int k=low[2]; k<high[2]; ++k) {
+
+      //   int kd = (k-low[2]) * dims[1] * dims[0];
+      
+>>>>>>> origin/master
       //   for (int j=low[1]; j<high[1]; ++j) {
 
       //     int jd = kd + (j-low[1]) * dims[0];
@@ -469,10 +541,29 @@ static GridDataRaw* readGridData(DataArchive *archive,
               
               // Copy the fine level data to a point on the fine level.
               if( varlow[0] <= i && i < varhigh[0] )
+<<<<<<< HEAD
               {
                 int iv = jv + (i-varlow[0]);
             
                 copyComponents<T>(&gd->data[id*gd->components], p[iv]);
+              }
+              // Copy the coarse level data to a point on the fine level.
+              else
+              {
+                IntVector tmp = mapIndexToCoarser( IntVector( i, j, k ), rRatio );
+
+                int kv =      (tmp[2]-clow[2]) * cvardims[1] * cvardims[0];
+                int jv = kv + (tmp[1]-clow[1]) * cvardims[0];
+                int iv = jv + (tmp[0]-clow[0]);
+            
+                if( clow <= tmp && tmp < chigh )
+                  copyComponents<T>(&gd->data[id*gd->components], cp[iv]);
+=======
+              {
+                int iv = jv + (i-varlow[0]);
+            
+                copyComponents<T>(&gd->data[id*gd->components], p[iv]);
+>>>>>>> origin/master
               }
               // Copy the coarse level data to a point on the fine level.
               else
@@ -505,6 +596,23 @@ static GridDataRaw* readGridData(DataArchive *archive,
                 copyComponents<T>(&gd->data[id*gd->components], cp[iv]);
             }
           }
+          // Copy the coarse level data to each point on the fine level.
+          else
+          {
+            for (int i=low[0]; i<high[0]; ++i)
+            {
+              int id = jd + (i-low[0]);
+
+              IntVector tmp = mapIndexToCoarser( IntVector( i, j, k ), rRatio );
+
+              int kv =      (tmp[2]-clow[2]) * cvardims[1] * cvardims[0];
+              int jv = kv + (tmp[1]-clow[1]) * cvardims[0];
+              int iv = jv + (tmp[0]-clow[0]);
+            
+              if( clow <= tmp && tmp < chigh )
+                copyComponents<T>(&gd->data[id*gd->components], cp[iv]);
+            }
+          }
         }
       }
       // Copy the coarse level data to each point on the fine level.
@@ -517,9 +625,15 @@ static GridDataRaw* readGridData(DataArchive *archive,
           for (int i=low[0]; i<high[0]; ++i) {
 
             int id = jd + (i-low[0]);
+<<<<<<< HEAD
 
             IntVector tmp = mapIndexToCoarser( IntVector( i, j, k ), rRatio );
 
+=======
+
+            IntVector tmp = mapIndexToCoarser( IntVector( i, j, k ), rRatio );
+
+>>>>>>> origin/master
             int kv =      (tmp[2]-clow[2]) * cvardims[1] * cvardims[0];
             int jv = kv + (tmp[1]-clow[1]) * cvardims[0];
             int iv = jv + (tmp[0]-clow[0]);
@@ -906,9 +1020,15 @@ ParticleDataRaw* readParticleData(DataArchive *archive,
     pd->num = numParticles;
     
     pd->data = new double[pd->components * pd->num];
+<<<<<<< HEAD
 
     int pi = 0;
 
+=======
+
+    int pi = 0;
+
+>>>>>>> origin/master
     for (unsigned int i=0; i<particle_vars.size(); ++i)
     {
       ParticleSubset *pSubset = particle_vars[i]->getParticleSubset();

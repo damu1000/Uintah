@@ -1,7 +1,11 @@
 /*
  * The MIT License
  *
+<<<<<<< HEAD
  * Copyright (c) 1997-2019 The University of Utah
+=======
+ * Copyright (c) 1997-2020 The University of Utah
+>>>>>>> origin/master
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -35,6 +39,10 @@
 
 #if !defined( NO_ICE )
   #include <CCA/Components/OnTheFlyAnalysis/vorticity.h>
+<<<<<<< HEAD
+=======
+  #include <CCA/Components/OnTheFlyAnalysis/controlVolFluxes.h>
+>>>>>>> origin/master
 #endif
 
 #if !defined( NO_MPM )
@@ -43,7 +51,11 @@
 #endif
 
 #if !defined( NO_ICE ) && !defined( NO_MPM )
+<<<<<<< HEAD
   #include <CCA/Components/OnTheFlyAnalysis/1stLawThermo.h>
+=======
+  #include <CCA/Components/OnTheFlyAnalysis/1stLawThermo.h>  
+>>>>>>> origin/master
 #endif
 
 #include <Core/Exceptions/ProblemSetupException.h>
@@ -114,6 +126,9 @@ AnalysisModuleFactory::create(const ProcessorGroup* myworld,
 #if !defined( NO_ICE )
       else if ( module == "vorticity" ) {
         modules.push_back( scinew vorticity(           myworld, materialManager, module_ps ) );
+      }
+      else if ( module == "controlVolFluxes" ) {
+        modules.push_back( scinew controlVolFluxes(    myworld, materialManager, module_ps ) );
       }
 #endif
 

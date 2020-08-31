@@ -73,6 +73,7 @@ class ClassicTable:
         Interoplate each dependent variable to the input value of the
         independent variable. Use multilinear interpolation in all
         dimensions.
+<<<<<<< HEAD
         
         Arguments
         ---------
@@ -82,6 +83,17 @@ class ClassicTable:
             integers indicating which dependent variables to output.
             It will default to outputting all dependent variables.
         
+=======
+        
+        Arguments
+        ---------
+        x:  iterable of floats (1-D array or list),
+            independent variable values - where to evaluate the interpolant.
+        spec_dep:  iterable of ints (1-D array or list) optional,
+            integers indicating which dependent variables to output.
+            It will default to outputting all dependent variables.
+        
+>>>>>>> origin/master
         Returns
         -------
         interpolant:  1-D array of floats,
@@ -173,6 +185,7 @@ if __name__ == "__main__":
     x0 = array([0.0050674086, -0.875, 0.050000000699999998])
     selected_dep = range(myTable.dep_n)
     y0 = myTable(x0, selected_dep)
+<<<<<<< HEAD
     print ' '
     print 'Independent Variables:'
     print '   ', ', '.join(myTable.ind_names)
@@ -185,3 +198,17 @@ if __name__ == "__main__":
               str(myTable.dep_units[i]).ljust(15)
         i0 += 1
     print ' '
+=======
+    print( ' ')
+    print( 'Independent Variables:')
+    print( '   ', ', '.join(myTable.ind_names))
+    print( '   ', ', '.join(map(str, x0)))
+    print( ' ')
+    print( 'Dependent Variables:')
+    i0 = 0
+    for i in selected_dep:
+        print(str(myTable.dep_names[i]).rjust(30), repr(y0[i0]).rjust(25), \
+              str(myTable.dep_units[i]).ljust(15))
+        i0 += 1
+    print(' ')
+>>>>>>> origin/master

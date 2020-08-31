@@ -1,7 +1,11 @@
 /*
  * The MIT License
  *
+<<<<<<< HEAD
  * Copyright (c) 1997-2019 The University of Utah
+=======
+ * Copyright (c) 1997-2020 The University of Utah
+>>>>>>> origin/master
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -451,6 +455,19 @@ BoundaryCondition::sched_setIntrusionTemperature( SchedulerP& sched,
   if ( _using_new_intrusion ) {
     const int ilvl = level->getID();
     _intrusionBC[ilvl]->sched_setIntrusionT( sched, level, matls );
+  }
+}
+
+void
+BoundaryCondition::sched_computeAlphaG( SchedulerP& sched,
+                                        const LevelP& level,
+                                        const MaterialSet* matls,
+                                        const bool carry_forward )
+{
+  if ( _using_new_intrusion ) {
+    const int ilvl = level->getID();
+    //if carry_forward = true, we are simply moving the computed value forward in time. 
+    _intrusionBC[ilvl]->sched_setAlphaG( sched, level, matls, carry_forward );
   }
 }
 
@@ -2135,6 +2152,14 @@ BoundaryCondition::setupBCs( ProblemSpecP db, const LevelP& level )
           my_info.mass_flow_rate = 0.0;
           db_BCType->require("swirl_no", my_info.swirl_no);
 
+          my_info.swirl_no *= 3./2.;
+          // swirl number definition as equation 5.14 from Combustion Aerodynamics
+          // J.M. BEER and N.A. CHIGIER 1983 pag 107
+          // assuming:
+          // constant axial velocity
+          // constant density
+          // constant tangential velocity
+          //
           std::string str_vec; // This block sets the default centroid to the origin unless otherwise specified by swirl_cent
           bool Luse_origin =   db_face->getAttribute("origin", str_vec);
           if( Luse_origin ) {
@@ -3029,9 +3054,15 @@ void BoundaryCondition::setSwirl( const Patch* patch, const Patch::FaceType& fac
   IntVector outsideCell(0,0,0);
   Vector Dx = patch->dCell();
 
+<<<<<<< HEAD
   int idim; //normal direction
   int jdim; //1st tangential
   int kdim; //2nd tangential
+=======
+  int idim=-99; //normal direction
+  int jdim=-99; //1st tangential
+  int kdim=-99; //2nd tangential
+>>>>>>> origin/master
 
   double sign_v = -1.;
   double sign_w = 1.;
@@ -3070,6 +3101,7 @@ void BoundaryCondition::setSwirl( const Patch* patch, const Patch::FaceType& fac
     pt[idim] = 99; //error check...
     pt[jdim] = pp[jdim] - swrl_cent[jdim];
     pt[kdim] = pp[kdim] - Dx[kdim]/2. - swrl_cent[kdim];
+<<<<<<< HEAD
 
     double denom = pt[jdim]*pt[jdim] + pt[kdim]*pt[kdim]; denom = std::pow(denom,0.5);
     denom = (denom > 1e-16) ? denom : denom+noise;
@@ -3087,6 +3119,25 @@ void BoundaryCondition::setSwirl( const Patch* patch, const Patch::FaceType& fac
     denom = pt[jdim]*pt[jdim] + pt[kdim]*pt[kdim]; denom = std::pow(denom,0.5);
     denom = (denom > 1e-16) ? denom : denom+noise;
 
+=======
+
+    double denom = pt[jdim]*pt[jdim] + pt[kdim]*pt[kdim]; denom = std::pow(denom,0.5);
+    denom = (denom > 1e-16) ? denom : denom+noise;
+
+    uVel[c] = value[idim];
+    uVel[cp] = value[idim];
+    uVel[c+outsideCell] = value[idim];  //sets the extra cell in the + direction (that isn't used) for vis.
+
+    double swirl_condition = sign_v * pt[kdim] * swrl_no * value[idim] / denom;
+    vVel[c] = 2.0*swirl_condition - vVel[cp];
+
+    pt[jdim] = pp[jdim] - Dx[jdim]/2. - swrl_cent[jdim];
+    pt[kdim] = pp[kdim] - swrl_cent[kdim];
+
+    denom = pt[jdim]*pt[jdim] + pt[kdim]*pt[kdim]; denom = std::pow(denom,0.5);
+    denom = (denom > 1e-16) ? denom : denom+noise;
+
+>>>>>>> origin/master
     swirl_condition = sign_w * pt[jdim] * swrl_no * value[idim] / denom;
     wVel[c] = 2.0*swirl_condition - wVel[cp];
 
@@ -3989,6 +4040,7 @@ BoundaryCondition::sched_setupNewIntrusions( SchedulerP& sched,
     _intrusionBC[i]->sched_setIntrusionVelocities( sched, level, matls );
     _intrusionBC[i]->sched_printIntrusionInformation( sched, level, matls );
     _intrusionBC[i]->prune_per_patch_intrusions( sched, level, matls );
+    _intrusionBC[i]->sched_setAlphaG(sched, level, matls, false);
   }
 
 }
@@ -5452,13 +5504,24 @@ BoundaryCondition::sched_create_radiation_temperature( SchedulerP       & sched,
     t->computes( d_temperature_label );
     sched->addTask(t, level->eachPatch(), matls);
   }
+<<<<<<< HEAD
+=======
+
+  //__________________________________
+  //
+  string taskname = "BoundaryCondition::create_radiation_temperature";
+  Task* tsk = scinew Task(taskname, this, &BoundaryCondition::create_radiation_temperature, use_old_dw );
+>>>>>>> origin/master
 
   //__________________________________
   //
   string taskname = "BoundaryCondition::create_radiation_temperature";
   Task* tsk = scinew Task(taskname, this, &BoundaryCondition::create_radiation_temperature, use_old_dw );
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/master
   //WARNING! THIS ASSUMES WE ARE DOING RADIATION ONCE PER TIMESTEP ON RK STEP = 0
   if ( use_old_dw ) {
     tsk->requires(Task::OldDW, d_temperature_label, Ghost::None, 0);
@@ -5525,6 +5588,7 @@ BoundaryCondition::addIntrusionMomRHS( const Patch* patch,
       _intrusionBC[ilvl]->addMomRHS( patch, u, v, w, usrc, vsrc, wsrc, density );
     }
   }
+<<<<<<< HEAD
 
 }
 
@@ -5533,6 +5597,16 @@ BoundaryCondition::addIntrusionMassRHS( const Patch* patch,
                                         CCVariable<double>& mass_src )
 {
 
+=======
+
+}
+
+void
+BoundaryCondition::addIntrusionMassRHS( const Patch* patch,
+                                        CCVariable<double>& mass_src )
+{
+
+>>>>>>> origin/master
   const Level* level = patch->getLevel();
   const int ilvl = level->getID();
   if ( _using_new_intrusion ){

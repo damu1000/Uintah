@@ -1,7 +1,11 @@
 /*
  * The MIT License
  *
+<<<<<<< HEAD
  * Copyright (c) 1997-2019 The University of Utah
+=======
+ * Copyright (c) 1997-2020 The University of Utah
+>>>>>>> origin/master
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -94,6 +98,9 @@ public:
 
   static VarLabel* find( const std::string& name );
 
+  static VarLabel* find( const std::string& name,
+                         const std::string& messg );
+
   static VarLabel* particlePositionLabel();
 
   static void setParticlePositionName(const std::string& pPosName) { s_particle_position_name = pPosName; }
@@ -173,7 +180,7 @@ private:
 
   // Static member to keep track of all labels created to prevent
   // duplicates.
-  static std::map<std::string, VarLabel*> g_all_labels; 
+  static std::map<std::string, VarLabel*> g_all_labels;
 };
 
 } // End namespace Uintah

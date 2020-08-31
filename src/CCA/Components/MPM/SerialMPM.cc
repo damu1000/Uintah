@@ -1,7 +1,11 @@
 /*
  * The MIT License
  *
+<<<<<<< HEAD
  * Copyright (c) 1997-2019 The University of Utah
+=======
+ * Copyright (c) 1997-2020 The University of Utah
+>>>>>>> origin/master
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -5595,6 +5599,7 @@ void SerialMPM::computeNormals(const ProcessorGroup *,
       } // axisymmetric conditional
     }   // matl loop
 
+#if 0
     // Make normal vectors colinear by setting all norms to be
     // in the opposite direction of the norm with the largest magnitude
     if(flags->d_computeColinearNormals){
@@ -5619,7 +5624,42 @@ void SerialMPM::computeNormals(const ProcessorGroup *,
         }  // loop over matls
       }
     }
+#endif
 
+    // Make normal vectors colinear by taking an average with the
+    // other materials at a node
+    if(flags->d_computeColinearNormals){
+     for(NodeIterator iter=patch->getExtraNodeIterator(); !iter.done();iter++){
+      IntVector c = *iter;
+      vector<Vector> norm_temp(numMPMMatls);
+      for(unsigned int m=0; m<numMPMMatls; m++){
+       norm_temp[m]=Vector(0.,0.,0);
+       if(gmass[m][c]>1.e-200){
+        Vector mWON(0.,0.,0.);
+        double mON=0.0;
+        for(unsigned int n=0; n<numMPMMatls; n++){
+          if(n!=m){
+            mWON += gmass[n][c]*gsurfnorm[n][c];
+            mON  += gmass[n][c];
+          }
+        }  // loop over other matls
+        mWON/=(mON+1.e-100);
+        norm_temp[m]=0.5*(gsurfnorm[m][c] - mWON);
+
+<<<<<<< HEAD
+=======
+       } // If node has mass
+      }  // Outer loop over materials
+
+      // Now put temporary norm into main array
+      for(unsigned int m=0; m<numMPMMatls; m++){
+        gsurfnorm[m][c] = norm_temp[m];
+      }  // Outer loop over materials
+
+     }   // Loop over nodes
+    }    // if(flags..)
+
+>>>>>>> origin/master
     // Make traditional norms unit length, compute gnormtraction
     for(unsigned int m=0;m<numMPMMatls;m++){
       MPMMaterial* mpm_matl = 
@@ -5661,7 +5701,11 @@ void SerialMPM::scheduleComputeLogisticRegression(SchedulerP   & sched,
 
   t->requires(Task::OldDW, lb->pXLabel,                  particle_ghost_type, particle_ghost_layer);
   t->requires(Task::NewDW, lb->pCurSizeLabel,            particle_ghost_type, particle_ghost_layer);
+<<<<<<< HEAD
   t->requires(Task::OldDW, lb->pSurfLabel,               particle_ghost_type, particle_ghost_layer);
+=======
+  t->requires(Task::NewDW, lb->pSurfLabel_preReloc,      particle_ghost_type, particle_ghost_layer);
+>>>>>>> origin/master
   t->requires(Task::NewDW, lb->gMassLabel,             Ghost::None);
   t->requires(Task::OldDW, lb->NC_CCweightLabel,z_matl,Ghost::None);
 
@@ -5835,6 +5879,11 @@ void SerialMPM::computeLogisticRegression(const ProcessorGroup *,
        double tol = 1.e-5;
        double phi[4]={1.,0.,0.,0.};
        Vector nhat_k(phi[0],phi[1],phi[2]);
+<<<<<<< HEAD
+=======
+       Vector nhat_backup(0.);
+       double error_min=1.0;
+>>>>>>> origin/master
        while(!converged){
         num_iters++;
         // Initialize the coefficient matrix
@@ -5897,9 +5946,23 @@ void SerialMPM::computeLogisticRegression(const ProcessorGroup *,
         Vector nhat_kp1(phi[0],phi[1],phi[2]);
         nhat_kp1/=(nhat_kp1.length()+1.e-100);
         double error = 1.0 - Dot(nhat_kp1,nhat_k);
+<<<<<<< HEAD
         if(error < tol || num_iters > 15){
           converged=true;
           normAlphaToBeta[c] = nhat_kp1;
+=======
+        if(error < error_min){
+          error_min = error;
+          nhat_backup = nhat_kp1;
+        }
+        if(error < tol || num_iters > 15){
+          converged=true;
+          if(num_iters > 15){
+           normAlphaToBeta[c] = nhat_backup;
+          } else {
+           normAlphaToBeta[c] = nhat_kp1;
+          }
+>>>>>>> origin/master
         } else{
           nhat_k=nhat_kp1;
         }
@@ -5917,6 +5980,16 @@ void SerialMPM::computeLogisticRegression(const ProcessorGroup *,
       if(alphaMaterial[c]==-99){
         normAlphaToBeta[c]=Vector(0.);
       }
+<<<<<<< HEAD
+=======
+      if(!(normAlphaToBeta[c].length() >= 0.0)){
+        cout << "Node  = " << c << endl;
+        cout << "normAlphaToBeta[c] = " << normAlphaToBeta[c] << endl;
+        cout << "alphaMaterial[c] = " << alphaMaterial[c] << endl;
+        cout << "NumMatlsOnNode[c] = " << NumMatlsOnNode[c] << endl;
+        cout << "NumParticlesOnNode[c] = " << NumParticlesOnNode[c] << endl;
+      }
+>>>>>>> origin/master
     }    // Loop over nodes
 
     // Loop over all the particles, find the nodes they interact with
@@ -6045,6 +6118,10 @@ void SerialMPM::computeLogisticRegression(const ProcessorGroup *,
         } // Loop over nodes near this particle
 #endif
 
+<<<<<<< HEAD
+=======
+#if 1
+>>>>>>> origin/master
         // This version uses particle faces to compute prominence.
         // Compute vectors from particle center to the faces
         Vector RFL[6];
@@ -6076,6 +6153,10 @@ void SerialMPM::computeLogisticRegression(const ProcessorGroup *,
             }  // Only deal with nodes that this particle affects
           }  // If node is on the patch
         } // Loop over nodes near this particle
+<<<<<<< HEAD
+=======
+#endif
+>>>>>>> origin/master
        } // Is a surface particle
       } // end Particle loop
     }  // loop over matls

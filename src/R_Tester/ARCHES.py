@@ -2,10 +2,14 @@
 
 from os import symlink,environ, system
 from sys import argv,exit,platform
-from helpers.runSusTests import runSusTests, ignorePerformanceTests, getInputsDir
+from helpers.runSusTests_git import runSusTests, ignorePerformanceTests, getInputsDir
 from helpers.modUPS import modUPS
 
 the_dir = "%s/%s" % ( getInputsDir(),"ARCHES" )
+
+BrownSoot_spectral_orthog_ups  = modUPS( the_dir, "Coal/BrownSoot_spectral.ups" , ["<addOrthogonalDirs> true </addOrthogonalDirs>"])
+
+
 
 #______________________________________________________________________
 #  Test syntax: ( "folder name", "input file", # processors, "OS", ["flags1","flag2"])
@@ -13,22 +17,23 @@ the_dir = "%s/%s" % ( getInputsDir(),"ARCHES" )
 #  OS:  Linux, Darwin, or ALL
 #
 #  flags:
-#       gpu:                    - run test if machine is gpu enabled
-#       no_uda_comparison:      - skip the uda comparisons
-#       no_memoryTest:          - skip all memory checks
-#       no_restart:             - skip the restart tests
-#       no_dbg:                 - skip all debug compilation tests
-#       no_opt:                 - skip all optimized compilation tests
-#       no_cuda:                - skip test if this is a cuda enable build
-#       do_performance_test:    - Run the performance test, log and plot simulation runtime.
-#                                 (You cannot perform uda comparsions with this flag set)
-#       doesTestRun:            - Checks if a test successfully runs
-#       abs_tolerance=[double]  - absolute tolerance used in comparisons
-#       rel_tolerance=[double]  - relative tolerance used in comparisons
-#       exactComparison         - set absolute/relative tolerance = 0  for uda comparisons
-#       postProcessRun          - start test from an existing uda in the checkpoints directory.  Compute new quantities and save them in a new uda
-#       startFromCheckpoint     - start test from checkpoint. (/home/rt/CheckPoints/..../testname.uda.000)
-#       sus_options="string"    - Additional command line options for sus command
+#       gpu:                        - run test if machine is gpu enabled
+#       no_uda_comparison:          - skip the uda comparisons
+#       no_memoryTest:              - skip all memory checks
+#       no_restart:                 - skip the restart tests
+#       no_dbg:                     - skip all debug compilation tests
+#       no_opt:                     - skip all optimized compilation tests
+#       no_cuda:                    - skip test if this is a cuda enable build
+#       do_performance_test:        - Run the performance test, log and plot simulation runtime.
+#                                     (You cannot perform uda comparsions with this flag set)
+#       doesTestRun:                - Checks if a test successfully runs
+#       abs_tolerance=[double]      - absolute tolerance used in comparisons
+#       rel_tolerance=[double]      - relative tolerance used in comparisons
+#       exactComparison             - set absolute/relative tolerance = 0  for uda comparisons
+#       postProcessRun              - start test from an existing uda in the checkpoints directory.  Compute new quantities and save them in a new uda
+#       startFromCheckpoint         - start test from checkpoint. (/home/rt/CheckPoints/..../testname.uda.000)
+#       sus_options="string"        - Additional command line options for sus command
+#       compareUda_options="string" - Additional command line options for compare_uda
 #
 #  Notes:
 #  1) The "folder name" must be the same as input file without the extension.
@@ -40,8 +45,13 @@ the_dir = "%s/%s" % ( getInputsDir(),"ARCHES" )
 #  massource_coal_DQMOM: a coal reacting channel flow with a constant mass source term (or with coal mass source term), used to test mass conservation for pressure solver
 #  methane_RCCE: 3m fire using the westbrook dryer/RCCE model
 
+<<<<<<< HEAD
 # NOTE on adding tests: 
     # 1. Add tests to the group to which it belongs. 
+=======
+# NOTE on adding tests:
+    # 1. Add tests to the group to which it belongs.
+>>>>>>> origin/master
     # 2. Make sure that group is included in NIGHTLYTESTS if you want it tested by the builtbot, nightlyRT, and localRT
     # 3. If the test doesn't belong in any subgroup, you must manually add it to the nightlyRT and/or localRT
 
@@ -91,11 +101,11 @@ PRODUCTION_TESTS_NO_COAL = [
    ("PTC_3D"                            , "CQMOM_regression/PTC_3D.ups"                             , 1   , "All"   , ["exactComparison"     , "no_restart"]) ,
    ("CQMOM_4D"                          , "CQMOM_regression/CQMOM_4D.ups"                           , 1   , "All"   , ["exactComparison"     , "no_restart"]) ,
    ("CQMOM_7D"                          , "CQMOM_regression/CQMOM_7D.ups"                           , 1   , "All"   , ["exactComparison"     , "no_restart"]) ,
-   ("singleJet_poly"                    , "CQMOM_regression/singleJet_poly.ups"                     , 1   , "All"   , ["exactComparison"     , "no_restart"]) ,
+   #("singleJet_poly"                    , "CQMOM_regression/singleJet_poly.ups"                     , 1   , "All"   , ["exactComparison"     , "no_restart"]) ,
    ("angledWall"                        , "CQMOM_regression/angledWall.ups"                         , 1   , "All"   , ["exactComparison"     , "no_restart"]) ,
    ("angledWall3D"                      , "CQMOM_regression/angledWall3D.ups"                       , 1   , "All"   , ["exactComparison"     , "no_restart"]) ,
    ("Constant_Deposition"               , "CQMOM_regression/Constant_Deposition.ups"                , 1   , "All"   , ["exactComparison"     , "no_restart"]) ,
-   ("CQMOM_coal_test"                   , "CQMOM_regression/CQMOM_coal_test.ups"                    , 1   , "All"   , ["exactComparison"     , "no_restart"]) ,
+   #("CQMOM_coal_test"                   , "CQMOM_regression/CQMOM_coal_test.ups"                    , 1   , "All"   , ["exactComparison"     , "no_restart"]) ,
    ("channel_LagPart_inlet"             , "LagrangianParticles/channel_flow_x_lagrangian_inlet.ups" , 1   , "All"   , ["exactComparison"     , "no_restart", "no_cuda"]) ,  # 11/1/16 bug with gpu support with particles
    ("task_math"                         , "task_math.ups"                                           , 1   , "All"   , ["exactComparison"     , "no_restart"]) ,
    ("intrusion_test"                    , "intrusion_test.ups"                                      , 1   , "All"   , ["exactComparison"]) ,
@@ -104,6 +114,10 @@ PRODUCTION_TESTS_NO_COAL = [
    ("cloudBM48LS"                       , "cloudBM48LS.ups"                                         , 8   , "All"   , ["exactComparison"     , "no_restart"]) ,
    ("cloudBM80GLC"                      , "cloudBM80GLC.ups"                                        , 8   , "All"   , ["exactComparison"     , "no_restart"]) ,
    ("cloudBM80LS"                       , "cloudBM80LS.ups"                                         , 8   , "All"   , ["exactComparison"     , "no_restart"]) ,
+<<<<<<< HEAD
+=======
+   ("heated_plate"                      , "heated_plate.ups"                                        , 1   , "All"   , ["exactComparison"]) ,
+>>>>>>> origin/master
 ]
 
 PRODUCTION_COAL_TESTS = [
@@ -129,7 +143,12 @@ PRODUCTION_COAL_TESTS = [
    ("OFC_smith"                         , "Coal/OFC_smith.ups"                                      , 3   , "All"   , ["exactComparison"     , "no_cuda"]) ,
    ("OFC4_hybrid"                       , "Coal/OFC4_hybrid.ups"                                    , 3   , "All"   , ["exactComparison"     , "no_cuda"]) ,
    ("BrownSoot_spectral"                , "Coal/BrownSoot_spectral.ups"                             , 8   , "All"   , ["exactComparison"     , "no_cuda"]) ,
+   ("BrownSoot_spectral_orthog"         ,  BrownSoot_spectral_orthog_ups                            , 8   , "All"   , ["exactComparison"     , "no_cuda"]) ,
    ("Coal_Nox"                          , "Coal/Coal_Nox.ups"                                       , 8   , "All"   , ["exactComparison"     , "no_cuda"]) ,
+<<<<<<< HEAD
+=======
+   ("AtikokanU1"                        , "Coal/AtikokanU1.ups"                                     , 6   , "All"   , ["exactComparison"     , "no_cuda"]) ,
+>>>>>>> origin/master
 ]
 
 KOKKOS_TESTS = [
@@ -164,6 +183,7 @@ KOKKOS_TESTS = [
 ]
 
 RMCRT_TESTS = [
+<<<<<<< HEAD
    ("rmcrt_bm1_1L"                      , "RMCRT/rmcrt_bm1_1L.ups"                , 1   , "ALL"  , ["exactComparison"]) ,
    ("rmcrt_bm1_1L_bounded"              , "RMCRT/rmcrt_bm1_1L_bounded.ups"        , 8   , "ALL"  , ["exactComparison"]) ,
    ("rmcrt_bm1_ML"                      , "RMCRT/rmcrt_bm1_ML.ups"                , 1   , "ALL"  , ["exactComparison"]) ,
@@ -173,14 +193,51 @@ RMCRT_TESTS = [
    ("multibox_rmcrt_coal_1L"            , "RMCRT/multibox_rmcrt_coal_1L.ups"      , 8   , "ALL"  , ["exactComparison"]) ,
    ("multibox_rmcrt_coal_2L"            , "RMCRT/multibox_rmcrt_coal_2L.ups"      , 8   , "ALL"  , ["exactComparison"]) ,
    ("multibox_rmcrt_coal_DO"            , "RMCRT/multibox_rmcrt_coal_DO.ups"      , 8   , "ALL"  , ["exactComparison"]) ,
+=======
+   ("rmcrt_bm1_1L"                      , "RMCRT/rmcrt_bm1_1L.ups"                , 1   , "ALL"  , [ "exactComparison" ]) ,
+   ("rmcrt_bm1_1L_bounded"              , "RMCRT/rmcrt_bm1_1L_bounded.ups"        , 8   , "ALL"  , [ "exactComparison" ]) ,
+   ("rmcrt_bm1_ML"                      , "RMCRT/rmcrt_bm1_ML.ups"                , 1   , "ALL"  , [ "exactComparison" ]) ,
+   ("rmcrt_bm1_DO"                      , "RMCRT/rmcrt_bm1_DO.ups"                , 1   , "ALL"  , [ "exactComparison" ]) ,
+   ("methane_rmcrt"                     , "RMCRT/methane_rmcrt.ups"               , 8   , "ALL"  , [ "exactComparison", "no_restart"]) ,
+   ("methane_VR"                        , "RMCRT/methane_VR.ups"                  , 8   , "ALL"  , [ "exactComparison" ]) ,
+   ("multibox_rmcrt_coal_1L"            , "RMCRT/multibox_rmcrt_coal_1L.ups"      , 8   , "ALL"  , [ "exactComparison" ]) ,
+   ("multibox_rmcrt_coal_2L"            , "RMCRT/multibox_rmcrt_coal_2L.ups"      , 8   , "ALL"  , [ "exactComparison" ]) ,
+   ("multibox_rmcrt_coal_DO"            , "RMCRT/multibox_rmcrt_coal_DO.ups"      , 8   , "ALL"  , [ "exactComparison" ]) ,
+>>>>>>> origin/master
 
 # multi-threaded RMCRT tests
-   ("rmcrt_bm1_1L_thread"               , "RMCRT/rmcrt_bm1_1L.ups"                , 1   , "ALL"  , ["no_restart", "exactComparison", "sus_options=-nthreads 4"]) ,
-   ("rmcrt_bm1_ML_thread"               , "RMCRT/rmcrt_bm1_ML.ups"                , 1   , "ALL"  , ["no_restart", "exactComparison", "sus_options=-nthreads 4"]) ,
-   ("rmcrt_bm1_DO_thread"               , "RMCRT/rmcrt_bm1_DO.ups"                , 1   , "ALL"  , ["no_restart", "exactComparison", "sus_options=-nthreads 8"]) ,
-   ("multibox_rmcrt_coal_1L_threaded"   , "RMCRT/multibox_rmcrt_coal_1L.ups"      , 2   , "ALL"  , ["exactComparison", "sus_options=-nthreads 8"]) ,
-   ("multibox_rmcrt_coal_2L_threaded"   , "RMCRT/multibox_rmcrt_coal_2L.ups"      , 2   , "ALL"  , ["exactComparison", "sus_options=-nthreads 8"]) ,
-   ("multibox_rmcrt_coal_DO_threaded"   , "RMCRT/multibox_rmcrt_coal_DO.ups"      , 2   , "ALL"  , ["exactComparison", "sus_options=-nthreads 8"]) ,
+   ("rmcrt_bm1_1L_thread"               , "RMCRT/rmcrt_bm1_1L.ups"                , 1   , "ALL"  , ["no_restart",  "exactComparison", "sus_options=-nthreads 4" ]) ,
+   ("rmcrt_bm1_ML_thread"               , "RMCRT/rmcrt_bm1_ML.ups"                , 1   , "ALL"  , ["no_restart",  "exactComparison", "sus_options=-nthreads 4" ]) ,
+   ("rmcrt_bm1_DO_thread"               , "RMCRT/rmcrt_bm1_DO.ups"                , 1   , "ALL"  , ["no_restart",  "exactComparison", "sus_options=-nthreads 8" ]) ,
+   ("multibox_rmcrt_coal_1L_threaded"   , "RMCRT/multibox_rmcrt_coal_1L.ups"      , 2   , "ALL"  , [ "exactComparison", "sus_options=-nthreads 8"]) ,
+   ("multibox_rmcrt_coal_2L_threaded"   , "RMCRT/multibox_rmcrt_coal_2L.ups"      , 2   , "ALL"  , [ "exactComparison", "sus_options=-nthreads 8"]) ,
+   ("multibox_rmcrt_coal_DO_threaded"   , "RMCRT/multibox_rmcrt_coal_DO.ups"      , 2   , "ALL"  , [ "exactComparison", "sus_options=-nthreads 8"])
+]
+
+<<<<<<< HEAD
+NIGHTLYTESTS = [
+   # The regrid test should be last.  It needs a checkpoint.  If you move it up the stack and run local_RT NIGHTLYTESTS then not all tests will run
+   ("regridTestArches"                  , "regridTestArches"                                        , 8   , "Linux"  , ["startFromCheckpoint" , "no_restart"])
+]
+
+# Tests that are run during local regression testing
+LOCAL_TESTS = [
+]
+
+# NO RMCRT due to the segfault on the MAC
+NO_RMCRT = [
+]
+
+# An empty list for debugging purposes. Please add tests as you need them when developing, but don't actually commit anything to this list. 
+=======
+SWEEPS_TESTS = [
+   ("methane_fire_dRad"                 , "methane_fire_dRad.ups"                 , 4   , "All"   , ["exactComparison"]) ,
+   ("mass_energy_balance"               , "Coal/mass_energy_balance.ups"          , 2   , "All"   , ["exactComparison"     , "no_cuda"]) ,
+   ("mass_energy_balance_psnox"        , "Coal/mass_energy_balance_psnox.ups"     , 2   , "All"   , ["exactComparison"     , "no_cuda"]) ,
+   ("mass_energy_balance_Tfluid"        , "Coal/mass_energy_balance_Tfluid.ups"   , 2   , "All"   , ["exactComparison"     , "no_cuda"]) ,
+   ("multibox_sweeps_coal"              , "Coal/multibox_sweeps_coal.ups"         , 46  , "All"   , ["exactComparison"]),
+   ("BrownSoot_spectral"                , "Coal/BrownSoot_spectral.ups"           , 8   , "All"   , ["exactComparison"     , "no_cuda"]),
+   ("BrownSoot_spectral_orthog"         , BrownSoot_spectral_orthog_ups           , 8   , "All"   , ["exactComparison"     , "no_cuda"])
 ]
 
 NIGHTLYTESTS = [
@@ -196,21 +253,30 @@ LOCAL_TESTS = [
 NO_RMCRT = [
 ]
 
-# An empty list for debugging purposes. Please add tests as you need them when developing, but don't actually commit anything to this list. 
+# An empty list for debugging purposes. Please add tests as you need them when developing, but don't actually commit anything to this list.
+>>>>>>> origin/master
 DEBUG = [
 ]
 
 #__________________________________
 # The following list is parsed by the local RT script
 # and allows the user to select the tests to run
+<<<<<<< HEAD
 #LIST: LOCAL_TESTS KOKKOS_TESTS RMCRT_TESTS PRODUCTION_TESTS_NO_COAL PRODUCTION_COAL_TESTS NIGHTLYTESTS NO_RMCRT DEBUG BUILDBOTTESTS
+=======
+#LIST: LOCAL_TESTS KOKKOS_TESTS RMCRT_TESTS PRODUCTION_TESTS_NO_COAL PRODUCTION_COAL_TESTS SWEEPS_TESTS NIGHTLYTESTS NO_RMCRT DEBUG BUILDBOTTESTS
+>>>>>>> origin/master
 #__________________________________
 
 
 # returns the list
 def getTestList(me) :
   if me == "LOCAL_TESTS":
+<<<<<<< HEAD
     TESTS = NIGHTLYTESTS + RMCRT_TESTS + PRODUCTION_COAL_TESTS + PRODUCTION_TESTS_NO_COAL + KOKKOS_TESTS 
+=======
+    TESTS = RMCRT_TESTS + PRODUCTION_COAL_TESTS + PRODUCTION_TESTS_NO_COAL + KOKKOS_TESTS
+>>>>>>> origin/master
   elif me == "KOKKOS_TESTS":
     TESTS = KOKKOS_TESTS
   elif me == "RMCRT_TESTS":
@@ -219,6 +285,11 @@ def getTestList(me) :
     TESTS = PRODUCTION_TESTS_NO_COAL
   elif me == "PRODUCTION_COAL_TESTS":
     TESTS = PRODUCTION_COAL_TESTS
+<<<<<<< HEAD
+=======
+  elif me == "SWEEPS_TESTS":
+    TESTS = SWEEPS_TESTS
+>>>>>>> origin/master
   elif me == "NIGHTLYTESTS":
     TESTS = NIGHTLYTESTS + RMCRT_TESTS + PRODUCTION_COAL_TESTS + PRODUCTION_TESTS_NO_COAL + KOKKOS_TESTS
   elif me == "NO_RMCRT":

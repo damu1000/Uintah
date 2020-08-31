@@ -1,7 +1,11 @@
 #
 #  The MIT License
 #
+<<<<<<< HEAD
 #  Copyright (c) 1997-2019 The University of Utah
+=======
+#  Copyright (c) 1997-2020 The University of Utah
+>>>>>>> origin/master
 #
 #  Permission is hereby granted, free of charge, to any person obtaining a copy
 #  of this software and associated documentation files (the "Software"), to
@@ -37,14 +41,17 @@ SRCDIR := CCA/Components/OnTheFlyAnalysis
 SRCS += \
         $(SRCDIR)/AnalysisModuleFactory.cc \
         $(SRCDIR)/AnalysisModule.cc        \
+        $(SRCDIR)/controlVolume.cc         \
+        $(SRCDIR)/controlVolFluxes.cc      \
+        $(SRCDIR)/FileInfoVar.cc           \
         $(SRCDIR)/lineExtract.cc           \
         $(SRCDIR)/meanTurbFluxes.cc        \
         $(SRCDIR)/MinMax.cc                \
         $(SRCDIR)/momentumAnalysis.cc      \
         $(SRCDIR)/planeAverage.cc          \
         $(SRCDIR)/planeExtract.cc          \
-        $(SRCDIR)/statistics.cc            \
-        $(SRCDIR)/FileInfoVar.cc
+        $(SRCDIR)/statistics.cc
+
 
 PSELIBS := \
 	CCA/Ports               \

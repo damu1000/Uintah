@@ -1,7 +1,11 @@
 /*
  * The MIT License
  *
+<<<<<<< HEAD
  * Copyright (c) 1997-2019 The University of Utah
+=======
+ * Copyright (c) 1997-2020 The University of Utah
+>>>>>>> origin/master
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -40,9 +44,17 @@
 
 
 //______________________________________________________________________
+//  References:
+//  1) I.L. Hunsaker, D.J. Glaze, J.N. Thornock, and P.J. Smith,
+// "A New Model For Virtual Radiometers, Proceedings of the ASME 1012 International
+//  Heat Transfer Conference, HT2012-58093, 2012.
 //
-using namespace Uintah;
+//  2) I.L. Hunsaker, D.J. Glaze, J.N. Thornock, and P.J. Smith,
+//  "Virtual Raiometers for Parallel Architectures," Technical Report,
+//  http://hdl.handle.net/123456789/11198
+//______________________________________________________________________
 
+using namespace Uintah;
 extern Dout g_ray_dbg;
 
 //______________________________________________________________________
@@ -70,6 +82,13 @@ Radiometer::~Radiometer()
 {
   VarLabel::destroy( d_VRFluxLabel );
   VarLabel::destroy( d_VRIntensityLabel );
+<<<<<<< HEAD
+=======
+ 
+  for( auto iter  = d_radiometers.begin();iter != d_radiometers.end(); iter++){
+    delete *iter;
+  }
+>>>>>>> origin/master
 }
 
 //______________________________________________________________________
@@ -77,6 +96,7 @@ Radiometer::~Radiometer()
 //______________________________________________________________________
 void
 Radiometer::problemSetup( const ProblemSpecP& prob_spec,
+<<<<<<< HEAD
                           const ProblemSpecP& radps,
                           const GridP&        grid)
 {
@@ -107,23 +127,76 @@ Radiometer::problemSetup( const ProblemSpecP& prob_spec,
          << " " << end << " begins or ends outside of the computational domain. \n" << std::endl;
     throw ProblemSetupException(warn.str(), __FILE__, __LINE__);
   }
+=======
+                          const ProblemSpecP& rmcrtps,
+                          const GridP&        grid)
+{
+  ProblemSpecP rmcrt_ps = rmcrtps;
 
-  if( start.x() > end.x() || start.y() > end.y() || start.z() > end.z() ) {
-    std::ostringstream warn;
-    warn << "\n ERROR:Radiometer::problemSetup: the radiometer that you've specified " << start
-         << " " << end << " the starting point is > than the ending point \n" << std::endl;
-    throw ProblemSetupException(warn.str(), __FILE__, __LINE__);
-  }
+  for( ProblemSpecP rad_ps = rmcrt_ps->findBlock( "Radiometer" ); rad_ps != nullptr; rad_ps = rad_ps->findNextBlock( "Radiometer" ) ) {
 
-  // you need at least one cell that's a radiometer
-  if( start.x() == end.x() || start.y() == end.y() || start.z() == end.z() ){
-    std::ostringstream warn;
-    warn << "\n ERROR:Radiometer::problemSetup: The specified radiometer has the same "
-         << "starting and ending points.  All of the directions must differ by one cell\n "
-         << "                                start: " << start << " end: " << end << std::endl;
-    throw ProblemSetupException(warn.str(), __FILE__, __LINE__);
-  }
+    Vector notInitialized( DBL_MAX );
+    Vector unitNormalVec( notInitialized );
+    Vector normalVec( notInitialized );
+    
+    double viewAngle;
+    int    nRays;
+    Point  start;
+    Point  end;
+    
+    rad_ps->require( "viewAngle"    ,    viewAngle );   // view angle of the radiometer in degrees
+    rad_ps->require( "nRays"  ,          nRays );       // number of rays per radiometer
+    rad_ps->require( "locationsMin" ,    start );       // minimum extent of radiometer(s) in physical units
+    rad_ps->require( "locationsMax" ,    end );         // maximum extent of radiometer(s) in physical units
+    
+    rad_ps->get( "unitNormalVector",  unitNormalVec );  // non-dimensional orientation of radiometer
+    rad_ps->get( "normalVector",      normalVec);       // radiometer orientation in cartesian coordinates
 
+    if( normalVec != notInitialized ){
+      unitNormalVec = normalVec/normalVec.length();
+    }
+    
+    //__________________________________
+    //  Warnings and bulletproofing
+
+    BBox compDomain;
+    grid->getSpatialRange(compDomain);
+
+    Point min = compDomain.min();
+    Point max = compDomain.max();
+
+    if(start.x() < min.x() || start.y() < min.y() || start.z() < min.z() ||
+       end.x() > max.x()   || end.y() > max.y()   || end.z() > max.z() ) {
+      std::ostringstream warn;
+      warn << "\n ERROR:Radiometer::problemSetup: the radiometer that you've specified " << start
+           << " " << end << " begins or ends outside of the computational domain. \n" << std::endl;
+      throw ProblemSetupException(warn.str(), __FILE__, __LINE__);
+    }
+
+    if( start.x() > end.x() || start.y() > end.y() || start.z() > end.z() ) {
+      std::ostringstream warn;
+      warn << "\n ERROR:Radiometer::problemSetup: the radiometer that you've specified " << start
+           << " " << end << " the starting point is > than the ending point \n" << std::endl;
+      throw ProblemSetupException(warn.str(), __FILE__, __LINE__);
+    }
+>>>>>>> origin/master
+
+    // you need at least one cell that's a radiometer
+    if( start.x() == end.x() || start.y() == end.y() || start.z() == end.z() ){
+      std::ostringstream warn;
+      warn << "\n ERROR:Radiometer::problemSetup: The specified radiometer has the same "
+           << "starting and ending points.  All of the directions must differ by one cell\n "
+           << "                                start: " << start << " end: " << end << std::endl;
+      throw ProblemSetupException(warn.str(), __FILE__, __LINE__);
+    }
+
+    for(int L = 0; L<grid->numLevels(); L++){
+      LevelP level = grid->getLevel(L);
+      IntVector lo = level->getCellIndex( start );
+      IntVector hi = level->getCellIndex( end );
+      IntVector nCells = hi - lo;
+
+<<<<<<< HEAD
   for(int L = 0; L<grid->numLevels(); L++){
     LevelP level = grid->getLevel(L);
     IntVector lo = level->getCellIndex( start );
@@ -150,52 +223,114 @@ Radiometer::problemSetup( const ProblemSpecP& prob_spec,
   if ( d_VR_nRays < int(15 + pow(5.4, viewAngle/40) ) ){
     proc0cout << "    WARNING Number of radiometer rays:  ("<< d_VR_nRays <<") is less than the recommended number of ("<< int(15 + pow(5.4, viewAngle/40) ) <<"). Errors will exceed 1%. " << std::endl;
   }
+=======
+      proc0cout << "  - radiometer: lower cell " << lo << " upper cell " << hi << " nCells " << nCells << "\n";
 
-  // orient[0,1,2] represent the user specified vector normal of the radiometer.
-  // These will be converted to rotations about the x,y, and z axes, respectively.
-  // Each rotation is counterclockwise when the observer is looking from the
-  // positive axis about which the rotation is occurring. d
-  for(int d = 0; d<3; d++){
-    if(orient[d] == 0){      // WARNING WARNING this conditional only works for integers, not doubles, and should be fixed.
-      orient[d] = 1e-16;      // to avoid divide by 0.
+      if ( nCells.x() <= 0 || nCells.y() <= 0 || nCells.z() <= 0){
+        std::ostringstream warn;
+        warn << "\n ERROR:Radiometer::problemSetup: The specified radiometer has the same "
+             << "starting and ending points.  There must be at least 1 cell between locationMin & locationMax in each direction:\n "
+             << "                                startCell: " << lo << " endCell: " << hi;
+        throw ProblemSetupException(warn.str(), __FILE__, __LINE__);
+      }
     }
-  }
 
-  //__________________________________
-  //  CONSTANT VR VARIABLES
-  //  In spherical coordinates, the polar angle, theta_rot,
-  //  represents the counterclockwise rotation about the y axis,
-  //  The azimuthal angle represents the negative of the
-  //  counterclockwise rotation about the z axis.
-  //  Convert the user specified radiometer vector normal into three axial
-  //  rotations about the x, y, and z axes.
-  d_VR.thetaRot = acos( orient[2] / orient.length() );
-  double psiRot = acos( orient[0] / sqrt( orient[0]*orient[0] + orient[1]*orient[1] ) );
+    //__________________________________
+    // 
+    if ( unitNormalVec == notInitialized && normalVec == notInitialized){
+      std::ostringstream warn;
+      warn << "\n ERROR:Radiometer::problemSetup: You must specify either: "
+           << "  <unitNormalVector> or <normalVector> \n"
+           << " to set the direction of the radiometer";
+      throw ProblemSetupException(warn.str(), __FILE__, __LINE__);
+    }
+>>>>>>> origin/master
 
-  // The calculated rotations must be adjusted if the x and y components of the normal vector
-  // are in the 3rd or 4th quadrants due to the constraints on arccos
-  if (orient[0] < 0 && orient[1] < 0){       // quadrant 3
-    psiRot = (M_PI/2 + psiRot);
-  }
-  if (orient[0] > 0 && orient[1] < 0){       // quadrant 4
-    psiRot = (2*M_PI - psiRot);
-  }
+    //__________________________________
+    //
+    if ( viewAngle > 360 ){
+      std::ostringstream warn;
+      warn << "ERROR:  VRViewAngle ("<< viewAngle <<") exceeds the maximum acceptable value of 360 degrees." << std::endl;
+      throw ProblemSetupException(warn.str(), __FILE__, __LINE__);
+    }
 
-  d_VR.psiRot = psiRot;
-  //  phiRot is always  0. There will never be a need for a rotation about the x axis. All
-  //  possible rotations can be accomplished using the other two.
-  d_VR.phiRot = 0;
+    if ( nRays < int(15 + pow(5.4, viewAngle/40) ) ){
+      proc0cout << "    WARNING Number of radiometer rays:  ("<< nRays <<") is less than the recommended number of ("<< int(15 + pow(5.4, viewAngle/40) ) <<"). Errors will exceed 1%. " << std::endl;
+    }
 
+    //__________________________________
+    //    compute the rotation angles
+    for(int d = 0; d<3; d++){
+      if( unitNormalVec[d] == 0 ){      // WARNING WARNING this conditional only works for integers, not doubles, and should be fixed.
+        unitNormalVec[d] = 1e-16;      // to avoid divide by 0.
+      }
+    }
+
+<<<<<<< HEAD
   double deltaTheta = viewAngle/360*M_PI;       // divides view angle by two and converts to radians
   double range      = 1 - cos(deltaTheta);      // cos(0) to cos(deltaTheta) gives the range of possible vals
   d_VR.sldAngl      = 2*M_PI*range;             // the solid angle that the radiometer can view
   d_VR.deltaTheta   = deltaTheta;
   d_VR.range        = range;
   d_sigma_over_pi   = d_sigma/M_PI;
+=======
+    //__________________________________
+    //  Convert the user specified radiometer normal vector into three axial
+    //  rotations about the x, y, and z axes.
+    //  Each rotation is counterclockwise when the observer is looking from the
+    //  positive axis about which the rotation is occurring. d
+    //  This follows eqs, 14-17 in reference 1.
+    //
+    //  counter-clockwise rotation:
+    // phi_rotate  :   x axis
+    // theta_rotate:   y axis
+    // xi_rotate   :   z axis
 
+    //  phi_rotate is always  0. There will never be a need for a rotation about the x axis. All
+    //  possible rotations can be accomplished using the other two.
+    double phi_rotate = 0;
+
+    double theta_rotate = acos( unitNormalVec[2] / unitNormalVec.length() );
+
+    double xi_rotate  = acos( unitNormalVec[0] / sqrt( unitNormalVec[0]*unitNormalVec[0] + unitNormalVec[1]*unitNormalVec[1] ) );
+
+    // The rotations must be adjusted if the x and y components of the normal vector
+    // are in the 3rd or 4th quadrants due to the constraints on arccos
+    if ( unitNormalVec[0] < 0 && unitNormalVec[1] < 0 ){       // quadrant 3
+      xi_rotate = (M_PI/2 + xi_rotate);
+    }
+    if ( unitNormalVec[0] > 0 && unitNormalVec[1] < 0 ){       // quadrant 4
+      xi_rotate = (2*M_PI - xi_rotate);
+    }
+>>>>>>> origin/master
+
+    proc0cout << "                xi_rotate: " << phi_rotate << " theta_rotate: " << theta_rotate << " xi_rotate: " << xi_rotate << std::endl;
+
+    //__________________________________
+    //
+    double theta_viewAngle = viewAngle/360*M_PI;       // divides view angle by two and converts to radians
+    double range           = 1 - cos(theta_viewAngle); // cos(0) to cos(theta_viewAngle) gives the range of possible vals
+    double solidAngle      = 2*M_PI*range;             // the solid angle that the radiometer can view
+
+    // Store in the vector
+    radiometer* r   = scinew radiometer;
+    r->locationsMin    = start;
+    r->locationsMax    = end;
+    r->nRays           = nRays;
+    r->solidAngle      = solidAngle;
+    r->theta_viewAngle = theta_viewAngle;
+    r->range           = range;
+    r->phi_rotate      = phi_rotate;
+    r->theta_rotate    = theta_rotate;
+    r->xi_rotate       = xi_rotate;
+
+    d_radiometers.push_back( r );
+  }  // loop over radiometers
+  
+  
   //__________________________________
   // bulletproofing
-  ProblemSpecP root_ps = rad_ps->getRootNode();
+  ProblemSpecP root_ps = rmcrt_ps->getRootNode();
 
   Vector periodic;
   ProblemSpecP grid_ps  = root_ps->findBlock("Grid");
@@ -224,7 +359,7 @@ Radiometer::sched_initialize_VRFlux( const LevelP& level,
   }else{
     tsk= scinew Task( taskname, this, &Radiometer::initialize_VRFlux< float > );
   }
-  
+
   printSchedule(level, g_ray_dbg, taskname);
 
   tsk->computes( d_VRFluxLabel );
@@ -237,14 +372,22 @@ Radiometer::sched_initialize_VRFlux( const LevelP& level,
 //______________________________________________________________________
 template< class T >
 void
+<<<<<<< HEAD
 Radiometer::initialize_VRFlux( const ProcessorGroup*,
                                const PatchSubset* patches,
                                const MaterialSubset* matls,
                                DataWarehouse* old_dw,
                                DataWarehouse* new_dw )
+=======
+Radiometer::initialize_VRFlux( const ProcessorGroup *,
+                               const PatchSubset    * patches,
+                               const MaterialSubset * matls,
+                               DataWarehouse        * old_dw,
+                               DataWarehouse        * new_dw )
+>>>>>>> origin/master
 {
   //__________________________________
-  //  Initialize the flux.
+  //  Initialize the flux and intensity.
   for (int p=0; p < patches->size(); p++){
 
     const Patch* patch = patches->get(p);
@@ -255,23 +398,28 @@ Radiometer::initialize_VRFlux( const ProcessorGroup*,
     CCVariable< T > intensity;
     new_dw->allocateAndPut( flux,      d_VRFluxLabel,       d_matl, patch );
     new_dw->allocateAndPut( intensity, d_VRIntensityLabel, d_matl, patch );
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> origin/master
     flux.initialize( 0.0 );
     intensity.initialize( 0.0 );
   }
 }
 
 //______________________________________________________________________
-// Method: Schedule the virtual radiometer.  This task has both 
+// Method: Schedule the virtual radiometer.  This task has both
 // temporal and spatial scheduling.
 //______________________________________________________________________
 void
-Radiometer::sched_radiometer( const LevelP& level,
-                              SchedulerP& sched,
+Radiometer::sched_radiometer( const LevelP & level,
+                              SchedulerP   & sched,
                               Task::WhichDW notUsed,
                               Task::WhichDW sigma_dw,
                               Task::WhichDW celltype_dw )
 {
+<<<<<<< HEAD
   
   
   //__________________________________
@@ -279,6 +427,13 @@ Radiometer::sched_radiometer( const LevelP& level,
   sched_initialize_VRFlux( level, sched );
   
   
+=======
+  //__________________________________
+  //  There has to be a value of VRFlux VRIntensity on all patches for output
+  sched_initialize_VRFlux( level, sched );
+
+
+>>>>>>> origin/master
   //__________________________________
   //  Compute VRFlux on subset of patches
   // only schedule on the patches that contain radiometers - Spatial task scheduling
@@ -286,19 +441,19 @@ Radiometer::sched_radiometer( const LevelP& level,
   //     NOT -> { {19,22,25} }, as one proc isn't guaranteed to own the entire, 3-element subset.
   PatchSet* radiometerPatchSet = scinew PatchSet();
   radiometerPatchSet->addReference();
-  getPatchSet(sched, level, radiometerPatchSet);
+  getPatchSet(sched, level, d_radiometers, radiometerPatchSet);
 
   int L = level->getIndex();
   Task::WhichDW abskg_dw = get_abskg_whichDW( L, d_abskgLabel );
 
-  std::string taskname = "Radiometer::radiometer";
+  std::string taskname = "Radiometer::radiometerTask";
   Task *tsk;
 
   if (RMCRTCommon::d_FLT_DBL == TypeDescription::double_type) {
-    tsk = scinew Task(taskname, this, &Radiometer::radiometer<double>, abskg_dw, sigma_dw, celltype_dw);
+    tsk = scinew Task(taskname, this, &Radiometer::radiometerTask<double>, abskg_dw, sigma_dw, celltype_dw);
   }
   else {
-    tsk = scinew Task(taskname, this, &Radiometer::radiometer<float>, abskg_dw, sigma_dw, celltype_dw);
+    tsk = scinew Task(taskname, this, &Radiometer::radiometerTask<float>, abskg_dw, sigma_dw, celltype_dw);
   }
 
   tsk->setType(Task::Spatial);
@@ -311,12 +466,17 @@ Radiometer::sched_radiometer( const LevelP& level,
 
   Ghost::GhostType gac = Ghost::AroundCells;
 
-  tsk->requires(abskg_dw,    d_abskgLabel,    gac, SHRT_MAX);
-  tsk->requires(sigma_dw,    d_sigmaT4Label,  gac, SHRT_MAX);
-  tsk->requires(celltype_dw, d_cellTypeLabel, gac, SHRT_MAX);
+  tsk->requires( abskg_dw,    d_abskgLabel,    gac, SHRT_MAX);
+  tsk->requires( sigma_dw,    d_sigmaT4Label,  gac, SHRT_MAX);
+  tsk->requires( celltype_dw, d_cellTypeLabel, gac, SHRT_MAX);
 
+<<<<<<< HEAD
   tsk->modifies(d_VRFluxLabel);
   tsk->modifies(d_VRIntensityLabel);
+=======
+  tsk->modifies( d_VRFluxLabel );
+  tsk->modifies( d_VRIntensityLabel );
+>>>>>>> origin/master
 
   sched->addTask(tsk, radiometerPatchSet, d_matlSet, RMCRTCommon::TG_RMCRT);
 
@@ -330,23 +490,20 @@ Radiometer::sched_radiometer( const LevelP& level,
 //______________________________________________________________________
 template < class T >
 void
-Radiometer::radiometer( const ProcessorGroup* pg,
-                        const PatchSubset* patches,
-                        const MaterialSubset* matls,
-                        DataWarehouse* old_dw,
-                        DataWarehouse* new_dw,
-                        Task::WhichDW which_abskg_dw,
-                        Task::WhichDW whichd_sigmaT4_dw,
-                        Task::WhichDW which_celltype_dw )
+Radiometer::radiometerTask( const ProcessorGroup  * pg,
+                            const PatchSubset     * patches,
+                            const MaterialSubset  * matls,
+                            DataWarehouse         * old_dw,
+                            DataWarehouse         * new_dw,
+                            Task::WhichDW which_abskg_dw,
+                            Task::WhichDW which_sigmaT4_dw,
+                            Task::WhichDW which_celltype_dw )
 {
   const Level* level = getLevel(patches);
-
-  //__________________________________
-  //
   MTRand mTwister;
 
   DataWarehouse* abskg_dw    = new_dw->getOtherDataWarehouse(which_abskg_dw);
-  DataWarehouse* sigmaT4_dw  = new_dw->getOtherDataWarehouse(whichd_sigmaT4_dw);
+  DataWarehouse* sigmaT4_dw  = new_dw->getOtherDataWarehouse(which_sigmaT4_dw);
   DataWarehouse* celltype_dw = new_dw->getOtherDataWarehouse(which_celltype_dw);
 
   constCCVariable< T > sigmaT4OverPi;
@@ -365,19 +522,18 @@ Radiometer::radiometer( const ProcessorGroup* pg,
 
     bool modifiesFlux= true;
     radiometerFlux < T > ( patch, level, new_dw, mTwister, sigmaT4OverPi, abskg, celltype, modifiesFlux );
-
-  }  // end patch loop
-}  // end radiometer
+  }
+}
 
 //______________________________________________________________________
 //    Compute the radiometer flux.
 //______________________________________________________________________
 template< class T >
 void
-Radiometer::radiometerFlux( const Patch* patch,
-                            const Level* level,
-                            DataWarehouse* new_dw,
-                            MTRand& mTwister,
+Radiometer::radiometerFlux( const Patch       *  patch,
+                            const Level       *  level,
+                            DataWarehouse     *  new_dw,
+                            MTRand            &  mTwister,
                             constCCVariable< T > sigmaT4OverPi,
                             constCCVariable< T > abskg,
                             constCCVariable<int> celltype,
@@ -398,74 +554,97 @@ Radiometer::radiometerFlux( const Patch* patch,
   }
 
   unsigned long int size = 0;                   // current size of PathIndex
-  Vector Dx = patch->dCell();                   // cell spacing          
+  Vector dx     = patch->dCell();               // cell spacing
+  IntVector pLo = patch->getCellLowIndex();
+  IntVector pHi = patch->getCellHighIndex();
 
-  IntVector lo = patch->getCellLowIndex();
-  IntVector hi = patch->getCellHighIndex();
+  //__________________________________
+  // loop over each radiometer
+  for (unsigned int r =0 ; r < d_radiometers.size(); r++) {
 
-  IntVector VR_posLo  = level->getCellIndex( d_VRLocationsMin );
-  IntVector VR_posHi  = level->getCellIndex( d_VRLocationsMax );
+    const radiometer* rad = d_radiometers[r];
+    IntVector rLo  = level->getCellIndex( rad->locationsMin );
+    IntVector rHi  = level->getCellIndex( rad->locationsMax );
 
-  if ( doesIntersect( VR_posLo, VR_posHi, lo, hi ) ){
+    if ( doesIntersect( rLo, rHi, pLo, pHi ) ){
 
-    lo = Max(lo, VR_posLo);  // form an iterator for this patch
-    hi = Min(hi, VR_posHi);  // this is an intersection
+      IntVector lo = Max( pLo, rLo );  // form an iterator for this patch
+      IntVector hi = Min( pHi, rHi );  // this is an intersection
 
-    for(CellIterator iter(lo,hi); !iter.done(); iter++){
+      for(CellIterator iter(lo,hi); !iter.done(); iter++){
 
-      IntVector c = *iter;
+        IntVector c = *iter;
 
-      double sumI      = 0;
-      double sumProjI  = 0;
-      double sumI_prev = 0;
-      Point CC_pos = level->getCellPosition(c);
-
+<<<<<<< HEAD
       //__________________________________
       // ray loop
       for (int iRay=0; iRay < d_VR_nRays; iRay++){
+=======
+        double sumI      = 0;
+        double sumProjI  = 0;
+        double sumI_prev = 0;
+        Point CC_pos     = level->getCellPosition(c);
+>>>>>>> origin/master
 
-        Vector rayOrigin;
-        bool useCCRays = true;
-        ray_Origin( mTwister, CC_pos, Dx, useCCRays, rayOrigin);
+        const int nRays = rad->nRays;
+        //__________________________________
+        // ray loop
+        for (int iRay=0; iRay < nRays; iRay++){
+
+          Vector rayOrigin;
+          bool useCCRays = true;
+          ray_Origin( mTwister, CC_pos, dx, useCCRays, rayOrigin);
 
 
-        double cosVRTheta;
-        Vector direction_vector;
-        rayDirection_VR( mTwister, c, iRay, d_VR, direction_vector, cosVRTheta);
+          double cosVRTheta;
+          Vector direction_vector;
+          rayDirection_VR( mTwister, c, iRay, rad, direction_vector, cosVRTheta);
 
-        // get the intensity for this ray
-        updateSumI< T >(level, direction_vector, rayOrigin, c, Dx, sigmaT4OverPi, abskg, celltype, size, sumI, mTwister);
+          // get the intensity for this ray
+          updateSumI< T >(level, direction_vector, rayOrigin, c, dx, sigmaT4OverPi, abskg, celltype, size, sumI, mTwister);
 
-        sumProjI += cosVRTheta * (sumI - sumI_prev); // must subtract sumI_prev, since sumI accumulates intensity
-                                                     // from all the rays up to that point
-        sumI_prev = sumI;
+          sumProjI += cosVRTheta * (sumI - sumI_prev); // must subtract sumI_prev, since sumI accumulates intensity
+                                                       // from all the rays up to that point
+          sumI_prev = sumI;
 
-      } // end VR ray loop
-
+<<<<<<< HEAD
       //__________________________________
       //  Compute VRFlux
       VRFlux[c]    = (T) sumProjI * d_VR.sldAngl/d_VR_nRays;
       intensity[c] = (T) sumProjI/d_VR_nRays;
     }  // end VR cell iterator
   }  // is radiometer on this patch
+=======
+        } // end ray loop
+
+        //__________________________________
+        //  Compute  flux and intensity
+        const double solidAngle = rad->solidAngle;
+        VRFlux[c]    = (T) sumProjI * solidAngle/nRays;
+        intensity[c] = (T) sumProjI/nRays;
+      }  // end VR cell iterator
+    }  // is radiometer on this patch
+  }
+>>>>>>> origin/master
 }
 
 //______________________________________________________________________
-//    Compute the Ray direction for Virtual Radiometer
+//    Compute the ray direction
 //______________________________________________________________________
 void
-Radiometer::rayDirection_VR( MTRand& mTwister,
-                             const IntVector& origin,
-                             const int iRay,
-                             VR_variables& VR,
-                             Vector& direction_vector,
-                             double& cosVRTheta)
+Radiometer::rayDirection_VR( MTRand           & mTwister,
+                             const IntVector  & origin,
+                             const int          iRay,
+                             const radiometer * rad,
+                             Vector           & direction_vector,
+                             double           & cosTheta_ray)
 {
   if( d_isSeedRandom == false ){
     mTwister.seed((origin.x() + origin.y() + origin.z()) * iRay +1);
   }
 
   // to help code readability
+<<<<<<< HEAD
   double thetaRot   = VR.thetaRot;
   double deltaTheta = VR.deltaTheta;
   double psiRot     = VR.psiRot;
@@ -490,26 +669,59 @@ Radiometer::rayDirection_VR( MTRand& mTwister,
     x*cos(thetaRot)*cos(psiRot) +
     y*(-cos(phiRot)*sin(psiRot) + sin(phiRot)*sin(thetaRot)*cos(psiRot)) +
     z*( sin(phiRot)*sin(psiRot) + cos(phiRot)*sin(thetaRot)*cos(psiRot));
+=======
+  double theta_rotate    = rad->theta_rotate;
+  double theta_viewAngle = rad->theta_viewAngle;
+  double xi_rotate       = rad->xi_rotate;
+  double phi_rotate      = rad->phi_rotate;
+  double range           = rad->range;
+  double R1              = mTwister.randDblExc();
+  double R2              = mTwister.randDblExc();
+
+  // Eq. 11, ref 1.
+  double phi_ray = 2 * M_PI * R1; //azimuthal angle. Range of 0 to 2pi
+
+  // This guarantees that the polar angle of the ray is within the theta_viewAngle
+  // Eq. 12, ref 1.
+  double theta_ray = acos( cos(theta_viewAngle) + range * R2 );
+  cosTheta_ray     = cos(theta_ray);
+
+  // This is the pre-rotated direction vector of the ray in cartesian coordinates, eq. 18 ref 1.
+  double x = sin(theta_ray) * cos(phi_ray);
+  double y = sin(theta_ray) * sin(phi_ray);
+  double z = cosTheta_ray;
+
+  // Equation 13, ref 1.
+  direction_vector[0] =
+    x * cos(theta_rotate) * cos(xi_rotate) +
+    y * (-cos(phi_rotate) * sin(xi_rotate) + sin(phi_rotate) * sin(theta_rotate) * cos(xi_rotate)) +
+    z * ( sin(phi_rotate) * sin(xi_rotate) + cos(phi_rotate) * sin(theta_rotate) * cos(xi_rotate));
+>>>>>>> origin/master
 
   direction_vector[1] =
-    x*cos(thetaRot)*sin(psiRot) +
-    y *( cos(phiRot)*cos(psiRot) + sin(phiRot)*sin(thetaRot)*sin(psiRot)) +
-    z *(-sin(phiRot)*cos(psiRot) + cos(phiRot)*sin(thetaRot)*sin(psiRot));
+    x * cos(theta_rotate) * sin(xi_rotate) +
+    y * ( cos(phi_rotate) * cos(xi_rotate) + sin(phi_rotate) * sin(theta_rotate) * sin(xi_rotate)) +
+    z * (-sin(phi_rotate) * cos(xi_rotate) + cos(phi_rotate) * sin(theta_rotate) * sin(xi_rotate));
 
   direction_vector[2] =
-    x*(-sin(thetaRot)) +
-    y*sin(phiRot)*cos(thetaRot) +
-    z*cos(phiRot)*cos(thetaRot);
+    x * -sin(theta_rotate) +
+    y * sin(phi_rotate)*cos(theta_rotate) +
+    z * cos(phi_rotate)*cos(theta_rotate);
+
+  //std::cout << " direction_vector: " << direction_vector << " x: " << x << " y: " << y << " z: " << z << std::endl;
+
 }
 
 //______________________________________________________________________
 //  Return the patchSet that contains radiometers
 //______________________________________________________________________
 void
-Radiometer::getPatchSet( SchedulerP& sched,
-                         const LevelP& level,
-                         PatchSet* ps )
+Radiometer::getPatchSet( SchedulerP   & sched,
+                         const LevelP & level,
+                         std::vector<radiometer* > radiometers,
+                         PatchSet     * ps )
 {
+<<<<<<< HEAD
   //__________________________________
   //  bulletproofing
   IntVector L_lo;
@@ -546,9 +758,56 @@ Radiometer::getPatchSet( SchedulerP& sched,
 
       if (doesIntersect(VR_posLo, VR_posHi, lo, hi)) {
         radiometer_patches.push_back(patch);
+=======
+  IntVector L_lo;
+  IntVector L_hi;
+  level->findInteriorCellIndexRange( L_lo, L_hi );
+  std::set<const Patch*> rad_patches;
+
+  for (unsigned int r =0 ; r < d_radiometers.size(); r++) {
+
+    const radiometer* rad = d_radiometers[r];
+    IntVector rLo  = level->getCellIndex( rad->locationsMin );
+    IntVector rHi  = level->getCellIndex( rad->locationsMax );
+
+
+    if( !doesIntersect (rLo, rHi, L_lo, L_hi ) ){
+      std::ostringstream warn;
+      warn << "\n ERROR:Radiometer::problemSetup: The VR locations:\n"
+           << "     VR min " << rad->locationsMin  << "  cell index: " << rLo << "\n"
+           << "     VR max " << rad->locationsMax << "  cell index: " << rHi << "\n"
+           << "     Number of cells: " << rHi - rLo << "\n"
+           << " do not overlap with the domain, " << L_lo << " -> " << L_hi << "\n"
+           << " There must be at least 1 cell in each direction" ;
+      throw ProblemSetupException(warn.str(), __FILE__, __LINE__);
+    }
+
+    //__________________________________
+    // find patches that contain radiometers
+
+    LoadBalancer * lb = sched->getLoadBalancer();
+    const PatchSet * procPatches = lb->getPerProcessorPatchSet(level);
+
+    for (int m = 0; m < procPatches->size(); m++) {
+      const PatchSubset* patches = procPatches->getSubset(m);
+
+      for (int p = 0; p < patches->size(); p++) {
+        const Patch* patch = patches->get(p);
+        IntVector pLo = patch->getCellLowIndex();
+        IntVector pHi = patch->getCellHighIndex();
+
+        if (doesIntersect(rLo, rHi, pLo, pHi)) {
+          rad_patches.emplace(patch);
+        }
+>>>>>>> origin/master
       }
     }
+  }  // loop over radiometers
+  
+  for (auto it=rad_patches.begin(); it!=rad_patches.end(); ++it){
+    ps->add( *it );
   }
+<<<<<<< HEAD
   size_t num_patches = radiometer_patches.size();
 
 
@@ -556,6 +815,9 @@ Radiometer::getPatchSet( SchedulerP& sched,
   for (size_t i = 0; i < num_patches; ++i) {
     ps->add(radiometer_patches[i]);
   }
+=======
+
+>>>>>>> origin/master
 }
 
 //______________________________________________________________________

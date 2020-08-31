@@ -23,9 +23,15 @@ void VelRhoHatBC::problemSetup( ProblemSpecP& db ){
   m_xmom = default_uMom_name;
   m_ymom = default_vMom_name;
   m_zmom = default_wMom_name;
+<<<<<<< HEAD
   m_uVel = parse_ups_for_role( UVELOCITY, db, default_uVel_name );
   m_vVel = parse_ups_for_role( VVELOCITY, db, default_vVel_name );
   m_wVel = parse_ups_for_role( WVELOCITY, db, default_wVel_name );
+=======
+  m_uVel = parse_ups_for_role( UVELOCITY_ROLE, db, default_uVel_name );
+  m_vVel = parse_ups_for_role( VVELOCITY_ROLE, db, default_vVel_name );
+  m_wVel = parse_ups_for_role( WVELOCITY_ROLE, db, default_wVel_name );
+>>>>>>> origin/master
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -48,9 +54,10 @@ void VelRhoHatBC::register_timestep_eval( std::vector<AFC::VariableInformation>&
 
 void VelRhoHatBC::eval( const Patch* patch, ArchesTaskInfoManager* tsk_info ){
 
-  SFCXVariable<double>* xmom = tsk_info->get_uintah_field<SFCXVariable<double> >( m_xmom );
-  SFCYVariable<double>* ymom = tsk_info->get_uintah_field<SFCYVariable<double> >( m_ymom );
-  SFCZVariable<double>* zmom = tsk_info->get_uintah_field<SFCZVariable<double> >( m_zmom );
+  SFCXVariable<double>& xmom = tsk_info->get_field<SFCXVariable<double> >( m_xmom );
+  SFCYVariable<double>& ymom = tsk_info->get_field<SFCYVariable<double> >( m_ymom );
+  SFCZVariable<double>& zmom = tsk_info->get_field<SFCZVariable<double> >( m_zmom );
+
 
 
   const BndMapT& bc_info = m_bcHelper->get_boundary_information();
@@ -76,18 +83,31 @@ void VelRhoHatBC::eval( const Patch* patch, ArchesTaskInfoManager* tsk_info ){
     Array3<double>* var = NULL;
 
     if ( face == Patch::xminus || face == Patch::xplus ){
+<<<<<<< HEAD
       var     = xmom;
       constSFCXVariable<double>* old_var = tsk_info->get_const_uintah_field<constSFCXVariable<double> >( m_uVel );
 
       if ( my_type == OUTLET ){
         bc_sign = 1.;
       } else if ( my_type == PRESSURE){
+=======
+      var     = &xmom;
+      constSFCXVariable<double>& old_var = tsk_info->get_field<constSFCXVariable<double> >( m_uVel );
+
+      if ( my_type == OUTLET_BC ){
+        bc_sign = 1.;
+      } else if ( my_type == PRESSURE_BC ){
+>>>>>>> origin/master
         bc_sign = -1.;
       }
 
       sign = bc_sign * sign;
 
+<<<<<<< HEAD
       if ( my_type == OUTLET || my_type == PRESSURE ){
+=======
+      if ( my_type == OUTLET_BC || my_type == PRESSURE_BC ){
+>>>>>>> origin/master
         // This applies the mostly in (pressure)/mostly out (outlet) boundary condition
         parallel_for(cell_iter.get_ref_to_iterator(),cell_iter.size(), [&] (const int i,const int j,const int k) {
           int i_f = i + move_to_face[0]; // cell on the face
@@ -102,7 +122,11 @@ void VelRhoHatBC::eval( const Patch* patch, ArchesTaskInfoManager* tsk_info ){
           int jpp = j_f + iDir[1];
           int kpp = k_f + iDir[2];
 
+<<<<<<< HEAD
           if ( sign * (*old_var)(i_f,j_f,k_f) > possmall ){
+=======
+          if ( sign * old_var(i_f,j_f,k_f) > possmall ){
+>>>>>>> origin/master
             // du/dx = 0
             (*var)(i_f,j_f,k_f)= (*var)(im,jm,km);
           } else {
@@ -117,6 +141,7 @@ void VelRhoHatBC::eval( const Patch* patch, ArchesTaskInfoManager* tsk_info ){
 
 
     }  else if ( face == Patch::yminus || face == Patch::yplus ){
+<<<<<<< HEAD
       var = ymom;
       constSFCYVariable<double>* old_var = tsk_info->get_const_uintah_field<constSFCYVariable<double> >( m_vVel );
 
@@ -124,12 +149,25 @@ void VelRhoHatBC::eval( const Patch* patch, ArchesTaskInfoManager* tsk_info ){
       if ( my_type == OUTLET ){
         bc_sign = 1.;
       } else if ( my_type == PRESSURE){
+=======
+      var = &ymom;
+      constSFCYVariable<double>& old_var = tsk_info->get_field<constSFCYVariable<double> >( m_vVel );
+
+
+      if ( my_type == OUTLET_BC ){
+        bc_sign = 1.;
+      } else if ( my_type == PRESSURE_BC ){
+>>>>>>> origin/master
         bc_sign = -1.;
       }
 
       sign = bc_sign * sign;
 
+<<<<<<< HEAD
       if ( my_type == OUTLET || my_type == PRESSURE ){
+=======
+      if ( my_type == OUTLET_BC || my_type == PRESSURE_BC ){
+>>>>>>> origin/master
         // This applies the mostly in (pressure)/mostly out (outlet) boundary condition
         parallel_for(cell_iter.get_ref_to_iterator(),cell_iter.size(), [&] (const int i,const int j,const int k) {
           int i_f = i + move_to_face[0]; // cell on the face
@@ -144,7 +182,11 @@ void VelRhoHatBC::eval( const Patch* patch, ArchesTaskInfoManager* tsk_info ){
           int jpp = j_f + iDir[1];
           int kpp = k_f + iDir[2];
 
+<<<<<<< HEAD
           if ( sign * (*old_var)(i_f,j_f,k_f) > possmall ){
+=======
+          if ( sign * old_var(i_f,j_f,k_f) > possmall ){
+>>>>>>> origin/master
             // du/dx = 0
             (*var)(i_f,j_f,k_f)= (*var)(im,jm,km);
           } else {
@@ -157,6 +199,7 @@ void VelRhoHatBC::eval( const Patch* patch, ArchesTaskInfoManager* tsk_info ){
         });
       }
 
+<<<<<<< HEAD
 
     } else {
       var = zmom;
@@ -166,12 +209,26 @@ void VelRhoHatBC::eval( const Patch* patch, ArchesTaskInfoManager* tsk_info ){
       if ( my_type == OUTLET ){
         bc_sign = 1.;
       } else if ( my_type == PRESSURE){
+=======
+    } else {
+
+      var = &zmom;
+      constSFCZVariable<double>& old_var = tsk_info->get_field<constSFCZVariable<double> >( m_wVel );
+
+      if ( my_type == OUTLET_BC ){
+        bc_sign = 1.;
+      } else if ( my_type == PRESSURE_BC ){
+>>>>>>> origin/master
         bc_sign = -1.;
       }
 
       sign = bc_sign * sign;
 
+<<<<<<< HEAD
       if ( my_type == OUTLET || my_type == PRESSURE ){
+=======
+      if ( my_type == OUTLET_BC || my_type == PRESSURE_BC ){
+>>>>>>> origin/master
         // This applies the mostly in (pressure)/mostly out (outlet) boundary condition
         parallel_for(cell_iter.get_ref_to_iterator(),cell_iter.size(), [&] (const int i,const int j,const int k) {
           int i_f = i + move_to_face[0]; // cell on the face
@@ -186,7 +243,11 @@ void VelRhoHatBC::eval( const Patch* patch, ArchesTaskInfoManager* tsk_info ){
           int jpp = j_f + iDir[1];
           int kpp = k_f + iDir[2];
 
+<<<<<<< HEAD
           if ( sign * (*old_var)(i_f,j_f,k_f) > possmall ){
+=======
+          if ( sign * old_var(i_f,j_f,k_f) > possmall ){
+>>>>>>> origin/master
             // du/dx = 0
             (*var)(i_f,j_f,k_f)= (*var)(im,jm,km);
           } else {

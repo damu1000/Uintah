@@ -1,7 +1,11 @@
 /*
  * The MIT License
  *
+<<<<<<< HEAD
  * Copyright (c) 1997-2019 The University of Utah
+=======
+ * Copyright (c) 1997-2020 The University of Utah
+>>>>>>> origin/master
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -252,14 +256,14 @@ SimulationController::releaseComponents( void )
 
 void
 SimulationController::doRestart( const std::string & restartFromDir
-                               ,       int           timeStep
+                               ,       int           index
                                ,       bool          fromScratch
                                ,       bool          removeOldDir
                                )
 {
   m_restarting             = true;
   m_from_dir               = restartFromDir;
-  m_restart_timestep       = timeStep;
+  m_restart_index          = index;
   m_restart_from_scratch   = fromScratch;
   m_restart_remove_old_dir = removeOldDir;
 }
@@ -301,15 +305,16 @@ SimulationController::restartArchiveSetup( void )
       Parallel::exitAll(1);
     }
 
-    // Find the right time to query the grid
-    if (m_restart_timestep == 0) {
-      m_restart_index    = 0;          // timestep == 0 means use the first timestep
-      m_restart_timestep = indices[0]; // reset m_restart_timestep to what it really is
+    // Find the right checkpoint timestep to query the grid
+    if( indices.size() == 0) {
+      std::ostringstream message;
+      message << "No restart checkpoints found.";
+      throw InternalError(message.str(), __FILE__, __LINE__);
     }
-    else if (m_restart_timestep == -1 && indices.size() > 0) {
-      m_restart_index    = (unsigned int)(indices.size() - 1);
-      m_restart_timestep = indices[indices.size() - 1]; // reset m_restart_timestep to what it really is
+    else if (m_restart_index < 0 ) {
+      m_restart_index = (unsigned int) (indices.size() - 1);
     }
+<<<<<<< HEAD
     else {
       for (int index = 0; index < (int)indices.size(); index++) {
         if (indices[index] == m_restart_timestep) {
@@ -321,10 +326,16 @@ SimulationController::restartArchiveSetup( void )
       
     // timestep not found
     if (m_restart_index == (int)indices.size()) {
+=======
+    else if (m_restart_index >= indices.size() ) {
+>>>>>>> origin/master
       std::ostringstream message;
-      message << "Restart time step " << m_restart_timestep << " not found";
+      message << "Invalid restart checkpoint index " << m_restart_index << ". "
+              << "Found " << indices.size() << " checkpoints";
       throw InternalError(message.str(), __FILE__, __LINE__);
     }
+
+    m_restart_timestep = indices[m_restart_index];
 
     // Do this call before calling DataArchive::restartInitialize,
     // because problemSetup() creates VarLabels the DataArchive needs.
@@ -515,10 +526,17 @@ SimulationController::timeStateSetup()
   else {
     // Set the default time step to which is immediately written to the DW.
     m_application->setTimeStep( m_application->getTimeStep() );
+<<<<<<< HEAD
 
     // Set the default simulation time which is immediately written to the DW.
     m_application->setSimTime( m_application->getSimTime() );
 
+=======
+
+    // Set the default simulation time which is immediately written to the DW.
+    m_application->setSimTime( m_application->getSimTime() );
+
+>>>>>>> origin/master
     // Note the above seems back asswards but the initial sim time
     // must be set in the UPS file, the time step will always default
     // to 0. However, it is read in the problem setup stage and the
@@ -641,7 +659,11 @@ SimulationController::ReportStats(const ProcessorGroup*,
     MPIScheduler * mpiScheduler = dynamic_cast<MPIScheduler*>(m_scheduler.get_rep());
 
     if (mpiScheduler) {
+<<<<<<< HEAD
       mpiScheduler->mpi_info_.reduce(m_regridder && m_regridder->useDynamicDilation(), d_myworld);
+=======
+      mpiScheduler->m_mpi_info.reduce(m_regridder && m_regridder->useDynamicDilation(), d_myworld);
+>>>>>>> origin/master
     }
   }
 
@@ -673,11 +695,20 @@ SimulationController::ReportStats(const ProcessorGroup*,
     }
 
     message << std::left
+<<<<<<< HEAD
             << "Timestep "   << std::setw(8)  << m_application->getTimeStep()
             << "Time="       << std::setw(12) << m_application->getSimTime()
             << "Next delT="  << std::setw(12) << m_application->getNextDelT()
             << "Wall Time="  << std::setw(10) << m_wall_timers.GetWallTime()
             << "EMA="        << std::setw(12) << m_wall_timers.ExpMovingAverage().seconds();
+=======
+            << "Timestep "      << std::setw(8)  << m_application->getTimeStep()
+            << "Time="          << std::setw(12) << m_application->getSimTime()
+            << "Next delT="     << std::setw(12) << m_application->getNextDelT()
+            << "Wall Time="     << std::setw(10) << m_wall_timers.GetWallTime()
+//          << "Net Wall Time=" << std::setw(10) << timeStepTime.seconds()
+            << "EMA="           << std::setw(12) << m_wall_timers.ExpMovingAverage().seconds();
+>>>>>>> origin/master
 
     // Report on the memory used.
     if (g_sim_stats_mem) {
@@ -795,61 +826,144 @@ SimulationController::ReportStats(const ProcessorGroup*,
 
     // Infrastructure proc runtime performance stats.
     if (g_comp_stats && d_myworld->myRank() == 0 ) {
+<<<<<<< HEAD
       m_runtime_stats.reportRankSummaryStats( "Runtime",
                                               m_application->getTimeStep(),
                                               m_application->getSimTime(),
+=======
+      m_runtime_stats.reportRankSummaryStats( "Runtime Summary ", "",
+                                              d_myworld->myRank(),
+                                              d_myworld->nRanks(),
+                                              m_application->getTimeStep(),
+                                              m_application->getSimTime(),
+                                              BaseInfoMapper::Dout,
+>>>>>>> origin/master
                                               true );
 
       // Report the overhead percentage.
       if (!std::isnan(overheadAverage)) {
         std::ostringstream message;
         message << "  Percentage of time spent in overhead : "
+<<<<<<< HEAD
                 << overheadAverage * 100.0;     
         DOUT(true, message.str());
+=======
+                << overheadAverage * 100.0;
+
+        // This code is here in case one wants to write to disk the
+        // stats. Currently theses are written via Dout.
+        if( 1 ) {
+          DOUT(true, message.str());
+        }
+        // else if( 1 ) {
+        //   std::ofstream fout;
+        //   std::string filename = "Runtime Summary " +
+        //     (nRanks != -1 ? "." + std::to_string(nRanks)   : "") +
+        //     (rank   != -1 ? "." + std::to_string(rank)     : "") +
+        //     (oType == Write_Separate ? "." + std::to_string(timeStep) : "");
+
+        //   if( oType == Write_Append )
+        //     fout.open(filename, std::ofstream::out | std::ofstream::app);
+        //   else 
+        //     fout.open(filename, std::ofstream::out);
+            
+        //   fout << message.str() << std::endl;
+        //   fout.close();
+        // }
+>>>>>>> origin/master
       }
     }
 
     // Infrastructure per node runtime performance stats.
     if (g_comp_node_stats && d_myworld->myNode_myRank() == 0 ) {
+<<<<<<< HEAD
       m_runtime_stats.reportNodeSummaryStats( ("Runtime Node " + d_myworld->myNodeName()).c_str(),
                                               m_application->getTimeStep(),
                                               m_application->getSimTime(),
+=======
+      m_runtime_stats.reportNodeSummaryStats( ("Runtime Node " + d_myworld->myNodeName()).c_str(), "",
+                                              d_myworld->myNode_myRank(),
+                                              d_myworld->myNode_nRanks(),
+                                              d_myworld->myNode(),
+                                              d_myworld->nNodes(),
+                                              m_application->getTimeStep(),
+                                              m_application->getSimTime(),
+                                              BaseInfoMapper::Dout,
+>>>>>>> origin/master
                                               true );
     }
     
     // Infrastructure per proc runtime performance stats
     if (g_comp_indv_stats) {
+<<<<<<< HEAD
       m_runtime_stats.reportIndividualStats( "Runtime",
                                              d_myworld->myRank(),
                                              m_application->getTimeStep(),
                                              m_application->getSimTime() );
+=======
+      m_runtime_stats.reportIndividualStats( "Runtime", "",
+                                             d_myworld->myRank(),
+                                             d_myworld->nRanks(),
+                                             m_application->getTimeStep(),
+                                             m_application->getSimTime(),
+                                             BaseInfoMapper::Dout );
+>>>>>>> origin/master
     }
 
     // Application proc runtime performance stats.
     if (g_app_stats && d_myworld->myRank() == 0) {      
       m_application->getApplicationStats().
+<<<<<<< HEAD
         reportRankSummaryStats( "Application",
                                 m_application->getTimeStep(),
                                 m_application->getSimTime(),
+=======
+        reportRankSummaryStats( "Application Summary", "",
+                                d_myworld->myRank(),
+                                d_myworld->nRanks(),
+                                m_application->getTimeStep(),
+                                m_application->getSimTime(),
+                                BaseInfoMapper::Dout,
+>>>>>>> origin/master
                                 false );
     }
 
     // Application per node runtime performance stats.
     if (g_app_node_stats && d_myworld->myNode_myRank() == 0 ) {
       m_application->getApplicationStats().
+<<<<<<< HEAD
         reportNodeSummaryStats( ("Application Node " + d_myworld->myNodeName()).c_str(),
                                 m_application->getTimeStep(),
                                 m_application->getSimTime(),
+=======
+        reportNodeSummaryStats( ("Application Node " + d_myworld->myNodeName()).c_str(), "",
+                                d_myworld->myNode_myRank(),
+                                d_myworld->myNode_nRanks(),
+                                d_myworld->myNode(),
+                                d_myworld->nNodes(),
+                                m_application->getTimeStep(),
+                                m_application->getSimTime(),
+                                BaseInfoMapper::Dout,
+>>>>>>> origin/master
                                 false );
     }
 
     // Application per proc runtime performance stats
     if (g_app_indv_stats) {
       m_application->getApplicationStats().
+<<<<<<< HEAD
         reportIndividualStats( "Application",
                                d_myworld->myRank(),
                                m_application->getTimeStep(),
                                m_application->getSimTime() );
+=======
+        reportIndividualStats( "Application", "",
+                               d_myworld->myRank(),
+                               d_myworld->nRanks(),
+                               m_application->getTimeStep(),
+                               m_application->getSimTime(),
+                               BaseInfoMapper::Dout );
+>>>>>>> origin/master
     }
   }
 

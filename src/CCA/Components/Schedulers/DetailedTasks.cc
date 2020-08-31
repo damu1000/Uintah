@@ -1,7 +1,11 @@
 /*
  * The MIT License
  *
+<<<<<<< HEAD
  * Copyright (c) 1997-2019 The University of Utah
+=======
+ * Copyright (c) 1997-2020 The University of Utah
+>>>>>>> origin/master
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -116,7 +120,7 @@ DetailedTasks::DetailedTasks(       SchedulerCommon         * sc
   dwmap[Task::OldDW] = 0;
   dwmap[Task::NewDW] = Task::NoDW;
 
-  m_send_old_data = scinew Task( "send old data", Task::InitialSend );
+  m_send_old_data = scinew Task( "send_old_data", Task::InitialSend );
   m_send_old_data->m_phase = 0;
   m_send_old_data->setMapping( dwmap );
 
@@ -154,7 +158,12 @@ DetailedTasks::~DetailedTasks()
 void
 DetailedTasks::assignMessageTags( unsigned int index )
 {
+<<<<<<< HEAD
   int me = m_proc_group->myRank();
+=======
+  int me     = m_proc_group->myRank();
+  int nRanks = m_proc_group->nRanks();
+>>>>>>> origin/master
 
   std::pair< std::string, std::string > allTasks("All", "Tasks");
 
@@ -241,7 +250,11 @@ DetailedTasks::assignMessageTags( unsigned int index )
     // Do the stats first so they are not affected by adding in the
     // other (possibly) unused ranks.
     info.second.calculateMinimum( true );
+<<<<<<< HEAD
     info.second.reduce();
+=======
+    info.second.reduce( false );
+>>>>>>> origin/master
 
     if ( ((taskPair.first == "All" && taskPair.second == "Tasks") && g_message_tags_stats_dbg) ||
 #ifdef HAVE_VISIT
@@ -253,8 +266,17 @@ DetailedTasks::assignMessageTags( unsigned int index )
       std::string title = "Communication TG [" + std::to_string(index) + "] " +
         "for task <" + taskPair.first + "|" + taskPair.second + ">";
       
+<<<<<<< HEAD
       info.second.reportSummaryStats   ( title.c_str(), me, timeStep, simTime, false );
       info.second.reportIndividualStats( title.c_str(), me, timeStep, simTime );
+=======
+      info.second.reportSummaryStats   ( title.c_str(), "", me,
+                                         nRanks, timeStep, simTime,
+                                         BaseInfoMapper::Dout, false );
+      info.second.reportIndividualStats( title.c_str(), "", me,
+                                         nRanks, timeStep, simTime,
+                                         BaseInfoMapper::Dout );
+>>>>>>> origin/master
     }
 
     // If the number of keys (ranks) is different then add in the

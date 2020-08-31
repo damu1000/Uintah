@@ -1,5 +1,8 @@
 #include <CCA/Components/Arches/PropertyModelsV2/GasKineticEnergy.h>
+<<<<<<< HEAD
 #include <CCA/Components/Arches/KokkosTools.h>
+=======
+>>>>>>> origin/master
 #include <CCA/Components/Arches/GridTools.h>
 
 namespace Uintah{
@@ -17,9 +20,15 @@ GasKineticEnergy::~GasKineticEnergy(){
 void
 GasKineticEnergy::problemSetup( ProblemSpecP& db ){
 
+<<<<<<< HEAD
   m_u_vel_name = parse_ups_for_role( Uintah::ArchesCore::CCUVELOCITY, db, "CCUVelocity" );
   m_v_vel_name = parse_ups_for_role( Uintah::ArchesCore::CCVVELOCITY, db, "CCVVelocity" );
   m_w_vel_name = parse_ups_for_role( Uintah::ArchesCore::CCWVELOCITY, db, "CCWVelocity" );
+=======
+  m_u_vel_name = parse_ups_for_role( Uintah::ArchesCore::CCUVELOCITY_ROLE, db, "CCUVelocity" );
+  m_v_vel_name = parse_ups_for_role( Uintah::ArchesCore::CCVVELOCITY_ROLE, db, "CCVVelocity" );
+  m_w_vel_name = parse_ups_for_role( Uintah::ArchesCore::CCWVELOCITY_ROLE, db, "CCWVelocity" );
+>>>>>>> origin/master
   m_kinetic_energy = "gas_kinetic_energy";
   m_max_ke = 1e9 ;
 }
@@ -45,7 +54,11 @@ GasKineticEnergy::register_initialize( std::vector<ArchesFieldContainer::Variabl
 void
 GasKineticEnergy::initialize( const Patch* patch, ArchesTaskInfoManager* tsk_info ){
 
+<<<<<<< HEAD
   CCVariable<double>& ke = *(tsk_info->get_uintah_field<CCVariable<double> >( m_kinetic_energy ));
+=======
+  CCVariable<double>& ke = tsk_info->get_field<CCVariable<double> >( m_kinetic_energy );
+>>>>>>> origin/master
   ke.initialize(0.0);
 
 }
@@ -69,20 +82,36 @@ GasKineticEnergy::register_timestep_eval( std::vector<ArchesFieldContainer::Vari
 //--------------------------------------------------------------------------------------------------
 void
 GasKineticEnergy::eval( const Patch* patch, ArchesTaskInfoManager* tsk_info ){
+<<<<<<< HEAD
   // cc gas velocities 
   constCCVariable<double>& u = tsk_info->get_const_uintah_field_add<constCCVariable<double> >(m_w_vel_name);
   constCCVariable<double>& v = tsk_info->get_const_uintah_field_add<constCCVariable<double> >(m_w_vel_name);
   constCCVariable<double>& w = tsk_info->get_const_uintah_field_add<constCCVariable<double> >(m_w_vel_name);
 
   CCVariable<double>& ke = *(tsk_info->get_uintah_field<CCVariable<double> >( m_kinetic_energy ));
+=======
+  // cc gas velocities
+  constCCVariable<double>& u = tsk_info->get_field<constCCVariable<double> >(m_w_vel_name);
+  constCCVariable<double>& v = tsk_info->get_field<constCCVariable<double> >(m_w_vel_name);
+  constCCVariable<double>& w = tsk_info->get_field<constCCVariable<double> >(m_w_vel_name);
+
+  CCVariable<double>& ke = tsk_info->get_field<CCVariable<double> >( m_kinetic_energy );
+>>>>>>> origin/master
   ke.initialize(0.0);
   double ke_p = 0;
   Uintah::BlockRange range(patch->getCellLowIndex(), patch->getCellHighIndex() );
   Uintah::parallel_for( range, [&](int i, int j, int k){
+<<<<<<< HEAD
     ke(i,j,k) = 0.5*(u(i,j,k)*u(i,j,k) + v(i,j,k)*v(i,j,k) +w(i,j,k)*w(i,j,k)); 
     ke_p += ke(i,j,k);
   });
   // check if ke is diverging in this patch 
+=======
+    ke(i,j,k) = 0.5*(u(i,j,k)*u(i,j,k) + v(i,j,k)*v(i,j,k) +w(i,j,k)*w(i,j,k));
+    ke_p += ke(i,j,k);
+  });
+  // check if ke is diverging in this patch
+>>>>>>> origin/master
   if ( ke_p > m_max_ke )
     throw InvalidValue("Error: KE is diverging.",__FILE__,__LINE__);
 }

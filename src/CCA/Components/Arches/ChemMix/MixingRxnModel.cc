@@ -1,7 +1,11 @@
 /*
  * The MIT License
  *
+<<<<<<< HEAD
  * Copyright (c) 1997-2019 The University of Utah
+=======
+ * Copyright (c) 1997-2020 The University of Utah
+>>>>>>> origin/master
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -98,7 +102,7 @@ MixingRxnModel::problemSetupCommon( const ProblemSpecP& params, MixingRxnModel* 
   m_denRefArrayLabel = VarLabel::create( "denRefArray", CCVariable<double>::getTypeDescription() );
   //resolve some common labels:
 
-  std::string density_name = parse_ups_for_role( DENSITY, db, "densityCP");
+  std::string density_name = parse_ups_for_role( DENSITY_ROLE, db, "densityCP");
   m_densityLabel = VarLabel::find(density_name);
   if ( m_densityLabel == NULL ){
     throw InvalidValue("Error: Cannot resolve density label.",__FILE__,__LINE__);

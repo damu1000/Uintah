@@ -1,11 +1,27 @@
 <Uintah_specification>
     <Meta>
+<<<<<<< HEAD
+<<<<<<< HEAD:src/StandAlone/inputs/PhaseField/heat/bc/heat_bc_nc_2d_m32_k1e-01.ups
         <title>heat_bc_nc_2d_m32_k1e-01</title>
+=======
+        <title>heat_bc_cc_2d_m32_k1e-01</title>
+>>>>>>> origin/master:src/StandAlone/inputs/PhaseField/heat/bc/heat_bc_cc_2d_m32_k1e-01.ups
+=======
+        <title>heat_bc_nc_2d_m32_k1e-01</title>
+>>>>>>> origin/master
     </Meta>
     <SimulationComponent type="phasefield" />
 <!--__________________________________-->
     <PhaseField type="heat">
+<<<<<<< HEAD
+<<<<<<< HEAD:src/StandAlone/inputs/PhaseField/heat/bc/heat_bc_nc_2d_m32_k1e-01.ups
         <var>nc</var>
+=======
+        <var>cc</var>
+>>>>>>> origin/master:src/StandAlone/inputs/PhaseField/heat/bc/heat_bc_cc_2d_m32_k1e-01.ups
+=======
+        <var>nc</var>
+>>>>>>> origin/master
         <dim>2</dim>
         <delt>.1</delt>
         <alpha>1.</alpha>
@@ -55,7 +71,15 @@
     </Grid>
 <!--__________________________________-->
     <DataArchiver>
+<<<<<<< HEAD
+<<<<<<< HEAD:src/StandAlone/inputs/PhaseField/heat/bc/heat_bc_nc_2d_m32_k1e-01.ups
         <filebase>heat_bc_nc_2d_m32_k1e-01.uda</filebase>
+=======
+        <filebase>heat_bc_cc_2d_m32_k1e-01.uda</filebase>
+>>>>>>> origin/master:src/StandAlone/inputs/PhaseField/heat/bc/heat_bc_cc_2d_m32_k1e-01.ups
+=======
+        <filebase>heat_bc_nc_2d_m32_k1e-01.uda</filebase>
+>>>>>>> origin/master
         <outputTimestepInterval>1</outputTimestepInterval>
         <save label="u" />
         <save label="ux" />

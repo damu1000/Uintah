@@ -67,17 +67,17 @@ void visit_VarModifiedMessage( visit_simulation_data *sim,
     msg << "Visit libsim - At time step " << sim->cycle << " "
         << "the user modified the variable " << name << " "
         << "from " << oldValue << " " << "to " << newValue << ". ";
-      
+
     VisItUI_setValueS("SIMULATION_MESSAGE", msg.str().c_str(), 1);
     VisItUI_setValueS("SIMULATION_MESSAGE", " ", 1);
-    
+
     // DOUT( visitdbg, msg.str().c_str() );
   }
 
   // Using a map - update the value so it can be recorded by Uintah.
   std::stringstream oldStr, newStr;
 
-  // See if the value haas been recorded previously. 
+  // See if the value haas been recorded previously.
   std::map< std::string, std::pair<std::string, std::string> >::iterator it =
     sim->modifiedVars.find( name);
 
@@ -88,7 +88,7 @@ void visit_VarModifiedMessage( visit_simulation_data *sim,
   // Otherwise use the current oldValue
   else
     oldStr << oldValue;
-  
+
   newStr << newValue;
 
   // Store the old and new values.
@@ -112,10 +112,10 @@ std::string getNextString( std::string &cmd, const std::string delimiter )
 
   if( delim != std::string::npos)
   {
-    str.erase(delim, std::string::npos);  
+    str.erase(delim, std::string::npos);
     cmd.erase(0, delim+delimiter.length());
   }
-  
+
   return str;
 }
 
@@ -222,8 +222,10 @@ parseCompositeCMD( const char *cmd,
 //---------------------------------------------------------------------
 int visit_BroadcastIntCallback(int *value, int sender)
 {
+  MPI_Comm comm = Parallel::getRootProcessorGroup()->getComm();
+
   if( Parallel::usingMPI() )
-    return Uintah::MPI::Bcast(value, 1, MPI_INT, sender, MPI_COMM_WORLD);
+    return Uintah::MPI::Bcast(value, 1, MPI_INT, sender, comm);
   else
     return 0;
 }
@@ -235,8 +237,10 @@ int visit_BroadcastIntCallback(int *value, int sender)
 //---------------------------------------------------------------------
 int visit_BroadcastStringCallback(char *str, int len, int sender)
 {
+  MPI_Comm comm = Parallel::getRootProcessorGroup()->getComm();
+
   if( Parallel::usingMPI() )
-    return Uintah::MPI::Bcast(str, len, MPI_CHAR, sender, MPI_COMM_WORLD);
+    return Uintah::MPI::Bcast(str, len, MPI_CHAR, sender, comm);
   else
     return 0;
 }
@@ -248,8 +252,10 @@ int visit_BroadcastStringCallback(char *str, int len, int sender)
 //---------------------------------------------------------------------
 void visit_BroadcastSlaveCommand(int *command)
 {
+  MPI_Comm comm = Parallel::getRootProcessorGroup()->getComm();
+
   if( Parallel::usingMPI() )
-    Uintah::MPI::Bcast(command, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    Uintah::MPI::Bcast(command, 1, MPI_INT, 0, comm);
 }
 
 
@@ -271,8 +277,23 @@ void visit_SlaveProcessCallback()
 void
 visit_ControlCommandCallback(const char *cmd, const char *args, void *cbdata)
 {
+
+<<<<<<< HEAD
+=======
+  visit_ControlCommandCallback(cmd, args, cbdata, false);
+}
+
+//---------------------------------------------------------------------
+// visit_ControlCommandCallback
+//     Process user commands from the viewer on all processors.
+//---------------------------------------------------------------------
+void
+visit_ControlCommandCallback(const char *cmd, const char *args, void *cbdata,
+                             bool console)
+{
   visit_simulation_data *sim = (visit_simulation_data *)cbdata;
 
+>>>>>>> origin/master
   if(strcmp(cmd, "Stop") == 0 && sim->simMode != VISIT_SIMMODE_FINISHED)
   {
     sim->runMode = VISIT_SIMMODE_STOPPED;
@@ -299,6 +320,13 @@ visit_ControlCommandCallback(const char *cmd, const char *args, void *cbdata)
     {
       // Disable the button so to prevent outputing the same time step
       VisItUI_setValueS("SIMULATION_ENABLE_BUTTON", cmd, 0);
+<<<<<<< HEAD
+=======
+
+      // Do not allow out of order output files.
+      if( strlen(cmd) == 6 )
+        VisItUI_setValueS("SIMULATION_ENABLE_BUTTON", "Output Previous", 0);
+>>>>>>> origin/master
 
       // Do not allow out of order output files.
       if( strlen(cmd) == 6 )
@@ -306,13 +334,26 @@ visit_ControlCommandCallback(const char *cmd, const char *args, void *cbdata)
         
       Output *output = sim->simController->getOutput();
       SchedulerP schedulerP = sim->simController->getSchedulerP();
+<<<<<<< HEAD
       
+=======
+
+>>>>>>> origin/master
       output->outputTimeStep( sim->gridP, schedulerP, strlen(cmd) > 6 );
     }
     else
-      VisItUI_setValueS("SIMULATION_MESSAGE_BOX",
-                        "Can not save a timestep unless the simulation has "
-                        "run for at least one time step and is stopped.", 0);
+    {
+      std::stringstream msg;
+      msg << "Can not save a timestep unless the simulation has "
+          << "run for at least one time step and is stopped.";
+
+      if( sim->isProc0 && console )
+      {
+        DOUT( visitdbg, msg.str().c_str() );
+      }
+
+      VisItUI_setValueS("SIMULATION_MESSAGE_BOX", msg.str().c_str(), 0);
+    }
   }
   else if(strncmp(cmd, "Checkpoint", 10) == 0)
   {
@@ -323,6 +364,13 @@ visit_ControlCommandCallback(const char *cmd, const char *args, void *cbdata)
     {
       // Disable the button so to prevent checkpointing the same time step
       VisItUI_setValueS("SIMULATION_ENABLE_BUTTON", cmd, 0);
+<<<<<<< HEAD
+=======
+
+      // Do not allow out of order checkpoint files.
+      if( strlen(cmd) == 10 )
+        VisItUI_setValueS("SIMULATION_ENABLE_BUTTON", "Checkpoint Previous", 0);
+>>>>>>> origin/master
 
       // Do not allow out of order checkpoint files.
       if( strlen(cmd) == 10 )
@@ -330,13 +378,26 @@ visit_ControlCommandCallback(const char *cmd, const char *args, void *cbdata)
         
       Output *output = sim->simController->getOutput();
       SchedulerP schedulerP = sim->simController->getSchedulerP();
+<<<<<<< HEAD
       
+=======
+
+>>>>>>> origin/master
       output->checkpointTimeStep( sim->gridP, schedulerP, strlen(cmd) > 10 );
     }
     else
-      VisItUI_setValueS("SIMULATION_MESSAGE_BOX",
-                        "Can not save a checkpoint unless the simulation has "
-                        "run for at least one time step and is stopped.", 0);
+    {
+      std::stringstream msg;
+      msg << "Can not save a checkpoint unless the simulation has "
+          << "run for at least one time step and is stopped.";
+
+      if( sim->isProc0 && console )
+      {
+        DOUT( visitdbg, msg.str().c_str() );
+      }
+
+      VisItUI_setValueS("SIMULATION_MESSAGE_BOX", msg.str().c_str(), 0);
+    }
   }
 
   // Only allow the runMode to finish if the simulation is finished.
@@ -355,7 +416,7 @@ visit_ControlCommandCallback(const char *cmd, const char *args, void *cbdata)
 
     if(sim->isProc0)
     {
-      std::stringstream msg;      
+      std::stringstream msg;
       msg << "Visit libsim - Terminating the simulation";
       VisItUI_setValueS("SIMULATION_MESSAGE", msg.str().c_str(), 1);
       VisItUI_setValueS("SIMULATION_MESSAGE", " ", 1);
@@ -375,7 +436,7 @@ visit_ControlCommandCallback(const char *cmd, const char *args, void *cbdata)
   }
   else if(strcmp(cmd, "ActivateCustomUI") == 0 )
   {
-    visit_SimGetCustomUIData(cbdata);    
+    visit_SimGetCustomUIData(cbdata);
   }
   else if(strcmp(cmd, "TimeLimitsEnabled") == 0 )
   {
@@ -427,13 +488,20 @@ visit_ControlCommandCallback(const char *cmd, const char *args, void *cbdata)
   }
   else
   {
-    // These messages are really only helpful when debugging. 
-    // std::stringstream msg;
-    // msg << "Visit libsim - ignoring command " << cmd << "  args " << args;
-    // VisItUI_setValueS("SIMULATION_MESSAGE_WARNING", msg.str().c_str(), 1);
-    // VisItUI_setValueS("SIMULATION_MESSAGE", " ", 1);
+    // This message is helpful when debugging or bad console input.
+    std::stringstream msg;
+    msg << "Visit libsim - ignoring command: '"
+        << cmd << "' with args '" << args << "'";
+
+    if( sim->isProc0 && console )
+    {
+      DOUT( visitdbg, msg.str().c_str() );
+    }
+
+    VisItUI_setValueS("SIMULATION_MESSAGE_WARNING", msg.str().c_str(), 1);
+    VisItUI_setValueS("SIMULATION_MESSAGE", " ", 1);
   }
-  
+
   if( sim->runMode == VISIT_SIMMODE_RUNNING &&
       sim->simMode == VISIT_SIMMODE_RUNNING )
   {
@@ -441,7 +509,7 @@ visit_ControlCommandCallback(const char *cmd, const char *args, void *cbdata)
     {
       VisItUI_setValueS("SIMULATION_MODE", "Running", 1);
 
-      std::stringstream msg;      
+      std::stringstream msg;
       msg << "Visit libsim - Continuing the simulation";
       VisItUI_setValueS("SIMULATION_MESSAGE", msg.str().c_str(), 1);
     }
@@ -456,37 +524,44 @@ int visit_ProcessVisItCommand( visit_simulation_data *sim )
 {
   if( Parallel::usingMPI() )
   {
-    int command;
-    
+    int command = VISIT_COMMAND_PROCESS;
+
     if(sim->isProc0)
     {
+      // std::cerr << __FUNCTION__ << "  " << __LINE__ << std::endl;
       int success = VisItProcessEngineCommand();
+      // std::cerr << __FUNCTION__ << "  " << __LINE__ << std::endl;
+
       if(success)
       {
         command = VISIT_COMMAND_SUCCESS;
         visit_BroadcastSlaveCommand(&command);
+
         return 1;
       }
       else
       {
         command = VISIT_COMMAND_FAILURE;
         visit_BroadcastSlaveCommand(&command);
+
         return 0;
       }
     }
     else
     {
-      /* Note: only through the SlaveProcessCallback callback
-       * above can the rank 0 process send a VISIT_COMMAND_PROCESS
-       * instruction to the non-rank 0 processes. */
+      // Note: only through the SlaveProcessCallback callback
+      // above can the rank 0 process send a VISIT_COMMAND_PROCESS
+      // instruction to the non-rank 0 processes.
       while(1)
       {
         visit_BroadcastSlaveCommand(&command);
-        
+
         switch(command)
         {
         case VISIT_COMMAND_PROCESS:
+          // std::cerr << __FUNCTION__ << "  " << __LINE__ << std::endl;
           VisItProcessEngineCommand();
+          // std::cerr << __FUNCTION__ << "  " << __LINE__ << std::endl;
           break;
         case VISIT_COMMAND_SUCCESS:
           return 1;
@@ -518,7 +593,7 @@ void visit_TimeStepsMaxCallback(char *val, void *cbdata)
 
   int oldValue = appInterface->getTimeStepsMax();
   int newValue = atoi(val);
-  
+
   if( newValue <= sim->cycle )
   {
     std::stringstream msg;
@@ -530,9 +605,9 @@ void visit_TimeStepsMaxCallback(char *val, void *cbdata)
     VisItUI_setValueI("MaxTimeSteps", appInterface->getTimeStepsMax(), 1);
   }
   else
-  {  
+  {
     appInterface->setTimeStepsMax( newValue );
-    
+
     visit_VarModifiedMessage( sim, "TimeStepsMax", oldValue, newValue);
   }
 }
@@ -563,7 +638,7 @@ void visit_SimTimeMaxCallback(char *val, void *cbdata)
     VisItUI_setValueD("SimTimeMax", appInterface->getSimTimeMax(), 1);
   }
   else
-  {  
+  {
     appInterface->setSimTimeMax( newValue );
 
     visit_VarModifiedMessage( sim, "SimTimeMax", oldValue, newValue);
@@ -599,7 +674,7 @@ void visit_DeltaTVariableCallback(char *val, void *cbdata)
 
   unsigned int row, column;
   double oldValue, newValue;
-  
+
   parseCompositeCMD(val, row, column, newValue);
 
   switch( row )
@@ -609,7 +684,11 @@ void visit_DeltaTVariableCallback(char *val, void *cbdata)
       double minValue = appInterface->getDelTMin();
       double maxValue = appInterface->getDelTMax();
       oldValue = appInterface->getNextDelT();
+<<<<<<< HEAD
       
+=======
+
+>>>>>>> origin/master
       if( newValue < minValue || maxValue < newValue )
       {
         std::stringstream msg;
@@ -629,7 +708,7 @@ void visit_DeltaTVariableCallback(char *val, void *cbdata)
       double minValue = 1.0e-4;
       double maxValue = 1.0e+4;
       oldValue = appInterface->getDelTMultiplier();
-      
+
       if( newValue < minValue || maxValue < newValue )
       {
         std::stringstream msg;
@@ -651,7 +730,7 @@ void visit_DeltaTVariableCallback(char *val, void *cbdata)
       double minValue = 0;
       double maxValue = 1.e99;
       oldValue = appInterface->getDelTMaxIncrease();
-      
+
       if( newValue < minValue || maxValue < newValue )
       {
         std::stringstream msg;
@@ -672,7 +751,7 @@ void visit_DeltaTVariableCallback(char *val, void *cbdata)
       double minValue = 0;
       double maxValue = appInterface->getDelTMax();
       oldValue = appInterface->getDelTMin();
-      
+
       if( newValue < minValue || maxValue < newValue )
       {
         std::stringstream msg;
@@ -693,7 +772,7 @@ void visit_DeltaTVariableCallback(char *val, void *cbdata)
       double minValue = appInterface->getDelTMin();
       double maxValue = 1.0e9;
       oldValue = appInterface->getDelTMax();
-      
+
       if( newValue < minValue || maxValue < newValue )
       {
         std::stringstream msg;
@@ -714,7 +793,7 @@ void visit_DeltaTVariableCallback(char *val, void *cbdata)
       double minValue = 1.0e-99;
       double maxValue = DBL_MAX;
       oldValue = appInterface->getDelTInitialMax();
-      
+
       if( newValue < minValue || maxValue < newValue )
       {
         std::stringstream msg;
@@ -735,7 +814,7 @@ void visit_DeltaTVariableCallback(char *val, void *cbdata)
       double minValue = 0;
       double maxValue = 1.0e99;
       oldValue = appInterface->getDelTInitialRange();
-      
+
       if( newValue < minValue || maxValue < newValue )
       {
         std::stringstream msg;
@@ -796,11 +875,11 @@ void visit_UPSVariableCallback(char *val, void *cbdata)
 
   std::vector< ApplicationInterface::interactiveVar > &vars =
     appInterface->getUPSVars();
-      
+
   ApplicationInterface::interactiveVar &var = vars[row];
 
   switch( var.type )
-  {       
+  {
     case Uintah::TypeDescription::bool_type:
     {
       bool *val = (bool*) var.value;
@@ -817,13 +896,13 @@ void visit_UPSVariableCallback(char *val, void *cbdata)
         visit_SetUPSVars( sim );
         return;
       }
-      
+
       *val = (bool) newValue;
 
       visit_VarModifiedMessage( sim, var.name, oldValue, (bool) newValue );
       break;
     }
-    
+
     case Uintah::TypeDescription::int_type:
     {
       int *val = (int*) var.value;
@@ -846,7 +925,7 @@ void visit_UPSVariableCallback(char *val, void *cbdata)
       visit_VarModifiedMessage( sim, var.name, oldValue, newValue );
       break;
     }
-    
+
     case Uintah::TypeDescription::double_type:
     {
       double *val = (double*) var.value;
@@ -869,7 +948,7 @@ void visit_UPSVariableCallback(char *val, void *cbdata)
       visit_VarModifiedMessage( sim, var.name, oldValue, newValue );
       break;
     }
-    
+
     case Uintah::TypeDescription::Point:
     {
       double x, y, z;
@@ -927,7 +1006,7 @@ void visit_UPSVariableCallback(char *val, void *cbdata)
       break;
     }
     default:
-      throw InternalError(" invalid data type", __FILE__, __LINE__); 
+      throw InternalError(" invalid data type", __FILE__, __LINE__);
   }
 
   // Set the modified flag to true so the component knows the variable
@@ -964,7 +1043,7 @@ void visit_OutputIntervalVariableCallback(char *val, void *cbdata)
     else // if( output->getOutputTimeStepInterval() > 0 )
       output->setOutputTimeStepInterval( value );
   }
- 
+
   // Checkpoint interval.
   else if( row == CheckpointIntervalRow )
   {
@@ -1088,7 +1167,7 @@ void visit_StopAtTimeStepCallback(char *val, void *cbdata)
   visit_simulation_data *sim = (visit_simulation_data *)cbdata;
 
   int newValue = atoi(val);
-  
+
   if( newValue <= sim->cycle )
   {
     std::stringstream msg;
@@ -1133,11 +1212,11 @@ void visit_StateVariableCallback(char *val, void *cbdata)
 
   std::vector< ApplicationInterface::interactiveVar > &vars =
     appInterface->getStateVars();
-      
+
   ApplicationInterface::interactiveVar &var = vars[row];
 
   switch( var.type )
-  {       
+  {
     case Uintah::TypeDescription::bool_type:
     {
       bool *val = (bool*) var.value;
@@ -1154,13 +1233,13 @@ void visit_StateVariableCallback(char *val, void *cbdata)
         visit_SetStateVars( sim );
         return;
       }
-      
+
       *val = (bool) newValue;
 
       visit_VarModifiedMessage( sim, var.name, oldValue, (bool) newValue );
       break;
     }
-    
+
     case Uintah::TypeDescription::int_type:
     {
       int *val = (int*) var.value;
@@ -1183,7 +1262,7 @@ void visit_StateVariableCallback(char *val, void *cbdata)
       visit_VarModifiedMessage( sim, var.name, oldValue, newValue );
       break;
     }
-    
+
     case Uintah::TypeDescription::double_type:
     {
       double *val = (double*) var.value;
@@ -1206,7 +1285,7 @@ void visit_StateVariableCallback(char *val, void *cbdata)
       visit_VarModifiedMessage( sim, var.name, oldValue, newValue );
       break;
     }
-    
+
     case Uintah::TypeDescription::Point:
     {
       double x, y, z;
@@ -1264,7 +1343,7 @@ void visit_StateVariableCallback(char *val, void *cbdata)
       break;
     }
     default:
-      throw InternalError(" invalid data type", __FILE__, __LINE__); 
+      throw InternalError(" invalid data type", __FILE__, __LINE__);
   }
 
   // Set the modified flag to true so the component knows the variable
@@ -1291,7 +1370,7 @@ void visit_DebugStreamCallback(char *val, void *cbdata)
 
   // Find the debugStream
   DebugStream *debugStream = nullptr;
-    
+
   unsigned int i = 0;
   for (auto iter = DebugStream::m_all_debug_streams.begin();
        iter != DebugStream::m_all_debug_streams.end();
@@ -1305,7 +1384,7 @@ void visit_DebugStreamCallback(char *val, void *cbdata)
   if( debugStream && column == 0 )
   {
     if( text != "FALSE" && text != "False" && text != "false" &&
-        text != "TRUE"  && text != "True"  && text != "true" && 
+        text != "TRUE"  && text != "True"  && text != "true" &&
         text != "0" && text != "1" && text != "-" && text != "+" )
     {
       std::stringstream msg;
@@ -1316,10 +1395,10 @@ void visit_DebugStreamCallback(char *val, void *cbdata)
       visit_SetDebugStreams( sim );
       return;
     }
-    
+
     debugStream->setActive( text == "TRUE" || text == "True" ||
                             text == "true" || text == "1" || text == "+" );
-    
+
     if( debugStream->m_outstream == nullptr )
     {
       debugStream->setFilename( "cout" );
@@ -1368,7 +1447,7 @@ void visit_DoutCallback(char *val, void *cbdata)
 
   // Find the dout
   Dout *dout = nullptr;
-    
+
   unsigned int i = 0;
   for (auto iter = Dout::m_all_douts.begin();
        iter != Dout::m_all_douts.end();
@@ -1378,11 +1457,11 @@ void visit_DoutCallback(char *val, void *cbdata)
       break;
     }
   }
-    
+
   if( dout && column == 0 )
   {
     if( text != "FALSE" && text != "False" && text != "false" &&
-        text != "TRUE"  && text != "True"  && text != "true" && 
+        text != "TRUE"  && text != "True"  && text != "true" &&
         text != "0" && text != "1" && text != "-" && text != "+" )
 
     {
@@ -1434,6 +1513,7 @@ void visit_DoutCallback(char *val, void *cbdata)
 
 //---------------------------------------------------------------------
 // LoadExtraGeometryCallback
+<<<<<<< HEAD
 //     Custom UI callback for a check box
 //---------------------------------------------------------------------
 void visit_LoadExtraGeometryCallback(int val, void *cbdata)
@@ -1452,7 +1532,26 @@ void visit_LoadVariablesCallback(int val, void *cbdata)
   visit_simulation_data *sim = (visit_simulation_data *)cbdata;
 
   sim->loadVariables = (LoadVariables) val;
+=======
+//     Custom UI callback for a check box
+//---------------------------------------------------------------------
+void visit_LoadExtraGeometryCallback(int val, void *cbdata)
+{
+  visit_simulation_data *sim = (visit_simulation_data *)cbdata;
+
+  sim->loadExtraGeometry = (LoadExtraGeometry) val;
+>>>>>>> origin/master
 }
 
+//---------------------------------------------------------------------
+// LoadVariablesCallback
+//     Custom UI callback for a check box
+//---------------------------------------------------------------------
+void visit_LoadVariablesCallback(int val, void *cbdata)
+{
+  visit_simulation_data *sim = (visit_simulation_data *)cbdata;
+
+  sim->loadVariables = (LoadVariables) val;
+}
 
 } // End namespace Uintah

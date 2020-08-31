@@ -1,7 +1,11 @@
 /*
  * The MIT License
  *
+<<<<<<< HEAD
  * Copyright (c) 1997-2019 The University of Utah
+=======
+ * Copyright (c) 1997-2020 The University of Utah
+>>>>>>> origin/master
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -68,7 +72,9 @@ namespace Uintah {
    const std::string outputInterval_name( "outputInterval" );
    const std::string checkpointInterval_name( "checkpointInterval" );
    const std::string outputTimeStep_name( "outputTimeStep" );
+   const std::string outputPreviousTimeStep_name( "outputPreviousTimeStep" );
    const std::string checkpointTimeStep_name( "checkpointTimeStep" );
+   const std::string checkpointPreviousTimeStep_name( "checkpointPreviousTimeStep" );
    const std::string recomputeTimeStep_name( "recomputeTimeStep" );
    const std::string abortTimeStep_name( "abortTimeStep" );
    const std::string endSimulation_name( "endSimulation" );

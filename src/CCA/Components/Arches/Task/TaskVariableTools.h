@@ -84,6 +84,7 @@ namespace Uintah {
           return 0.5;
         }
       }
+<<<<<<< HEAD
 
       //====================================================================================
       // GRID VARIABLE ACCESS
@@ -265,11 +266,153 @@ namespace Uintah {
     CCVariable<double>* get( const std::string name ){
       ArchesFieldContainer* field_container = m_tsk_info->getFieldContainer();
       return field_container->get_field<CCVariable<double> >( name );
+=======
+
+      //====================================================================================
+      // GRID VARIABLE ACCESS
+      //====================================================================================
+
+      /** @brief Return a CONST grid variable **/
+      template <typename T, typename... Args>
+      typename std::enable_if<std::is_base_of<Uintah::constVariableBase<Uintah::GridVariableBase>, T>::value, T&>::type
+      get_field( const std::string name, Args... args )
+      {
+        return *( _field_container->get_const_field<T>(name, args...) );
+      }
+
+      /** @brief Return a NON-CONST grid variable **/
+      template <typename T, typename... Args>
+      typename std::enable_if<!std::is_base_of<Uintah::constVariableBase<Uintah::GridVariableBase>, T>::value, T&>::type
+      get_field( const std::string name, Args... args )
+      {
+        return  *(_field_container->get_field<T>(name, args...));
+      }
+
+      /** @brief Return a UINTAH particle field **/
+      std::tuple<ParticleVariable<double>*, ParticleSubset*>
+      get_uintah_particle_field( const std::string name )
+      {
+        return _field_container->get_uintah_particle_field( name );
+      }
+
+      /** @brief Return a const UINTAH particle field **/
+      std::tuple<constParticleVariable<double>*, ParticleSubset*>
+      get_const_uintah_particle_field( const std::string name )
+      {
+        return _field_container->get_const_uintah_particle_field( name );
+      }
+
+      /** @brief Get the current patch ID **/
+      inline int get_patch_id(){ return _patch->getID(); }
+
+      /** @brief get NEW DW reference **/
+      DataWarehouse* getNewDW(){ return _field_container->getNewDW(); }
+
+      /** @brief get an OLD DW reference **/
+      DataWarehouse* getOldDW(){ return _field_container->getOldDW(); }
+
+    private:
+
+      ArchesFieldContainer* _field_container{nullptr};
+
+            std::vector<ArchesFieldContainer::VariableInformation>   _var_reg;
+      const Patch                                                  * _patch{nullptr};
+            SchedToTaskInfo                                        & _tsk_info;
+
+  }; // ArchesTaskInfoManager
+
+  /** @brief Builds a struct for each variable containing all pertinent uintah DW information **/
+  void register_variable_work(       std::string                              name
+                             ,       ArchesFieldContainer::VAR_DEPEND         dep
+                             ,       int                                      nGhost
+                             ,       ArchesFieldContainer::WHICH_DW           dw
+                             ,       ArchesFieldContainer::VariableRegistry & variable_registry
+                             , const int                                      time_substep
+                             , const std::string                              task_name
+                             );
+
+  /** @brief Inteface to register_variable_work -- this function is overloaded. **/
+  void register_variable(       std::string                                              name
+                        ,       ArchesFieldContainer::VAR_DEPEND                         dep
+                        ,       int                                                      nGhost
+                        ,       ArchesFieldContainer::WHICH_DW                           dw
+                        ,       std::vector<ArchesFieldContainer::VariableInformation> & var_reg
+                        , const int                                                      time_substep
+                        ,       std::string task_name          = "(Arches task name not not communicated to this variable registration)"
+                        , const bool        temporary_variable = false
+                        );
+
+  /** @brief Inteface to register_variable_work -- this function is overloaded. **/
+  void register_variable(       std::string                                              name
+                        ,       ArchesFieldContainer::VAR_DEPEND                         dep
+                        ,       int                                                      nGhost
+                        ,       ArchesFieldContainer::WHICH_DW                           dw
+                        ,       std::vector<ArchesFieldContainer::VariableInformation> & var_reg
+                        ,       std::string task_name          = "(Arches task name not not communicated to this variable registration)"
+                        , const bool        temporary_variable = false
+                        );
+
+  /** @brief Inteface to register_variable_work -- this function is overloaded.
+   *         This version assumes NewDW and zero ghosts. **/
+  void register_variable(       std::string                                              name
+                        ,       ArchesFieldContainer::VAR_DEPEND                         dep
+                        ,       std::vector<ArchesFieldContainer::VariableInformation> & var_reg
+                        ,       std::string task_name          = "(Arches task name not not communicated to this variable registration)"
+                        , const bool        temporary_variable = false
+                        );
+
+  /** @brief Inteface to register_variable_work -- this function is overloaded.
+   *         This version assumes NewDW and zero ghosts and passes the timesubstep. **/
+  void register_variable(       std::string                                              name
+                        ,       ArchesFieldContainer::VAR_DEPEND                         dep
+                        ,       std::vector<ArchesFieldContainer::VariableInformation> & var_reg
+                        , const int                                                      timesubstep
+                        ,       std::string task_name          = "(Arches task name not not communicated to this variable registration)"
+                        , const bool        temporary_variable = false
+                        );
+
+  /** @brief Helper struct when resolving get_field becomes tricky **/
+  template <typename T>
+  struct FieldTool
+  {
+    FieldTool(ArchesTaskInfoManager* tsk_info){
+      throw InvalidValue("Error: I should not be in this constructor.",__FILE__,__LINE__);
+    }
+
+    T* get( const std::string name ) {
+      throw InvalidValue("Error: I should not be called.",__FILE__,__LINE__);
+    }
+  };
+
+  template <>
+  struct FieldTool<CCVariable<double> >
+  {
+    FieldTool(ArchesTaskInfoManager* tsk_info):m_tsk_info(tsk_info){}
+
+    CCVariable<double>& get( const std::string name ){
+      ArchesFieldContainer* field_container = m_tsk_info->getFieldContainer();
+      return *(field_container->get_field<CCVariable<double> >( name ));
     }
 
     private:
       ArchesTaskInfoManager* m_tsk_info;
   };
+
+  template <>
+  struct FieldTool<constCCVariable<double> >
+  {
+    FieldTool(ArchesTaskInfoManager* tsk_info):m_tsk_info(tsk_info){}
+
+    constCCVariable<double>& get( const std::string name ){
+      ArchesFieldContainer* field_container = m_tsk_info->getFieldContainer();
+      return *(field_container->get_const_field<constCCVariable<double> >( name ));
+>>>>>>> origin/master
+    }
+
+    private:
+      ArchesTaskInfoManager* m_tsk_info;
+  };
+<<<<<<< HEAD
 
   template <>
   struct FieldTool<constCCVariable<double> >
@@ -285,14 +428,23 @@ namespace Uintah {
       ArchesTaskInfoManager* m_tsk_info;
   };
 
+=======
+
+>>>>>>> origin/master
   template <>
   struct FieldTool<SFCXVariable<double> >
   {
     FieldTool(ArchesTaskInfoManager* tsk_info):m_tsk_info(tsk_info){}
 
+<<<<<<< HEAD
     SFCXVariable<double>* get( const std::string name ){
       ArchesFieldContainer* field_container = m_tsk_info->getFieldContainer();
       return field_container->get_field<SFCXVariable<double> >( name );
+=======
+    SFCXVariable<double>& get( const std::string name ){
+      ArchesFieldContainer* field_container = m_tsk_info->getFieldContainer();
+      return *(field_container->get_field<SFCXVariable<double> >( name ));
+>>>>>>> origin/master
     }
 
     private:
@@ -304,9 +456,15 @@ namespace Uintah {
   {
     FieldTool(ArchesTaskInfoManager* tsk_info):m_tsk_info(tsk_info){}
 
+<<<<<<< HEAD
     constSFCXVariable<double>* get( const std::string name ){
       ArchesFieldContainer* field_container = m_tsk_info->getFieldContainer();
       return field_container->get_const_field<constSFCXVariable<double> >( name );
+=======
+    constSFCXVariable<double>& get( const std::string name ){
+      ArchesFieldContainer* field_container = m_tsk_info->getFieldContainer();
+      return *(field_container->get_const_field<constSFCXVariable<double> >( name ));
+>>>>>>> origin/master
     }
 
     private:
@@ -318,9 +476,15 @@ namespace Uintah {
   {
     FieldTool(ArchesTaskInfoManager* tsk_info):m_tsk_info(tsk_info){}
 
+<<<<<<< HEAD
     SFCYVariable<double>* get( const std::string name ){
       ArchesFieldContainer* field_container = m_tsk_info->getFieldContainer();
       return field_container->get_field<SFCYVariable<double> >( name );
+=======
+    SFCYVariable<double>& get( const std::string name ){
+      ArchesFieldContainer* field_container = m_tsk_info->getFieldContainer();
+      return *(field_container->get_field<SFCYVariable<double> >( name ));
+>>>>>>> origin/master
     }
 
     private:
@@ -332,9 +496,15 @@ namespace Uintah {
   {
     FieldTool(ArchesTaskInfoManager* tsk_info):m_tsk_info(tsk_info){}
 
+<<<<<<< HEAD
     constSFCYVariable<double>* get( const std::string name ){
       ArchesFieldContainer* field_container = m_tsk_info->getFieldContainer();
       return field_container->get_const_field<constSFCYVariable<double> >( name );
+=======
+    constSFCYVariable<double>& get( const std::string name ){
+      ArchesFieldContainer* field_container = m_tsk_info->getFieldContainer();
+      return *(field_container->get_const_field<constSFCYVariable<double> >( name ));
+>>>>>>> origin/master
     }
 
     private:
@@ -346,9 +516,15 @@ namespace Uintah {
   {
     FieldTool(ArchesTaskInfoManager* tsk_info):m_tsk_info(tsk_info){}
 
+<<<<<<< HEAD
     SFCZVariable<double>* get( const std::string name ){
       ArchesFieldContainer* field_container = m_tsk_info->getFieldContainer();
       return field_container->get_field<SFCZVariable<double> >( name );
+=======
+    SFCZVariable<double>& get( const std::string name ){
+      ArchesFieldContainer* field_container = m_tsk_info->getFieldContainer();
+      return *(field_container->get_field<SFCZVariable<double> >( name ));
+>>>>>>> origin/master
     }
 
     private:
@@ -360,9 +536,15 @@ namespace Uintah {
   {
     FieldTool(ArchesTaskInfoManager* tsk_info):m_tsk_info(tsk_info){}
 
+<<<<<<< HEAD
     constSFCZVariable<double>* get( const std::string name ){
       ArchesFieldContainer* field_container = m_tsk_info->getFieldContainer();
       return field_container->get_const_field<constSFCZVariable<double> >( name );
+=======
+    constSFCZVariable<double>& get( const std::string name ){
+      ArchesFieldContainer* field_container = m_tsk_info->getFieldContainer();
+      return *(field_container->get_const_field<constSFCZVariable<double> >( name ));
+>>>>>>> origin/master
     }
 
     private:

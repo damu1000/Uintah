@@ -78,6 +78,11 @@ void addMeshVariable( visit_handle md, std::set<std::string> &mesh_vars_added,
                       std::string varName, std::string varType,
                       std::string meshName, VisIt_VarCentering cent );
 
+<<<<<<< HEAD
+=======
+void nameCleanup( std::string &str );
+  
+>>>>>>> origin/master
 template< class ENUM, class T >
 void addReductionStats( visit_handle md, ReductionInfoMapper< ENUM, T > stats,
                         std::string statName, std::string meshName,
@@ -102,6 +107,11 @@ void addReductionStats( visit_handle md, ReductionInfoMapper< ENUM, T > stats,
 
         std::string units = stats.getUnits( i );
         
+<<<<<<< HEAD
+=======
+        nameCleanup( tmp_name );
+
+>>>>>>> origin/master
         VisIt_VariableMetaData_setName(vmd, tmp_name.c_str());
         VisIt_VariableMetaData_setMeshName(vmd, meshName.c_str());
         VisIt_VariableMetaData_setCentering(vmd, VISIT_VARCENTERING_ZONE);
@@ -123,6 +133,11 @@ template< class ENUM, class T >
 void addVectorStats( visit_handle md, VectorInfoMapper< ENUM, T > stats,
                      std::string statName, std::string meshName )
 {
+<<<<<<< HEAD
+=======
+  if(stats.size() == 0 )
+    return;
+>>>>>>> origin/master
   
   for( unsigned int i=0; i<stats[0].size(); ++i )
   {
@@ -132,6 +147,11 @@ void addVectorStats( visit_handle md, VectorInfoMapper< ENUM, T > stats,
     {
       std::string tmp_name = statName + stats[0].getName( i );
       std::string units = stats[0].getUnits( i );
+<<<<<<< HEAD
+=======
+
+      nameCleanup( tmp_name );
+>>>>>>> origin/master
       
       VisIt_VariableMetaData_setName(vmd, tmp_name.c_str());
       VisIt_VariableMetaData_setMeshName(vmd, meshName.c_str());
@@ -151,6 +171,7 @@ void addVectorStats( visit_handle md, VectorInfoMapper< ENUM, T > stats,
 
 template< class ENUM, class T >
 void addVectorReductionStats( visit_handle md, VectorInfoMapper< ENUM, T > stats,
+<<<<<<< HEAD
 			      std::string statName, std::string meshName )
 {
   const unsigned int nReductions = 4;
@@ -187,15 +208,67 @@ void addVectorReductionStats( visit_handle md, VectorInfoMapper< ENUM, T > stats
       
 	  VisIt_SimulationMetaData_addVariable(md, vmd);
 	}
+=======
+                              std::string statName, std::string meshName )
+{
+  if(stats.size() == 0 )
+    return;
+
+  const unsigned int nReductions = 6;
+  std::string reduction[nReductions] =
+    {"/Size", "/Sum", "/Average", "/Minimum", "/Maximum", "/StdDev"};
+
+  for( unsigned j=0; j<nReductions; ++j )
+  {
+    if( (j == 0) ||
+        (j == 1 && stats.calculateSum()) ||
+        (j == 2 && stats.calculateAverage()) ||
+        (j == 3 && stats.calculateMinimum()) ||
+        (j == 4 && stats.calculateMaximum()) ||
+        (j == 5 && stats.calculateStdDev() ) )
+    {  
+      for( unsigned int i=0; i<stats[0].size(); ++i )
+      {
+        visit_handle vmd = VISIT_INVALID_HANDLE;
+        
+        if(VisIt_VariableMetaData_alloc(&vmd) == VISIT_OKAY)
+        {
+          std::string tmp_name =
+            statName + stats[0].getName( i ) + reduction[j];
+
+          std::string units = (j ? stats[0].getUnits( i ) : "" );
+      
+          nameCleanup( tmp_name );
+          
+          VisIt_VariableMetaData_setName(vmd, tmp_name.c_str());
+          VisIt_VariableMetaData_setMeshName(vmd, meshName.c_str());
+          VisIt_VariableMetaData_setCentering(vmd, VISIT_VARCENTERING_ZONE);
+          VisIt_VariableMetaData_setType(vmd, VISIT_VARTYPE_SCALAR);
+          VisIt_VariableMetaData_setNumComponents(vmd, 1);
+          VisIt_VariableMetaData_setUnits(vmd, units.c_str());
+      
+          // ARS - FIXME
+          //      VisIt_VariableMetaData_setHasDataExtents(vmd, false);
+          VisIt_VariableMetaData_setTreatAsASCII(vmd, false);
+      
+          VisIt_SimulationMetaData_addVariable(md, vmd);
+        }
+>>>>>>> origin/master
       }
     }
   }
 }
 
 template< class KEY, class ENUM, class T >
+<<<<<<< HEAD
 void addMapStats( const visit_handle md, MapInfoMapper< KEY, ENUM, T > stats,
 		  std::string statName, std::string statIndex,
 		  std::string meshName )
+=======
+void addMapAllStats( const visit_handle md, MapInfoMapper< KEY, ENUM, T > stats,
+                     std::string statName, std::string statIndex,
+                     std::string meshName )
+>>>>>>> origin/master
 {
   if( stats.size() == 0 )
     return;
@@ -211,10 +284,19 @@ void addMapStats( const visit_handle md, MapInfoMapper< KEY, ENUM, T > stats,
       std::string tmp_name = statName + stats[key].getName( i );
 
       if( statIndex.size() )
+<<<<<<< HEAD
 	tmp_name += statIndex;
 
       std::string units = stats[key].getUnits( i );
       
+=======
+        tmp_name += statIndex;
+
+      std::string units = stats[key].getUnits( i );
+      
+      nameCleanup( tmp_name );
+      
+>>>>>>> origin/master
       VisIt_VariableMetaData_setName(vmd, tmp_name.c_str());
       VisIt_VariableMetaData_setMeshName(vmd, meshName.c_str());
       VisIt_VariableMetaData_setCentering(vmd, VISIT_VARCENTERING_ZONE);
@@ -232,15 +314,70 @@ void addMapStats( const visit_handle md, MapInfoMapper< KEY, ENUM, T > stats,
 }
 
 template< class KEY, class ENUM, class T >
+<<<<<<< HEAD
 void addMapReductionStats( visit_handle md, MapInfoMapper< KEY, ENUM, T > stats,
 			   std::string statName, std::string statIndex,
 			   std::string meshName )
+=======
+void addMapIndividualStats( const visit_handle md, MapInfoMapper< KEY, ENUM, T > stats,
+                            std::string statName, std::string statIndex,
+                            std::string meshName )
+{
+  if( stats.size() == 0 )
+    return;
+  
+  for( unsigned int k=0; k<stats.size(); ++k )
+  {
+    KEY key = stats.getKey(k);
+
+    std::ostringstream keyName;
+    keyName << key;
+    
+    for( unsigned int i=0; i<stats[key].size(); ++i )
+    {
+      visit_handle vmd = VISIT_INVALID_HANDLE;
+      
+      if(VisIt_VariableMetaData_alloc(&vmd) == VISIT_OKAY)
+      {
+        std::string tmp_name = statName +
+          keyName.str() + "/" + stats[key].getName( i );
+        
+        if( statIndex.size() )
+          tmp_name += statIndex;
+
+        std::string units = stats[key].getUnits( i );
+        
+        nameCleanup( tmp_name );
+        
+        VisIt_VariableMetaData_setName(vmd, tmp_name.c_str());
+        VisIt_VariableMetaData_setMeshName(vmd, meshName.c_str());
+        VisIt_VariableMetaData_setCentering(vmd, VISIT_VARCENTERING_ZONE);
+        VisIt_VariableMetaData_setType(vmd, VISIT_VARTYPE_SCALAR);
+        VisIt_VariableMetaData_setNumComponents(vmd, 1);
+        VisIt_VariableMetaData_setUnits(vmd, units.c_str());
+        
+        // ARS - FIXME
+        //      VisIt_VariableMetaData_setHasDataExtents(vmd, false);
+        VisIt_VariableMetaData_setTreatAsASCII(vmd, false);
+        
+        VisIt_SimulationMetaData_addVariable(md, vmd);
+      }
+    }
+  }
+}
+
+template< class KEY, class ENUM, class T >
+void addMapReductionStats( visit_handle md, MapInfoMapper< KEY, ENUM, T > stats,
+                           std::string statName, std::string statIndex,
+                           std::string meshName )
+>>>>>>> origin/master
 {
   if( stats.size() == 0 )
     return;
   
   KEY key = stats.getKey(0);
 
+<<<<<<< HEAD
   const unsigned int nReductions = 4;
   std::string reduction[nReductions] =
     {"/Average", "/Minimum", "/Maximum", "/StdDev"};
@@ -279,6 +416,51 @@ void addMapReductionStats( visit_handle md, MapInfoMapper< KEY, ENUM, T > stats,
       
 	  VisIt_SimulationMetaData_addVariable(md, vmd);
 	}
+=======
+  const unsigned int nReductions = 6;
+  std::string reduction[nReductions] =
+    {"/Size", "/Sum", "/Average", "/Minimum", "/Maximum", "/StdDev"};
+
+  for( unsigned j=0; j<nReductions; ++j )
+  {
+    if( (j == 0) ||
+        (j == 1 && stats.calculateSum()) ||
+        (j == 2 && stats.calculateAverage()) ||
+        (j == 3 && stats.calculateMinimum()) ||
+        (j == 4 && stats.calculateMaximum()) ||
+        (j == 5 && stats.calculateStdDev() ) )
+    {  
+      for( unsigned int i=0; i<stats[key].size(); ++i )
+      {
+        visit_handle vmd = VISIT_INVALID_HANDLE;
+        
+        if(VisIt_VariableMetaData_alloc(&vmd) == VISIT_OKAY)
+        {
+          std::string tmp_name =
+            statName + stats[key].getName( i ) + reduction[j];
+
+          if( statIndex.size() )
+            tmp_name += statIndex;
+
+          std::string units = (j ? stats[key].getUnits( i ) : "" );
+
+          nameCleanup( tmp_name );
+          // std::cerr << __FUNCTION__ << "  " << __LINE__ << "  " << tmp_name << std::endl;
+          
+          VisIt_VariableMetaData_setName(vmd, tmp_name.c_str());
+          VisIt_VariableMetaData_setMeshName(vmd, meshName.c_str());
+          VisIt_VariableMetaData_setCentering(vmd, VISIT_VARCENTERING_ZONE);
+          VisIt_VariableMetaData_setType(vmd, VISIT_VARTYPE_SCALAR);
+          VisIt_VariableMetaData_setNumComponents(vmd, 1);
+          VisIt_VariableMetaData_setUnits(vmd, units.c_str());
+      
+          // ARS - FIXME
+          //      VisIt_VariableMetaData_setHasDataExtents(vmd, false);
+          VisIt_VariableMetaData_setTreatAsASCII(vmd, false);
+      
+          VisIt_SimulationMetaData_addVariable(md, vmd);
+        }
+>>>>>>> origin/master
       }
     }
   }

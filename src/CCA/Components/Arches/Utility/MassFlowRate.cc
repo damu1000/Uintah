@@ -1,7 +1,11 @@
 /*
  * The MIT License
  *
+<<<<<<< HEAD
  * Copyright (c) 1997-2019 The University of Utah
+=======
+ * Copyright (c) 1997-2020 The University of Utah
+>>>>>>> origin/master
  *
   is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -36,7 +40,11 @@ using namespace ArchesCore;
 //       mass flow of the organics in the particle phase.
 //       To get the total mass flow rate of the particles you
 //       need to compute it from the fixed ash and moisture content:
+<<<<<<< HEAD
 //       m_dot_part = m_dot_org / ( mass fraction of organics )
+=======
+//       mDot_part = m_dot_org / ( mass fraction of organics )
+>>>>>>> origin/master
 //       where m_dot_org is what is computed here.
 
 // Constructor -----------------------------------------------------------------
@@ -52,16 +60,20 @@ MassFlowRate::~MassFlowRate(){
 void MassFlowRate::problemSetup( ProblemSpecP& db ){
 
   // Parse from UPS file
-  m_g_uVel_name = parse_ups_for_role( UVELOCITY, db, "uVelocitySPBC" );
-  m_g_vVel_name = parse_ups_for_role( VVELOCITY, db, "vVelocitySPBC" );
-  m_g_wVel_name = parse_ups_for_role( WVELOCITY, db, "wVelocitySPBC" );
+  m_g_uVel_name = parse_ups_for_role( UVELOCITY_ROLE, db, "uVelocitySPBC" );
+  m_g_vVel_name = parse_ups_for_role( VVELOCITY_ROLE, db, "vVelocitySPBC" );
+  m_g_wVel_name = parse_ups_for_role( WVELOCITY_ROLE, db, "wVelocitySPBC" );
 
   m_volFraction_name = "volFraction";
+<<<<<<< HEAD
   particleMethod_bool = check_for_particle_method( db, DQMOM_METHOD );
+=======
+  m_particleMethod_bool = check_for_particle_method( db, DQMOM_METHOD );
+>>>>>>> origin/master
 
   const ProblemSpecP db_root = db->getRootNode();
 
-  if(particleMethod_bool){
+  if(m_particleMethod_bool){
 
     m_Nenv    = ArchesCore::get_num_env( db, ArchesCore::DQMOM_METHOD );
 
@@ -94,6 +106,7 @@ void MassFlowRate::problemSetup( ProblemSpecP& db ){
       }
     }
   }
+<<<<<<< HEAD
   // Get name of inlets
   ProblemSpecP db_bc   = db_root->findBlock("Grid")->findBlock("BoundaryConditions");
   for ( ProblemSpecP db_face = db_bc->findBlock("Face"); db_face != nullptr; db_face = db_face->findNextBlock("Face") ) {
@@ -138,33 +151,114 @@ MassFlowRate::create_local_labels(){
   }
 
 
+=======
+
+  // Get name of inlets
+  ProblemSpecP db_bc   = db_root->findBlock("Grid")->findBlock("BoundaryConditions");
+  for ( ProblemSpecP db_face = db_bc->findBlock("Face"); db_face != nullptr;
+        db_face = db_face->findNextBlock("Face") ) {
+
+    std::string Type;
+    db_face->getAttribute("type", Type );
+    if (Type =="Inlet" ) {
+
+      std::string faceName;
+      db_face->getAttribute("name",faceName);
+      MFInfo info_g ;
+      info_g.name = m_task_name+"_mdot_g_in_" + faceName;
+      info_g.face_name = faceName;
+      info_g.value = 0;
+      m_m_gas_info.push_back(info_g);
+
+      if ( m_particleMethod_bool ){
+        MFInfo info_p ;
+        info_p.name = m_task_name+"_mdot_p_organics_in_" + faceName;
+        info_p.face_name = faceName;
+        info_p.value = 0;
+        m_m_p_info.push_back(info_p);
+      }
+>>>>>>> origin/master
+
+    }
+  }
+
+  // Get name of outlets
+  //ProblemSpecP db_bc   = db_root->findBlock("Grid")->findBlock("BoundaryConditions");
+  for ( ProblemSpecP db_face = db_bc->findBlock("Face"); db_face != nullptr;
+        db_face = db_face->findNextBlock("Face") ) {
+
+    std::string Type;
+    db_face->getAttribute("type", Type );
+    if (Type =="Outflow" ) {
+
+      std::string faceName;
+      db_face->getAttribute("name",faceName);
+      MFInfo info_g ;
+      info_g.name = m_task_name+"_mdot_g_out_" + faceName;
+      info_g.face_name = faceName;
+      info_g.value = 0;
+      m_m_gas_info.push_back(info_g);
+
+      if ( m_particleMethod_bool ){
+        MFInfo info_p ;
+        info_p.name = m_task_name+"_mdot_p_organics_out_" + faceName;
+        info_p.face_name = faceName;
+        info_p.value = 0;
+        m_m_p_info.push_back(info_p);
+      }
+
+    }
+  }
+
+  // Check to see if there is a scalar associated with this balance:
+  if ( db->findBlock("scalar") ){
+    db->require("scalar", m_scalar_name);
+  }
 
 }
 
-// Initialization --------------------------------------------------------------
-void MassFlowRate::register_initialize( std::vector<ArchesFieldContainer::VariableInformation>& variable_registry, const bool packed_tasks ){
+// Declaration -----------------------------------------------------------------
+void
+MassFlowRate::create_local_labels(){
 
-  register_massFlowRate( variable_registry, packed_tasks );
-}
-
-void MassFlowRate::initialize( const Patch* patch, ArchesTaskInfoManager* tsk_info ){
-
-  eval_massFlowRate( patch, tsk_info );
-}
-
-// Timestep Eval ---------------------------------------------------------------
-void MassFlowRate::register_timestep_eval( std::vector<ArchesFieldContainer::VariableInformation>& variable_registry, const int time_substep , const bool packed_tasks){
-
+<<<<<<< HEAD
   typedef ArchesFieldContainer AFC;
 
   register_variable( "m_dot_g"    , AFC::COMPUTES, variable_registry, m_task_name );
   register_variable( "m_dot_p_organics"    , AFC::COMPUTES, variable_registry, m_task_name );
+=======
+  register_new_variable<sum_vartype> (m_task_name+"_mdot_g_in");  // Gas phase mass flow rate
+  register_new_variable<sum_vartype> (m_task_name+"_mdot_g_out");  // Gas phase mass flow rate
+
+  for (auto iface = m_m_gas_info.begin(); iface != m_m_gas_info.end(); iface++){
+    MFInfo info = *iface;
+    register_new_variable<sum_vartype> (info.name);
+  }
+
+  if ( m_particleMethod_bool ){
+    for (auto iface = m_m_p_info.begin(); iface != m_m_p_info.end(); iface++){
+      MFInfo info = *iface;
+      register_new_variable<sum_vartype> (info.name);
+    }
+    register_new_variable<sum_vartype> (m_task_name+"_mdot_p_organics_out");  // Particle phase mass flow rate
+    register_new_variable<sum_vartype> (m_task_name+"_mdot_p_organics_in");  // Particle phase mass flow rate
+  }
+
+}
+
+// Timestep Eval ---------------------------------------------------------------
+void MassFlowRate::register_timestep_eval(
+
+  std::vector<ArchesFieldContainer::VariableInformation>& variable_registry,
+  const int time_substep , const bool packed_tasks){
+>>>>>>> origin/master
 
   for (auto iface = m_m_gas_info.begin(); iface != m_m_gas_info.end(); iface++){
     MFInfo info = *iface;
     register_variable( info.name    , AFC::COMPUTES, variable_registry, m_task_name );
   }
 
+<<<<<<< HEAD
   for (auto iface = m_m_p_info.begin(); iface != m_m_p_info.end(); iface++){
     MFInfo info = *iface;
     register_variable( info.name    , AFC::COMPUTES, variable_registry, m_task_name );
@@ -178,6 +272,32 @@ void MassFlowRate::register_timestep_eval( std::vector<ArchesFieldContainer::Var
 
   register_variable( m_volFraction_name, AFC::REQUIRES, 1, AFC::OLDDW, variable_registry, time_substep, m_task_name );
   if(particleMethod_bool){
+=======
+  register_variable( m_task_name+"_mdot_g_in"    , AFC::COMPUTES, variable_registry, m_task_name );
+  register_variable( m_task_name+"_mdot_g_out"    , AFC::COMPUTES, variable_registry, m_task_name );
+
+  for (auto iface = m_m_gas_info.begin(); iface != m_m_gas_info.end(); iface++){
+    MFInfo info = *iface;
+    register_variable( info.name    , AFC::COMPUTES, variable_registry, m_task_name );
+  }
+
+  if ( m_particleMethod_bool ){
+    for (auto iface = m_m_p_info.begin(); iface != m_m_p_info.end(); iface++){
+      MFInfo info = *iface;
+      register_variable( info.name    , AFC::COMPUTES, variable_registry, m_task_name );
+    }
+    register_variable( m_task_name+"_mdot_p_organics_out"    , AFC::COMPUTES, variable_registry, m_task_name );
+    register_variable( m_task_name+"_mdot_p_organics_in"    , AFC::COMPUTES, variable_registry, m_task_name );
+  }
+
+  register_variable( "density"       , AFC::REQUIRES, 1, AFC::NEWDW, variable_registry, time_substep, m_task_name );
+  register_variable( m_g_uVel_name   , AFC::REQUIRES, 1, AFC::NEWDW, variable_registry, time_substep, m_task_name );
+  register_variable( m_g_vVel_name   , AFC::REQUIRES, 1, AFC::NEWDW, variable_registry, time_substep, m_task_name );
+  register_variable( m_g_wVel_name   , AFC::REQUIRES, 1, AFC::NEWDW, variable_registry, time_substep, m_task_name );
+  register_variable( m_volFraction_name, AFC::REQUIRES, 1, AFC::OLDDW, variable_registry, time_substep, m_task_name );
+
+  if(m_particleMethod_bool){
+>>>>>>> origin/master
 
     for ( int qn = 0; qn < m_Nenv; qn++ ){
 
@@ -191,6 +311,7 @@ void MassFlowRate::register_timestep_eval( std::vector<ArchesFieldContainer::Var
 
     }
   }
+<<<<<<< HEAD
   register_massFlowRate( variable_registry, packed_tasks );
 
 }
@@ -202,14 +323,29 @@ void MassFlowRate::eval( const Patch* patch, ArchesTaskInfoManager* tsk_info ){
 
 // Definitions -----------------------------------------------------------------
 void MassFlowRate::register_massFlowRate( std::vector<ArchesFieldContainer::VariableInformation>& variable_registry, const bool packed_tasks ){
+=======
+
+  if (m_scalar_name != "NULL"){
+    register_variable(m_scalar_name, AFC::REQUIRES, 1, AFC::NEWDW, variable_registry, time_substep, m_task_name);
+  }
+>>>>>>> origin/master
 
 }
 
-// -----------------------------------------------------------------------------
-void MassFlowRate::eval_massFlowRate( const Patch* patch, ArchesTaskInfoManager* tsk_info ){
+//--------------------------------------------------------------------------------------------------
+void MassFlowRate::eval( const Patch* patch, ArchesTaskInfoManager* tsk_info ){
 
+<<<<<<< HEAD
   constCCVariable<double>& density = tsk_info->get_const_uintah_field_add<constCCVariable<double> >("density");
   constCCVariable<double>& eps = tsk_info->get_const_uintah_field_add<constCCVariable<double> >(m_volFraction_name);
+=======
+  eval_massFlowRate( patch, tsk_info );
+
+}
+
+//--------------------------------------------------------------------------------------------------
+void MassFlowRate::eval_massFlowRate( const Patch* patch, ArchesTaskInfoManager* tsk_info ){
+>>>>>>> origin/master
 
   DataWarehouse* new_dw = tsk_info->getNewDW();
 
@@ -221,6 +357,7 @@ void MassFlowRate::eval_massFlowRate( const Patch* patch, ArchesTaskInfoManager*
   // Get the  helper information about boundaries (global) per patch :
   const BndMapT& bc_info = m_bcHelper->get_boundary_information();
 
+<<<<<<< HEAD
 
   double m_dot_gas  = 0.0;
   double m_dot_coal = 0.0;
@@ -231,10 +368,23 @@ void MassFlowRate::eval_massFlowRate( const Patch* patch, ArchesTaskInfoManager*
   constSFCZVariable<double>& wvel_g  = tsk_info->get_const_uintah_field_add<constSFCZVariable<double> >(m_g_wVel_name);
 
   if(particleMethod_bool){
+=======
+  // Gas phase
+  constSFCXVariable<double>& uvel_g = tsk_info->get_field<constSFCXVariable<double> >(m_g_uVel_name);
+  constSFCYVariable<double>& vvel_g = tsk_info->get_field<constSFCYVariable<double> >(m_g_vVel_name);
+  constSFCZVariable<double>& wvel_g = tsk_info->get_field<constSFCZVariable<double> >(m_g_wVel_name);
+  constCCVariable<double>& density = tsk_info->get_field<constCCVariable<double> >("density");
+  constCCVariable<double>& eps = tsk_info->get_field<constCCVariable<double> >(m_volFraction_name);
+
+  if(m_particleMethod_bool){
+
+    double mDot_coal = 0.0;
+>>>>>>> origin/master
 
     for ( int qn = 0; qn < m_Nenv; qn++ ){
 
       // Coal phase
+<<<<<<< HEAD
       constCCVariable<double>& wqn  = *(tsk_info->get_const_uintah_field<constCCVariable<double> >( m_w_names[qn]  ));
       constCCVariable<double>& RCqn = *(tsk_info->get_const_uintah_field<constCCVariable<double> >( m_RC_names[qn] ));
       constCCVariable<double>& CHqn = *(tsk_info->get_const_uintah_field<constCCVariable<double> >( m_CH_names[qn] ));
@@ -242,15 +392,23 @@ void MassFlowRate::eval_massFlowRate( const Patch* patch, ArchesTaskInfoManager*
       constCCVariable<double>& uvel_p = *(tsk_info->get_const_uintah_field<constCCVariable<double> >( m_p_uVel_names[qn] ));
       constCCVariable<double>& vvel_p = *(tsk_info->get_const_uintah_field<constCCVariable<double> >( m_p_vVel_names[qn] ));
       constCCVariable<double>& wvel_p = *(tsk_info->get_const_uintah_field<constCCVariable<double> >( m_p_wVel_names[qn] ));
+=======
+      constCCVariable<double>& wqn = tsk_info->get_field<constCCVariable<double> >( m_w_names[qn]  );
+      constCCVariable<double>& RCqn = tsk_info->get_field<constCCVariable<double> >( m_RC_names[qn] );
+      constCCVariable<double>& CHqn = tsk_info->get_field<constCCVariable<double> >( m_CH_names[qn] );
+
+      constCCVariable<double>& uvel_p = tsk_info->get_field<constCCVariable<double> >( m_p_uVel_names[qn] );
+      constCCVariable<double>& vvel_p = tsk_info->get_field<constCCVariable<double> >( m_p_vVel_names[qn] );
+      constCCVariable<double>& wvel_p = tsk_info->get_field<constCCVariable<double> >( m_p_wVel_names[qn] );
+>>>>>>> origin/master
 
       for ( auto i_bc = bc_info.begin(); i_bc != bc_info.end(); i_bc++ ){
 
-        // Sweep through, for type == Inlet, then sweep through the specified cells
-        if ( i_bc->second.type == INLET ){
+        const bool on_this_patch = i_bc->second.has_patch(patch->getID());
 
-          // Get the cell iterator - range of cellID:
-          Uintah::ListOfCellsIterator& cell_iter = m_bcHelper->get_uintah_extra_bnd_mask( i_bc->second, patch->getID());
+        if ( on_this_patch ){
 
+<<<<<<< HEAD
           // Get the face direction (this is the outward facing normal):
           const IntVector iDir     = patch->faceDirection(i_bc->second.face);
 
@@ -291,10 +449,60 @@ void MassFlowRate::eval_massFlowRate( const Patch* patch, ArchesTaskInfoManager*
 
           new_dw->put(sum_vartype(value_m_dot), VarLabel::find("m_dot_p_organics_"+i_bc->second.name));
 
+=======
+          // Sweep through, for type == Inlet, then sweep through the specified cells
+          if ( i_bc->second.type == INLET_BC ){
+
+            // Get the cell iterator - range of cellID:
+            Uintah::ListOfCellsIterator& cell_iter = m_bcHelper->get_uintah_extra_bnd_mask( i_bc->second, patch->getID());
+
+            // Get the face direction (this is the outward facing normal):
+            const IntVector iDir     = patch->faceDirection(i_bc->second.face);
+
+            //Now loop through the cells:
+            double value_m_dot = 0;
+            parallel_for(cell_iter.get_ref_to_iterator(),cell_iter.size(), [&] (const int i,const int j,const int k) {
+
+            const int ic = i - iDir[0]; // interior cell index
+            const int jc = j - iDir[1];
+            const int kc = k - iDir[2];
+
+            const double eps_interp  =  eps(i,j,k)*eps(ic,jc,kc);
+
+            const double RCqn_interp = 0.5 * ( RCqn(i,j,k) + RCqn(ic,jc,kc) );
+            const double CHqn_interp = 0.5 * ( CHqn(i,j,k) + CHqn(ic,jc,kc) );
+            const double wqn_interp  = 0.5 * ( wqn (i,j,k) + wqn (ic,jc,kc) );
+
+            const double uvel_p_interp  = 0.5 * ( uvel_p(i,j,k) + uvel_p(ic,jc,kc) );
+            const double vvel_p_interp  = 0.5 * ( vvel_p(i,j,k) + vvel_p(ic,jc,kc) );
+            const double wvel_p_interp  = 0.5 * ( wvel_p(i,j,k) + wvel_p(ic,jc,kc) );
+
+            const double uvel_p_i = uvel_p_interp * m_p_uVel_scaling_constant[qn] / wqn_interp ;
+            const double vvel_p_i = vvel_p_interp * m_p_vVel_scaling_constant[qn] / wqn_interp ;
+            const double wvel_p_i = wvel_p_interp * m_p_wVel_scaling_constant[qn] / wqn_interp ;
+
+            const double RCi = RCqn_interp * m_RC_scaling_constant[qn] / wqn_interp; // kg of i / m3
+            const double CHi = CHqn_interp * m_CH_scaling_constant[qn] / wqn_interp;
+
+            const double wi =  wqn_interp * m_w_scaling_constant[qn];
+
+            value_m_dot += -( RCi + CHi ) * uvel_p_i * area_x * wi * eps_interp * iDir[0]
+                           -( RCi + CHi ) * vvel_p_i * area_y * wi * eps_interp * iDir[1]
+                           -( RCi + CHi ) * wvel_p_i * area_z * wi * eps_interp * iDir[2];
+
+            });
+
+            mDot_coal += value_m_dot;
+
+            new_dw->put(sum_vartype(value_m_dot), VarLabel::find(m_task_name+"_mdot_p_organics_in_"+i_bc->second.name));
+
+          }
+>>>>>>> origin/master
         }
       }
     }
 
+<<<<<<< HEAD
     new_dw->put(sum_vartype(m_dot_coal), VarLabel::find("m_dot_p_organics"));
 
   }
@@ -306,10 +514,28 @@ void MassFlowRate::eval_massFlowRate( const Patch* patch, ArchesTaskInfoManager*
 
       // Get the cell iterator - range of cellID:
       Uintah::ListOfCellsIterator& cell_iter = m_bcHelper->get_uintah_extra_bnd_mask( i_bc->second, patch->getID());
+=======
+    new_dw->put(sum_vartype(mDot_coal), VarLabel::find(m_task_name+"_mdot_p_organics_in"));
+
+  }
+
+  double mDot_gas  = 0.0;
+  double mDot_gas_out = 0.0;
+
+  for ( auto i_bc = bc_info.begin(); i_bc != bc_info.end(); i_bc++ ){
+
+    const bool on_this_patch = i_bc->second.has_patch(patch->getID());
+
+    if ( on_this_patch ){
+
+      // Sweep through, for type == Inlet, then sweep through the specified cells
+      if ( i_bc->second.type == INLET_BC || i_bc->second.type == OUTLET_BC ){
+>>>>>>> origin/master
 
       // Get the face direction (this is the outward facing normal):
       const IntVector iDir     = patch->faceDirection(i_bc->second.face);
 
+<<<<<<< HEAD
       //Now loop through the cells:
       double value_m_dot = 0;
       parallel_for(cell_iter.get_ref_to_iterator(),cell_iter.size(), [&] (const int i,const int j,const int k) {
@@ -340,5 +566,72 @@ void MassFlowRate::eval_massFlowRate( const Patch* patch, ArchesTaskInfoManager*
   }
 
   new_dw->put(sum_vartype(m_dot_gas), VarLabel::find("m_dot_g"));
+=======
+        // Get the face direction (this is the outward facing normal):
+        const IntVector iDir     = patch->faceDirection(i_bc->second.face);
+
+        //Now loop through the cells:
+        double value_m_dot = 0;
+        if ( m_scalar_name == "NULL" ){
+
+          parallel_for(cell_iter.get_ref_to_iterator(),cell_iter.size(), [&] (const int i,const int j,const int k) {
+
+            const int im = i - iDir[0]; // interior cell index
+            const int jm = j - iDir[1];
+            const int km = k - iDir[2];
+
+            const double rho_interp  = 0.5 * ( density(i,j,k) + density(im,jm,km) );
+            const double eps_interp  =  eps(i,j,k)*eps(im,jm,km);
+
+            // x- => (-1,0,0)  x+ => (1,0,0)
+            // y- => (0,-1,0)  y+ => (0,1,0)
+            // z- => (0,0,-1)  z+ => (0,0,1)
+            value_m_dot += -rho_interp * uvel_g(i,j,k) * area_x * eps_interp * iDir[0]
+                           -rho_interp * vvel_g(i,j,k) * area_y * eps_interp * iDir[1]
+                           -rho_interp * wvel_g(i,j,k) * area_z * eps_interp * iDir[2];
+
+
+          });
+
+        } else {
+
+          auto scalar = tsk_info->get_field<constCCVariable<double> >( m_scalar_name );
+
+          parallel_for(cell_iter.get_ref_to_iterator(),cell_iter.size(), [&] (const int i,const int j,const int k) {
+
+            const int im = i - iDir[0]; // interior cell index
+            const int jm = j - iDir[1];
+            const int km = k - iDir[2];
+
+            const double rho_interp  = 0.5 * ( density(i,j,k) + density(im,jm,km) );
+            const double eps_interp  =  eps(i,j,k)*eps(im,jm,km);
+            const double scalar_interp = 0.5 * ( scalar(i,j,k) + scalar(im,jm,km) );
+
+              // x- => (-1,0,0)  x+ => (1,0,0)
+              // y- => (0,-1,0)  y+ => (0,1,0)
+              // z- => (0,0,-1)  z+ => (0,0,1)
+              value_m_dot += -rho_interp * uvel_g(i,j,k) * area_x * eps_interp * scalar_interp * iDir[0]
+                             -rho_interp * vvel_g(i,j,k) * area_y * eps_interp * scalar_interp * iDir[1]
+                             -rho_interp * wvel_g(i,j,k) * area_z * eps_interp * scalar_interp * iDir[2];
+
+
+          });
+        }
+
+        if ( i_bc->second.type == OUTLET_BC ){
+          new_dw->put(sum_vartype(value_m_dot), VarLabel::find(m_task_name+"_mdot_g_out_"+i_bc->second.name));
+          mDot_gas_out += value_m_dot;
+        } else {
+          new_dw->put(sum_vartype(value_m_dot), VarLabel::find(m_task_name+"_mdot_g_in_"+i_bc->second.name));
+          mDot_gas += value_m_dot;
+        }
+
+      }
+    }
+  }
+
+  new_dw->put(sum_vartype(mDot_gas), VarLabel::find(m_task_name+"_mdot_g_in"));
+  new_dw->put(sum_vartype(mDot_gas_out), VarLabel::find(m_task_name+"_mdot_g_out"));
+>>>>>>> origin/master
 
 }

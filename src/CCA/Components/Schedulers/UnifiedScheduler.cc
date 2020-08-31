@@ -1,7 +1,11 @@
 /*
  * The MIT License
  *
+<<<<<<< HEAD
  * Copyright (c) 1997-2019 The University of Utah
+=======
+ * Copyright (c) 1997-2020 The University of Utah
+>>>>>>> origin/master
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -65,12 +69,20 @@ namespace Uintah {
   extern Dout g_task_order;
   extern Dout g_exec_out;
 
+<<<<<<< HEAD
+=======
+  extern Dout do_task_exec_stats;
+>>>>>>> origin/master
 }
 
 
 namespace {
 
+<<<<<<< HEAD
   Dout g_dbg(         "Unified_DBG"        , "UnifiedScheduler", "general debugging info for the UnifiedScheduler"  , false );
+=======
+  Dout g_dbg(         "Unified_DBG"        , "UnifiedScheduler", "general debugging info for the UnifiedScheduler"      , false );
+>>>>>>> origin/master
   Dout g_queuelength( "Unified_QueueLength", "UnifiedScheduler", "report the task queue length for the UnifiedScheduler", false );
 
   Dout g_thread_stats     ( "Unified_ThreadStats",    "UnifiedScheduler", "Aggregated MPI thread stats for the UnifiedScheduler", false );
@@ -88,10 +100,18 @@ namespace {
 extern Uintah::MasterLock cerrLock;
 
 namespace Uintah {
+<<<<<<< HEAD
+=======
+
+>>>>>>> origin/master
   DebugStream gpu_stats(              "GPUStats"             , "UnifiedScheduler", "detailed GPU statistics on H2D and D2H data movement"                  , false );
   DebugStream gpudbg(                 "GPUDataWarehouse"     , "UnifiedScheduler", "detailed statistics from within the GPUDW on GPUDataWarehouse activity", false );
 
   Dout gpu_ids( "GPUIDs", "UnifiedScheduler", "detailed information to identify GPU(s) used when using multiple per node"                                  , false );
+<<<<<<< HEAD
+=======
+
+>>>>>>> origin/master
 }
 
 namespace {
@@ -213,18 +233,13 @@ void init_threads( UnifiedScheduler * sched, int num_threads )
     g_cpu_affinities[i] = i;
   }
 
-  // set main thread's affinity (core-0) and tid
+  // set main thread's affinity and tid, core-0 and tid-0, respectively
   set_affinity(g_cpu_affinities[0]);
   t_tid = 0;
 
-  // TaskRunner threads start at g_runners[1]
+  // TaskRunner threads start at g_runners[1], and std::threads start at g_threads[1]
   for (int i = 1; i < g_num_threads; ++i) {
-    g_runners[i] = new UnifiedSchedulerWorker(sched);
-  }
-
-  // spawn worker threads
-  // TaskRunner threads start at [1]
-  for (int i = 1; i < g_num_threads; ++i) {
+    g_runners[i] = new UnifiedSchedulerWorker(sched, i, g_cpu_affinities[i]);
     Impl::g_threads.push_back(std::thread(thread_driver, i));
   }
 
@@ -481,11 +496,21 @@ UnifiedScheduler::problemSetup( const ProblemSpecP     & prob_spec
   // Setup the thread info mapper
   if( g_thread_stats || g_thread_indv_stats ) {
     m_thread_info.resize( Impl::g_num_threads );
+<<<<<<< HEAD
     m_thread_info.setIndexName( "Threads" );
     m_thread_info.insert( WaitTime  , std::string("WaitTime")  , "seconds" );
     m_thread_info.insert( NumTasks  , std::string("NumTasks")  , "tasks"   );
     m_thread_info.insert( NumPatches, std::string("NumPatches"), "patches" );
     
+=======
+    m_thread_info.setIndexName( "Thread" );
+    m_thread_info.insert( WaitTime  , std::string("WaitTime")  , "seconds" );
+    m_thread_info.insert( LocalTID  , std::string("LocalTID")  , "Index"   );
+    m_thread_info.insert( Affinity  , std::string("Affinity")  , "CPU"     );
+    m_thread_info.insert( NumTasks  , std::string("NumTasks")  , "tasks"   );
+    m_thread_info.insert( NumPatches, std::string("NumPatches"), "patches" );
+
+>>>>>>> origin/master
     m_thread_info.calculateMinimum(true);
     m_thread_info.calculateStdDev (true);
   }
@@ -503,7 +528,7 @@ UnifiedScheduler::createSubScheduler()
 //______________________________________________________________________
 //
 void
-UnifiedScheduler::runTask( DetailedTask*         dtask
+UnifiedScheduler::runTask( DetailedTask        * dtask
                          , int                   iteration
                          , int                   thread_id /* = 0 */
                          , Task::CallBackEvent   event
@@ -515,8 +540,13 @@ UnifiedScheduler::runTask( DetailedTask*         dtask
 
     if( g_thread_stats || g_thread_indv_stats ) {
       m_thread_info[thread_id][NumTasks] += 1;
+<<<<<<< HEAD
       
       const PatchSubset *patches = dtask->getPatches();      
+=======
+
+      const PatchSubset *patches = dtask->getPatches();
+>>>>>>> origin/master
       if (patches)
         m_thread_info[thread_id][NumPatches] += patches->size();
     }
@@ -603,13 +633,15 @@ UnifiedScheduler::runTask( DetailedTask*         dtask
       sumTaskMonitoringValues( dtask );
 
       double total_task_time = dtask->task_exec_time();
-      if (g_exec_out) {
-        m_exec_times[dtask->getTask()->getName()] += total_task_time;
+      if (g_exec_out || do_task_exec_stats) {
+        m_task_info[dtask->getTask()->getName()][TaskStatsEnum::ExecTime] += total_task_time;
+        m_task_info[dtask->getTask()->getName()][TaskStatsEnum::WaitTime] += dtask->task_wait_time();
       }
+
       // if I do not have a sub scheduler
       if (!dtask->getTask()->getHasSubScheduler()) {
         //add my task time to the total time
-        mpi_info_[TotalTask] += total_task_time;
+        m_mpi_info[TotalTask] += total_task_time;
         if (!m_is_copy_data_timestep &&
             dtask->getTask()->getType() != Task::Output) {
           //add contribution for patchlist
@@ -637,10 +669,14 @@ UnifiedScheduler::runTask( DetailedTask*         dtask
 
     // Add subscheduler timings to the parent scheduler and reset subscheduler timings
     if (m_parent_scheduler != nullptr) {
-      for (size_t i = 0; i < mpi_info_.size(); ++i) {
-        m_parent_scheduler->mpi_info_[i] += mpi_info_[i];
+      for (size_t i = 0; i < m_mpi_info.size(); ++i) {
+        m_parent_scheduler->m_mpi_info[i] += m_mpi_info[i];
       }
+<<<<<<< HEAD
       mpi_info_.reset(0);
+=======
+      m_mpi_info.reset(0);
+>>>>>>> origin/master
       m_thread_info.reset( 0 );
     }
   }
@@ -668,6 +704,12 @@ UnifiedScheduler::execute( int tgnum       /* = 0 */
 
   // track total scheduler execution time across timesteps
   m_exec_timer.reset(true);
+
+  // If doing in situ monitoring clear the times before each time step
+  // otherwise the times are accumulated over N time steps.
+  if (do_task_exec_stats) {
+    m_task_info.reset(0);
+  }
 
   RuntimeStats::initialize_timestep(m_task_graphs);
 
@@ -706,7 +748,11 @@ UnifiedScheduler::execute( int tgnum       /* = 0 */
   // This only happens if "-emit_taskgraphs" is passed to sus
   makeTaskGraphDoc(m_detailed_tasks, my_rank);
 
+<<<<<<< HEAD
   mpi_info_.reset( 0 );
+=======
+  m_mpi_info.reset( 0 );
+>>>>>>> origin/master
   m_thread_info.reset( 0 );
 
   m_num_tasks_done = 0;
@@ -823,8 +869,18 @@ UnifiedScheduler::execute( int tgnum       /* = 0 */
     for (int i = 1; i < Impl::g_num_threads; ++i) {
       (*m_runtimeStats)[TaskWaitThreadTime] += Impl::g_runners[i]->getWaitTime();
 
+<<<<<<< HEAD
       if( g_thread_stats || g_thread_indv_stats )
         m_thread_info[i][WaitTime] = Impl::g_runners[i]->getWaitTime();
+=======
+//      DOUT(true, "ThreadID: " << Impl::g_runners[i]->getLocalTID() << ", bound to core: " << Impl::g_runners[i]->getAffinity());
+
+      if( g_thread_stats || g_thread_indv_stats ) {
+        m_thread_info[i][WaitTime] = Impl::g_runners[i]->getWaitTime();
+        m_thread_info[i][LocalTID] = Impl::g_runners[i]->getLocalTID();
+        m_thread_info[i][Affinity] = Impl::g_runners[i]->getAffinity();
+      }
+>>>>>>> origin/master
     }
 
     MPIScheduler::computeNetRuntimeStats();
@@ -832,6 +888,7 @@ UnifiedScheduler::execute( int tgnum       /* = 0 */
 
   // Thread average runtime performance stats.
   if (g_thread_stats ) {
+<<<<<<< HEAD
     m_thread_info.reduce( true ); // true == skip the first entry.
 
     m_thread_info.reportSummaryStats( "Thread",
@@ -839,14 +896,33 @@ UnifiedScheduler::execute( int tgnum       /* = 0 */
 				      m_application->getTimeStep(),
 				      m_application->getSimTime(),
 				      false );
+=======
+    m_thread_info.reduce( false ); // true == skip the first entry.
+
+    m_thread_info.reportSummaryStats( "Thread", "",
+                                      d_myworld->myRank(),
+                                      d_myworld->nRanks(),
+                                      m_application->getTimeStep(),
+                                      m_application->getSimTime(),
+                                      BaseInfoMapper::Dout, false );
+>>>>>>> origin/master
   }
 
   // Per thread runtime performance stats
   if (g_thread_indv_stats) {
+<<<<<<< HEAD
     m_thread_info.reportIndividualStats( "Thread",
 					 d_myworld->myRank(),
 					 m_application->getTimeStep(),
 					 m_application->getSimTime() );
+=======
+    m_thread_info.reportIndividualStats( "Thread", "",
+                                         d_myworld->myRank(),
+                                         d_myworld->nRanks(),
+                                         m_application->getTimeStep(),
+                                         m_application->getSimTime(),
+                                         BaseInfoMapper::Dout );
+>>>>>>> origin/master
   }
 
   // only do on toplevel scheduler
@@ -2739,7 +2815,6 @@ UnifiedScheduler::prepareDeviceVars( DetailedTask * dtask )
                         dw->getGridVar(*gridVar, label, matlIndx, patch, ghosttype, numGhostCells);
                         host_ptr = gridVar->getBasePointer();
                         it->second.m_tempVarToReclaim = gridVar;  //This will be held onto so it persists, and then cleaned up after the device-to-host copy
-
                       }
                     }
                     break;
@@ -2819,7 +2894,6 @@ UnifiedScheduler::prepareDeviceVars( DetailedTask * dtask )
 
                   dtask->getVarsBeingCopiedByTask().getMap().insert(std::pair<GpuUtilities::LabelPatchMatlLevelDw,
                                                                 DeviceGridVariableInfo>(it->first, it->second));
-
                 }
               }
             } else if (it->second.m_dest == GpuUtilities::anotherDeviceSameMpiRank || it->second.m_dest == GpuUtilities::anotherMpiRank) {
@@ -3087,7 +3161,7 @@ bool
 UnifiedScheduler::allHostVarsProcessingReady( DetailedTask * dtask )
 {
 
-  const Task* task = dtask->getTask();
+  const Task * task = dtask->getTask();
 
   dtask->clearPreparationCollections();
 
@@ -3798,20 +3872,22 @@ UnifiedScheduler::initiateD2H( DetailedTask * dtask )
     cudaStream_t* stream = dtask->getCudaStreamForThisTask(deviceNum);
 
     const std::string varName = dependantVar->m_var->getName();
-    //TODO: Titan production hack.  A clean hack, but should be fixed. Brad P Dec 1 2016
-    //There currently exists a race condition.  Suppose cellType is in both host and GPU 
-    //memory.  Currently the GPU data warehouse knows it is in GPU memory, but it doesn't
-    //know if it's in host memory (the GPU DW doesn't track lifetimes of host DW vars).  
-    //Thread 2 - Task A requests a requires var for cellType for the host newDW, and get sit.  .
-    //Thread 3 - Task B invokes the initiateD2H check, thinks there is no host isntance of cellType, 
-   //             so it initiates a D2H, which performs another host allocateAndPut, and the subsequent put
-    //           deletes the old entry and creates a new entry.
-    //Race condition is that thread 2's pointer has been cleaned up, while thread 3 has a new one.
-    //A temp fix could be to check if all host vars exist in the host dw prior to launching the task.
+
+    // TODO: Titan production hack.  A clean hack, but should be fixed. Brad P Dec 1 2016
+    // There currently exists a race condition.  Suppose cellType is in both host and GPU 
+    // memory.  Currently the GPU data warehouse knows it is in GPU memory, but it doesn't
+    // know if it's in host memory (the GPU DW doesn't track lifetimes of host DW vars).  
+    // Thread 2 - Task A requests a requires var for cellType for the host newDW, and gets it.
+    // Thread 3 - Task B invokes the initiateD2H check, thinks there is no host instance of cellType,
+    //            so it initiates a D2H, which performs another host allocateAndPut, and the subsequent put
+    //            deletes the old entry and creates a new entry.
+    // Race condition is that thread 2's pointer has been cleaned up, while thread 3 has a new one.
+    // A temp fix could be to check if all host vars exist in the host dw prior to launching the task.
 
     //if (varName != "divQ" && varName != "RMCRTboundFlux" && varName != "radiationVolq" ) {
     //  continue;
     //}
+
     if (gpudw != nullptr) {
       // It's not valid on the CPU but it is on the GPU.  Copy it on over.
       if (!gpudw->isValidOnCPU( varName.c_str(), patchID, matlID, levelID) &&
@@ -4397,7 +4473,7 @@ UnifiedScheduler::findIntAndExtGpuDependencies( DetailedTask * dtask
 
   dtask->clearPreparationCollections();
 
-  // Prepare internal dependencies.  Only makes sense if we have GPUs that we are using.
+  // Prepare internal dependencies.  Only makes sense if we have multiple GPUs that we are using.
   if (Uintah::Parallel::usingDevice()) {
 
     // Prepare external dependencies.  The only thing that needs to be
@@ -4868,9 +4944,11 @@ UnifiedScheduler::init_threads( UnifiedScheduler * sched, int num_threads )
 //------------------------------------------
 // UnifiedSchedulerWorker Thread Methods
 //------------------------------------------
-UnifiedSchedulerWorker::UnifiedSchedulerWorker( UnifiedScheduler * scheduler )
+UnifiedSchedulerWorker::UnifiedSchedulerWorker( UnifiedScheduler * scheduler, int tid, int affinity )
   : m_scheduler{ scheduler }
   , m_rank{ scheduler->d_myworld->myRank() }
+  , m_tid{ tid }
+  , m_affinity{ affinity }
 {
 }
 
@@ -4926,8 +5004,24 @@ UnifiedSchedulerWorker::stopWaitTime()
 
 //______________________________________________________________________
 //
-double
-UnifiedSchedulerWorker::getWaitTime()
+const double
+UnifiedSchedulerWorker::getWaitTime() const
 {
   return m_wait_time;
+}
+
+//______________________________________________________________________
+//
+const int
+UnifiedSchedulerWorker::getAffinity() const
+{
+  return m_affinity;
+}
+
+//______________________________________________________________________
+//
+const int
+UnifiedSchedulerWorker::getLocalTID() const
+{
+  return m_tid;
 }

@@ -78,7 +78,8 @@ namespace WasatchCore{
 
   //==================================================================
 
-  EqnTimestepAdaptorBase* parse_scalar_equation( Uintah::ProblemSpecP params,
+  EqnTimestepAdaptorBase* parse_scalar_equation( Uintah::ProblemSpecP scalarEqnParams,
+                                                 Uintah::ProblemSpecP wasatchParams,
                                                  TurbulenceParameters turbParams,
                                                  const Expr::Tag densityTag,
                                                  GraphCategories& gc,
@@ -90,8 +91,9 @@ namespace WasatchCore{
 
     std::string eqnLabel, solnVariable;
 
-    params->getAttribute( "equation", eqnLabel );
-    params->get( "SolutionVariable", solnVariable );
+    scalarEqnParams->getAttribute( "equation", eqnLabel );
+    scalarEqnParams->get( "SolutionVariable", solnVariable );
+
 
 
     //___________________________________________________________________________
@@ -102,8 +104,8 @@ namespace WasatchCore{
 
     if( eqnLabel == "generic" || eqnLabel=="mixturefraction"){
       typedef ScalarTransportEquation< SVolField > ScalarTransEqn;
-      transeqn = scinew ScalarTransEqn( ScalarTransEqn::get_solnvar_name( params ),
-                                       params,
+      transeqn = scinew ScalarTransEqn( ScalarTransEqn::get_solnvar_name( scalarEqnParams ),
+                                       scalarEqnParams,
                                        gc,
                                        densityTag,
                                        turbParams,
@@ -115,8 +117,9 @@ namespace WasatchCore{
     }
     else if( eqnLabel == "enthalpy" ){
       typedef EnthalpyTransportEquation TransEqn;
-      transeqn = scinew TransEqn( ScalarTransportEquation<SVolField>::get_solnvar_name(params),
-                                 params,
+      transeqn = scinew TransEqn( ScalarTransportEquation<SVolField>::get_solnvar_name(scalarEqnParams),
+                                 scalarEqnParams,
+                                 wasatchParams,
                                  gc,
                                  densityTag,
                                  turbParams,
@@ -413,7 +416,10 @@ namespace WasatchCore{
     const TagNames& tagNames = TagNames::self();
 
     const Expr::Tag fNP1Tag(primVarName, Expr::STATE_NP1);
+<<<<<<< HEAD
     const Expr::Tag drhodfTag("drhod" + primVarName, Expr::STATE_NONE);
+=======
+>>>>>>> origin/master
     const Expr::Tag scalarEOSCouplingTag(primVarName + "_EOS_Coupling", Expr::STATE_NONE);
 
     for( Uintah::ProblemSpecP bcExprParams = wasatchParams->findBlock("BCExpression");
@@ -486,6 +492,10 @@ namespace WasatchCore{
     densityParams->findBlock("NameTag")->getAttribute( "name", densityName );
     const Expr::Tag densityTag  = Expr::Tag(densityName, Expr::STATE_N  );
     const Expr::Tag densNP1Tag  = Expr::Tag(densityName, Expr::STATE_NP1);
+<<<<<<< HEAD
+=======
+    const Expr::Tag drhodfTag   = tagNames.derivative_tag( densityTag, fNP1Tag );
+>>>>>>> origin/master
 
     // attach Sf_{n+1} to the scalar EOS coupling term
     const Expr::Tag mms_EOSMixFracSrcTag(tagNames.mms_mixfracsrc.name() + "_EOS", Expr::STATE_NONE);
@@ -549,6 +559,10 @@ namespace WasatchCore{
     const Expr::Tag densityTag = parse_nametag( densityParams->findBlock("NameTag") );
     const Expr::Tag densNP1Tag = Expr::Tag( densityTag.name(), Expr::STATE_NP1 );
     const Expr::Tag solnVarRHSTag( solnVarName+"_rhs", Expr::STATE_NONE );
+
+    const Expr::Tag drhodfTag = tagNames.derivative_tag( densityTag, primVarName );
+    const Expr::Tag scalarEOSCouplingTag(primVarName + "_EOS_Coupling", Expr::STATE_NONE);
+
 
     std::string x1="X", x2="Y";
     if( varDens2DMMSParams->findAttribute("x1") ) varDens2DMMSParams->getAttribute("x1",x1);
@@ -658,14 +672,15 @@ namespace WasatchCore{
 
     // parse source expression
     std::string srcTermDir;
-    Expr::Tag xSrcTermTag, ySrcTermTag, zSrcTermTag;
+    Expr::TagList xSrcTermTags, ySrcTermTags, zSrcTermTags;
+
     for( Uintah::ProblemSpecP srcTermParams=momentumSpec->findBlock("SourceTerm");
         srcTermParams != nullptr;
         srcTermParams=srcTermParams->findNextBlock("SourceTerm") ){
       srcTermParams->getAttribute("direction", srcTermDir );
-      if (srcTermDir == "X") xSrcTermTag = parse_nametag( srcTermParams->findBlock("NameTag") );
-      if (srcTermDir == "Y") ySrcTermTag = parse_nametag( srcTermParams->findBlock("NameTag") );
-      if (srcTermDir == "Z") zSrcTermTag = parse_nametag( srcTermParams->findBlock("NameTag") );
+      if (srcTermDir == "X") xSrcTermTags.push_back( parse_nametag( srcTermParams->findBlock("NameTag") ) );
+      if (srcTermDir == "Y") ySrcTermTags.push_back( parse_nametag( srcTermParams->findBlock("NameTag") ) );
+      if (srcTermDir == "Z") zSrcTermTags.push_back( parse_nametag( srcTermParams->findBlock("NameTag") ) );
     }
 
     GraphHelper* const solnGraphHelper = gc[ADVANCE_SOLUTION  ];
@@ -711,7 +726,7 @@ namespace WasatchCore{
                                                   TagNames::self().mixMW,
                                                   e0Tag,
                                                   xBodyForceTag,
-                                                  xSrcTermTag,
+                                                  xSrcTermTags,
                                                   gc,
                                                   momentumSpec,
                                                   turbParams );
@@ -737,7 +752,7 @@ namespace WasatchCore{
                                                   TagNames::self().mixMW,
                                                   e0Tag,
                                                   yBodyForceTag,
-                                                  ySrcTermTag,
+                                                  ySrcTermTags,
                                                   gc,
                                                   momentumSpec,
                                                   turbParams );
@@ -762,7 +777,7 @@ namespace WasatchCore{
                                                   TagNames::self().mixMW,
                                                   e0Tag,
                                                   zBodyForceTag,
-                                                  zSrcTermTag,
+                                                  zSrcTermTags,
                                                   gc,
                                                   momentumSpec,
                                                   turbParams );
@@ -826,7 +841,7 @@ namespace WasatchCore{
                                                       xmomname,
                                                       lowMachDensityTag,
                                                       xBodyForceTag,
-                                                      xSrcTermTag,
+                                                      xSrcTermTags,
                                                       gc,
                                                       momentumSpec,
                                                       turbParams,
@@ -841,7 +856,7 @@ namespace WasatchCore{
                                                       ymomname,
                                                       lowMachDensityTag,
                                                       yBodyForceTag,
-                                                      ySrcTermTag,
+                                                      ySrcTermTags,
                                                       gc,
                                                       momentumSpec,
                                                       turbParams,
@@ -856,7 +871,7 @@ namespace WasatchCore{
                                                       zmomname,
                                                       lowMachDensityTag,
                                                       zBodyForceTag,
-                                                      zSrcTermTag,
+                                                      zSrcTermTags,
                                                       gc,
                                                       momentumSpec,
                                                       turbParams,

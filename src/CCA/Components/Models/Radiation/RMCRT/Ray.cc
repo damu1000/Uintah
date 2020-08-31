@@ -1,7 +1,11 @@
 /*
  * The MIT License
  *
+<<<<<<< HEAD
  * Copyright (c) 1997-2019 The University of Utah
+=======
+ * Copyright (c) 1997-2020 The University of Utah
+>>>>>>> origin/master
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -101,7 +105,7 @@ Ray::Ray( const TypeDescription::Type FLT_DBL ) : RMCRTCommon( FLT_DBL)
   }
 
   d_PPTimerLabel = VarLabel::create( "Ray_PPTimer", PerPatch<double>::getTypeDescription() );
-  d_dbgCells.push_back( IntVector(0,0,0));
+  d_dbgCells.push_back( IntVector(1,2,2));
 
 
   //_____________________________________________
@@ -184,7 +188,11 @@ Ray::problemSetup( const ProblemSpecP& prob_spec,
   ProblemSpecP rad_ps = rmcrt_ps->findBlock("Radiometer");
   if( rad_ps ) {
     d_radiometer = scinew Radiometer( d_FLT_DBL );
+<<<<<<< HEAD
     d_radiometer->problemSetup( prob_spec, rad_ps, grid );
+=======
+    d_radiometer->problemSetup( prob_spec, rmcrtps, grid );
+>>>>>>> origin/master
   }
 
   //__________________________________
@@ -351,7 +359,9 @@ Ray::problemSetup( const ProblemSpecP& prob_spec,
 //           and abskg
 //______________________________________________________________________
 void
-Ray::BC_bulletproofing( const ProblemSpecP& rmcrtps )
+Ray::BC_bulletproofing( const ProblemSpecP& rmcrtps,
+                        const bool chk_temp,
+                        const bool chk_absk )
 {
   if(d_onOff_SetBCs == false ) {
    return;
@@ -374,9 +384,14 @@ Ray::BC_bulletproofing( const ProblemSpecP& rmcrtps )
     proc0cout << "______________________________________________________________________\n\n" << endl;
 
   } else {
-    is_BC_specified(root_ps, d_compTempLabel->getName(), mss);
-    is_BC_specified(root_ps, d_abskgBC_tag,              mss);
-
+    
+    if( chk_temp ){
+      is_BC_specified(root_ps, d_compTempLabel->getName(), mss);
+    }
+    if( chk_absk ){
+      is_BC_specified(root_ps, d_abskgBC_tag,              mss);
+    }
+    
     Vector periodic;
     ProblemSpecP grid_ps  = root_ps->findBlock("Grid");
     ProblemSpecP level_ps = grid_ps->findBlock("Level");
@@ -449,7 +464,7 @@ Ray::sched_rayTrace( const LevelP& level,
     }
   }
 
-  printSchedule(level, g_ray_dbg, taskname);
+  printSchedule(level, g_ray_dbg, "Ray::sched_rayTrace");
 
   //__________________________________
   // Require an infinite number of ghost cells so you can access the entire domain.
@@ -852,7 +867,7 @@ Ray::sched_rayTrace_dataOnion( const LevelP& level,
   string taskname = "";
 
   Task::WhichDW NotUsed = Task::None;
-  
+
   if (Parallel::usingDevice()) {          // G P U
     taskname = "Ray::rayTraceDataOnionGPU";
 
@@ -878,7 +893,7 @@ Ray::sched_rayTrace_dataOnion( const LevelP& level,
     }
     //Allow it to use up to 4 GPU streams per patch.
     tsk->usesDevice(true, 4);
-  } else {                                // CPU
+  } else {                                // C P U
     taskname = "Ray::rayTrace_dataOnion";
     if (RMCRTCommon::d_FLT_DBL == TypeDescription::double_type) {
       tsk = scinew Task(taskname, this, &Ray::rayTrace_dataOnion<double>, modifies_divQ, NotUsed, sigma_dw, celltype_dw);
@@ -1895,11 +1910,6 @@ void Ray::sched_Refine_Q( SchedulerP& sched,
     task->requires( Task::NewDW, d_boundFluxLabel,     allPatches, Task::CoarseLevel, allMatls, ND, d_gac,1 );
     task->requires( Task::NewDW, d_radiationVolqLabel, allPatches, Task::CoarseLevel, allMatls, ND, d_gac,1 );
 
-    // when carryforward is needed
-    task->requires( Task::OldDW, d_divQLabel,          d_gn, 0 );
-    task->requires( Task::OldDW, d_boundFluxLabel,     d_gn, 0 );
-    task->requires( Task::OldDW, d_radiationVolqLabel, d_gn, 0 );
-
     task->computes( d_divQLabel );
     task->computes( d_boundFluxLabel );
     task->computes( d_radiationVolqLabel );
@@ -2108,8 +2118,9 @@ void Ray::sched_Coarsen_Q ( const LevelP& coarseLevel,
                             const bool modifies,
                             const VarLabel* variable )
 {
-  string taskname = "        Coarsen_Q_" + variable->getName();
-  printSchedule(coarseLevel,g_ray_dbg,taskname);
+  string taskName  = "Ray::coarsen_Q_" + variable->getName();
+  string schedName = "Ray::sched_coarsen_Q_" + variable->getName();
+  printSchedule(coarseLevel,g_ray_dbg,schedName);
 
   const Uintah::TypeDescription* td = variable->typeDescription();
   const Uintah::TypeDescription::Type subtype = td->getSubType()->getType();
@@ -2117,10 +2128,10 @@ void Ray::sched_Coarsen_Q ( const LevelP& coarseLevel,
   Task* tsk = nullptr;
   switch( subtype ) {
     case TypeDescription::double_type:
-      tsk = scinew Task( taskname, this, &Ray::coarsen_Q< double >, variable, modifies, fineLevel_Q_dw );
+      tsk = scinew Task( taskName, this, &Ray::coarsen_Q< double >, variable, modifies, fineLevel_Q_dw );
       break;
     case TypeDescription::float_type:
-      tsk = scinew Task( taskname, this, &Ray::coarsen_Q< float >, variable, modifies, fineLevel_Q_dw );
+      tsk = scinew Task( taskName, this, &Ray::coarsen_Q< float >, variable, modifies, fineLevel_Q_dw );
       break;
     default:
       throw InternalError("Ray::sched_Coarsen_Q: (CCVariable) invalid data type", __FILE__, __LINE__);

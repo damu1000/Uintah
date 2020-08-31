@@ -29,9 +29,15 @@ void FaceVelocities::problemSetup( ProblemSpecP& db ){
 
   using namespace Uintah::ArchesCore;
 
+<<<<<<< HEAD
   m_u_vel_name = parse_ups_for_role( UVELOCITY, db, ArchesCore::default_uVel_name );
   m_v_vel_name = parse_ups_for_role( VVELOCITY, db, ArchesCore::default_vVel_name );
   m_w_vel_name = parse_ups_for_role( WVELOCITY, db, ArchesCore::default_wVel_name );
+=======
+  m_u_vel_name = parse_ups_for_role( UVELOCITY_ROLE, db, ArchesCore::default_uVel_name );
+  m_v_vel_name = parse_ups_for_role( VVELOCITY_ROLE, db, ArchesCore::default_vVel_name );
+  m_w_vel_name = parse_ups_for_role( WVELOCITY_ROLE, db, ArchesCore::default_wVel_name );
+>>>>>>> origin/master
 
   m_int_scheme = ArchesCore::get_interpolant_from_string( "second" ); //default second order
   m_ghost_cells = 1; //default for 2nd order
@@ -77,23 +83,23 @@ void FaceVelocities::register_initialize( AVarInfo& variable_registry , const bo
 //--------------------------------------------------------------------------------------------------
 void FaceVelocities::initialize( const Patch*, ArchesTaskInfoManager* tsk_info ){
 
-  SFCXVariable<double>& ucell_xvel = *(tsk_info->get_uintah_field<SFCXVariable<double> >("ucell_xvel"));
-  SFCXVariable<double>& ucell_yvel = *(tsk_info->get_uintah_field<SFCXVariable<double> >("ucell_yvel"));
-  SFCXVariable<double>& ucell_zvel = *(tsk_info->get_uintah_field<SFCXVariable<double> >("ucell_zvel"));
+  SFCXVariable<double>& ucell_xvel = tsk_info->get_field<SFCXVariable<double> >("ucell_xvel");
+  SFCXVariable<double>& ucell_yvel = tsk_info->get_field<SFCXVariable<double> >("ucell_yvel");
+  SFCXVariable<double>& ucell_zvel = tsk_info->get_field<SFCXVariable<double> >("ucell_zvel");
   ucell_xvel.initialize(0.0);
   ucell_yvel.initialize(0.0);
   ucell_zvel.initialize(0.0);
 
-  SFCYVariable<double>& vcell_xvel = *(tsk_info->get_uintah_field<SFCYVariable<double> >("vcell_xvel"));
-  SFCYVariable<double>& vcell_yvel = *(tsk_info->get_uintah_field<SFCYVariable<double> >("vcell_yvel"));
-  SFCYVariable<double>& vcell_zvel = *(tsk_info->get_uintah_field<SFCYVariable<double> >("vcell_zvel"));
+  SFCYVariable<double>& vcell_xvel = tsk_info->get_field<SFCYVariable<double> >("vcell_xvel");
+  SFCYVariable<double>& vcell_yvel = tsk_info->get_field<SFCYVariable<double> >("vcell_yvel");
+  SFCYVariable<double>& vcell_zvel = tsk_info->get_field<SFCYVariable<double> >("vcell_zvel");
   vcell_xvel.initialize(0.0);
   vcell_yvel.initialize(0.0);
   vcell_zvel.initialize(0.0);
 
-  SFCZVariable<double>& wcell_xvel = *(tsk_info->get_uintah_field<SFCZVariable<double> >("wcell_xvel"));
-  SFCZVariable<double>& wcell_yvel = *(tsk_info->get_uintah_field<SFCZVariable<double> >("wcell_yvel"));
-  SFCZVariable<double>& wcell_zvel = *(tsk_info->get_uintah_field<SFCZVariable<double> >("wcell_zvel"));
+  SFCZVariable<double>& wcell_xvel = tsk_info->get_field<SFCZVariable<double> >("wcell_xvel");
+  SFCZVariable<double>& wcell_yvel = tsk_info->get_field<SFCZVariable<double> >("wcell_yvel");
+  SFCZVariable<double>& wcell_zvel = tsk_info->get_field<SFCZVariable<double> >("wcell_zvel");
   wcell_xvel.initialize(0.0);
   wcell_yvel.initialize(0.0);
   wcell_zvel.initialize(0.0);
@@ -113,21 +119,21 @@ void FaceVelocities::register_timestep_eval( VIVec& variable_registry, const int
 //--------------------------------------------------------------------------------------------------
 void FaceVelocities::eval( const Patch* patch, ArchesTaskInfoManager* tsk_info ){
 
-  constSFCXVariable<double>& uVel = *(tsk_info->get_const_uintah_field<constSFCXVariable<double> >(m_u_vel_name));
-  constSFCYVariable<double>& vVel = *(tsk_info->get_const_uintah_field<constSFCYVariable<double> >(m_v_vel_name));
-  constSFCZVariable<double>& wVel = *(tsk_info->get_const_uintah_field<constSFCZVariable<double> >(m_w_vel_name));
+  constSFCXVariable<double>& uVel = tsk_info->get_field<constSFCXVariable<double> >(m_u_vel_name);
+  constSFCYVariable<double>& vVel = tsk_info->get_field<constSFCYVariable<double> >(m_v_vel_name);
+  constSFCZVariable<double>& wVel = tsk_info->get_field<constSFCZVariable<double> >(m_w_vel_name);
 
-  SFCXVariable<double>& ucell_xvel = *(tsk_info->get_uintah_field<SFCXVariable<double> >("ucell_xvel"));
-  SFCXVariable<double>& ucell_yvel = *(tsk_info->get_uintah_field<SFCXVariable<double> >("ucell_yvel"));
-  SFCXVariable<double>& ucell_zvel = *(tsk_info->get_uintah_field<SFCXVariable<double> >("ucell_zvel"));
+  SFCXVariable<double>& ucell_xvel = tsk_info->get_field<SFCXVariable<double> >("ucell_xvel");
+  SFCXVariable<double>& ucell_yvel = tsk_info->get_field<SFCXVariable<double> >("ucell_yvel");
+  SFCXVariable<double>& ucell_zvel = tsk_info->get_field<SFCXVariable<double> >("ucell_zvel");
 
-  SFCYVariable<double>& vcell_xvel = *(tsk_info->get_uintah_field<SFCYVariable<double> >("vcell_xvel"));
-  SFCYVariable<double>& vcell_yvel = *(tsk_info->get_uintah_field<SFCYVariable<double> >("vcell_yvel"));
-  SFCYVariable<double>& vcell_zvel = *(tsk_info->get_uintah_field<SFCYVariable<double> >("vcell_zvel"));
+  SFCYVariable<double>& vcell_xvel = tsk_info->get_field<SFCYVariable<double> >("vcell_xvel");
+  SFCYVariable<double>& vcell_yvel = tsk_info->get_field<SFCYVariable<double> >("vcell_yvel");
+  SFCYVariable<double>& vcell_zvel = tsk_info->get_field<SFCYVariable<double> >("vcell_zvel");
 
-  SFCZVariable<double>& wcell_xvel = *(tsk_info->get_uintah_field<SFCZVariable<double> >("wcell_xvel"));
-  SFCZVariable<double>& wcell_yvel = *(tsk_info->get_uintah_field<SFCZVariable<double> >("wcell_yvel"));
-  SFCZVariable<double>& wcell_zvel = *(tsk_info->get_uintah_field<SFCZVariable<double> >("wcell_zvel"));
+  SFCZVariable<double>& wcell_xvel = tsk_info->get_field<SFCZVariable<double> >("wcell_xvel");
+  SFCZVariable<double>& wcell_yvel = tsk_info->get_field<SFCZVariable<double> >("wcell_yvel");
+  SFCZVariable<double>& wcell_zvel = tsk_info->get_field<SFCZVariable<double> >("wcell_zvel");
 
   // initialize all velocities
   ucell_xvel.initialize(0.0);
@@ -147,39 +153,16 @@ void FaceVelocities::eval( const Patch* patch, ArchesTaskInfoManager* tsk_info )
   // bool zminus = patch->getBCType(Patch::zminus) != Patch::Neighbor;
   // bool zplus =  patch->getBCType(Patch::zplus) != Patch::Neighbor;
 
-  ArchesCore::OneDInterpolator my_interpolant_ucellx( ucell_xvel, uVel, -1, 0, 0 );
-  ArchesCore::OneDInterpolator my_interpolant_ucelly( ucell_yvel, vVel, -1, 0, 0 );
-  ArchesCore::OneDInterpolator my_interpolant_ucellz( ucell_zvel, wVel, -1, 0, 0 );
-
-  ArchesCore::OneDInterpolator my_interpolant_vcellx( vcell_xvel, uVel,0,-1, 0 );
-  ArchesCore::OneDInterpolator my_interpolant_vcelly( vcell_yvel, vVel,0,-1, 0 );
-  ArchesCore::OneDInterpolator my_interpolant_vcellz( vcell_zvel, wVel,0,-1, 0 );
-
-  ArchesCore::OneDInterpolator my_interpolant_wcellx( wcell_xvel, uVel,0, 0, -1);
-  ArchesCore::OneDInterpolator my_interpolant_wcelly( wcell_yvel, vVel,0, 0, -1);
-  ArchesCore::OneDInterpolator my_interpolant_wcellz( wcell_zvel, wVel,0, 0, -1);
-
   IntVector low = patch->getCellLowIndex();
   IntVector high = patch->getCellHighIndex();
 
   //x-direction:
   GET_WALL_BUFFERED_PATCH_RANGE(low,high,1,1,0,1,0,1);
   Uintah::BlockRange x_range(low, high);
-    if ( m_int_scheme == ArchesCore::SECONDCENTRAL ) {
 
-      ArchesCore::SecondCentral ci;
-      Uintah::parallel_for( x_range, my_interpolant_ucellx, ci );
-      Uintah::parallel_for( x_range, my_interpolant_ucelly, ci );
-      Uintah::parallel_for( x_range, my_interpolant_ucellz, ci );
-
-    } else if ( m_int_scheme== ArchesCore::FOURTHCENTRAL ){
-
-      ArchesCore::FourthCentral ci;
-      Uintah::parallel_for( x_range, my_interpolant_ucellx, ci );
-      Uintah::parallel_for( x_range, my_interpolant_ucelly, ci );
-      Uintah::parallel_for( x_range, my_interpolant_ucellz, ci );
-
-  }
+  ArchesCore::doInterpolation( x_range, ucell_xvel, uVel, -1, 0, 0, m_int_scheme );
+  ArchesCore::doInterpolation( x_range, ucell_yvel, vVel, -1, 0, 0, m_int_scheme );
+  ArchesCore::doInterpolation( x_range, ucell_zvel, wVel, -1, 0, 0, m_int_scheme );
 
   //y-direction:
   low = patch->getCellLowIndex();
@@ -188,22 +171,9 @@ void FaceVelocities::eval( const Patch* patch, ArchesTaskInfoManager* tsk_info )
   GET_WALL_BUFFERED_PATCH_RANGE(low,high,0,1,1,1,0,1);
   Uintah::BlockRange y_range(low, high);
 
-  if ( m_int_scheme == ArchesCore::SECONDCENTRAL ) {
-
-      ArchesCore::SecondCentral ci;
-      Uintah::parallel_for( y_range, my_interpolant_vcellx, ci );
-      Uintah::parallel_for( y_range, my_interpolant_vcelly, ci );
-      Uintah::parallel_for( y_range, my_interpolant_vcellz, ci );
-
-    } else if ( m_int_scheme== ArchesCore::FOURTHCENTRAL ){
-
-      //std::cout<<"fourth order face"<<std::endl;
-      ArchesCore::FourthCentral ci;
-      Uintah::parallel_for( y_range, my_interpolant_vcellx, ci );
-      Uintah::parallel_for( y_range, my_interpolant_vcelly, ci );
-      Uintah::parallel_for( y_range, my_interpolant_vcellz, ci );
-
-  }
+  ArchesCore::doInterpolation( y_range, vcell_xvel, uVel, 0, -1, 0, m_int_scheme );
+  ArchesCore::doInterpolation( y_range, vcell_yvel, vVel, 0, -1, 0, m_int_scheme );
+  ArchesCore::doInterpolation( y_range, vcell_zvel, wVel, 0, -1, 0, m_int_scheme );
 
   //z-direction:
   low = patch->getCellLowIndex();
@@ -212,20 +182,8 @@ void FaceVelocities::eval( const Patch* patch, ArchesTaskInfoManager* tsk_info )
   GET_WALL_BUFFERED_PATCH_RANGE(low,high,0,1,0,1,1,1);
   Uintah::BlockRange z_range(low, high);
 
-  if ( m_int_scheme == ArchesCore::SECONDCENTRAL ) {
-
-      ArchesCore::SecondCentral ci;
-      Uintah::parallel_for( z_range, my_interpolant_wcellx, ci );
-      Uintah::parallel_for( z_range, my_interpolant_wcelly, ci );
-      Uintah::parallel_for( z_range, my_interpolant_wcellz, ci );
-
-    } else if ( m_int_scheme== ArchesCore::FOURTHCENTRAL ){
-
-      ArchesCore::FourthCentral ci;
-      Uintah::parallel_for( z_range, my_interpolant_wcellx, ci );
-      Uintah::parallel_for( z_range, my_interpolant_wcelly, ci );
-      Uintah::parallel_for( z_range, my_interpolant_wcellz, ci );
-
-  }
+  ArchesCore::doInterpolation( z_range, wcell_xvel, uVel, 0, 0, -1, m_int_scheme );
+  ArchesCore::doInterpolation( z_range, wcell_yvel, vVel, 0, 0, -1, m_int_scheme );
+  ArchesCore::doInterpolation( z_range, wcell_zvel, wVel, 0, 0, -1, m_int_scheme );
 
 }

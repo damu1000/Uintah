@@ -1,7 +1,11 @@
 /*
  * The MIT License
  *
+<<<<<<< HEAD
  * Copyright (c) 1997-2019 The University of Utah
+=======
+ * Copyright (c) 1997-2020 The University of Utah
+>>>>>>> origin/master
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -172,7 +176,7 @@ static void usage( const std::string& message,
     std::cerr << "-restart             : Give the checkpointed uda directory as the input file\n";
     std::cerr << "-postProcessUda      : Passes variables in an uda through post processing tasks, computing new variables and creating a new uda.\n";
     std::cerr << "-uda_suffix <number> : Make a new uda dir with <number> as the default suffix\n";
-    std::cerr << "-t <timestep>        : Restart timestep (last checkpoint is default, you can use -t 0 for the first checkpoint)\n";
+    std::cerr << "-t <index>           : Index of the checkpoint file (default is the last checkpoint, 0 for the first checkpoint file)\n";
     std::cerr << "-svnDiff             : runs svn diff <src/...../Packages/Uintah \n";
     std::cerr << "-svnStat             : runs svn stat -u & svn info <src/...../Packages/Uintah \n";
     std::cerr << "-copy                : Copy from old uda when restarting\n";
@@ -184,9 +188,10 @@ static void usage( const std::string& message,
     std::cerr << "\n";
     std::cerr << "-visit <filename>        : Create a VisIt .sim2 file and perform VisIt in-situ checks\n";
     std::cerr << "-visit_connect           : Wait for a visit connection before executing the simulation\n";
+    std::cerr << "-visit_console           : Allow for console input while executing the simulation\n";
     std::cerr << "-visit_comment <comment> : A comment about the simulation\n";
     std::cerr << "-visit_dir <directory>   : Top level directory for the VisIt installation\n";
-    std::cerr << "-visit_options <string>   : Optional args for the VisIt launch script\n";
+    std::cerr << "-visit_options <string>  : Optional args for the VisIt launch script\n";
     std::cerr << "-visit_trace <file>      : Trace file for VisIt's Sim V2 function calls\n";
     std::cerr << "-visit_ui <file>         : Use the named Qt GUI file instead of the default\n";
 #endif
@@ -252,7 +257,7 @@ int main( int argc, char *argv[], char *env[] )
   bool   validateUps         = true;
   bool   onlyValidateUps     = false;
 
-  int    restartTimestep     = -1;
+  int    restartCheckpointIndex     = -1;
   int    udaSuffix           = -1;
   int    numThreads          =  0;
   int    numPartitions       =  0;
@@ -399,7 +404,7 @@ int main( int argc, char *argv[], char *env[] )
 #endif
     else if (arg == "-t") {
       if (i < argc - 1) {
-        restartTimestep = atoi(argv[++i]);
+        restartCheckpointIndex = atoi(argv[++i]);
       }
     }
     else if (arg == "-layout") {
@@ -444,6 +449,9 @@ int main( int argc, char *argv[], char *env[] )
     }
     else if (arg == "-visit_connect" ) {
       do_VisIt = VISIT_SIMMODE_STOPPED;
+    }
+    else if (arg == "-visit_console" ) {
+      do_VisIt = VISIT_SIMMODE_RUNNING;
     }
     else if (arg == "-visit_comment" ) {
       if (++i == argc) {
@@ -821,7 +829,8 @@ int main( int argc, char *argv[], char *env[] )
     //__________________________________
     // Start the simulation controller
     if ( restart ) {
-      simController->doRestart( udaDir, restartTimestep, restartFromScratch, restartRemoveOldDir );
+      simController->doRestart( udaDir, restartCheckpointIndex,
+                                restartFromScratch, restartRemoveOldDir );
     }
     
     // This gives memory held by the 'ups' back before the simulation

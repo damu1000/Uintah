@@ -6,6 +6,10 @@
 #include <CCA/Components/Arches/Utility/MassFlowRate.h>
 #include <CCA/Components/Arches/Task/TaskInterface.h>
 #include <CCA/Components/Arches/Transport/PressureEqn.h>
+<<<<<<< HEAD
+=======
+#include <CCA/Components/Arches/Utility/ForcingTurbulence.h>
+>>>>>>> origin/master
 
 using namespace Uintah;
 
@@ -94,6 +98,15 @@ UtilityFactory::register_all_tasks( ProblemSpecP& db )
         tsk = scinew PressureEqn::Builder(press_name, 0, _materialManager);
         register_task( press_name, tsk, db_util);
 
+<<<<<<< HEAD
+=======
+      } else if ( type == "forcing_turbulence" ){
+
+        std::string task_name = "forced_turbulence";
+        tsk = scinew ForcingTurbulence::Builder( task_name, 0 );
+        register_task( task_name , tsk, db_util );
+
+>>>>>>> origin/master
       } else {
 
         throw InvalidValue("Error: Utility type not recognized.",__FILE__,__LINE__);

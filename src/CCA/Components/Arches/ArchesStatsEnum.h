@@ -1,7 +1,11 @@
 /*
  * The MIT License
  *
+<<<<<<< HEAD:src/CCA/Components/Arches/ArchesStatsEnum.h
  * Copyright (c) 1997-2019 The University of Utah
+=======
+ * Copyright (c) 1997-2020 The University of Utah
+>>>>>>> origin/master:src/Core/Grid/Variables/DataItem.h
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to

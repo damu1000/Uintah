@@ -2,7 +2,11 @@
 
 The MIT License
 
+<<<<<<< HEAD
 Copyright (c) 1997-2019 The University of Utah
+=======
+Copyright (c) 1997-2020 The University of Utah
+>>>>>>> origin/master
 Copyright (c) 2013-2016 The Johns Hopkins University
 
 License for the specific language governing rights and limitations under

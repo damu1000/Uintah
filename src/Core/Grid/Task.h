@@ -1,7 +1,11 @@
 /*
  * The MIT License
  *
+<<<<<<< HEAD
  * Copyright (c) 1997-2019 The University of Utah
+=======
+ * Copyright (c) 1997-2020 The University of Utah
+>>>>>>> origin/master
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -178,8 +182,6 @@ private: // class Task
 
   };  // end CPU Action class
 
-
-
   // GPU (device) Action constructor
   template<typename T, typename... Args>
   class ActionDevice : public ActionBase {
@@ -263,7 +265,6 @@ private: // class Task
       }
 
   };  // end GPU (device) Action constructor
-
 
 
 public: // class Task

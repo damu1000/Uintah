@@ -1,7 +1,11 @@
 /*
  * The MIT License
  *
+<<<<<<< HEAD
  * Copyright (c) 1997-2019 The University of Utah
+=======
+ * Copyright (c) 1997-2020 The University of Utah
+>>>>>>> origin/master
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -292,7 +296,7 @@ Parallel::initializeManager( int& argc , char**& argv )
     std::cout << "Parallel: MPI Level Required: " << required << ", provided: " << provided << "\n";
 #endif
   }
-//    Uintah::MPI::Errhandler_set(MPI_COMM_WORLD, MPI_ERRORS_RETURN);
+//    Uintah::MPI::Errhandler_set(Uintah::worldComm_, MPI_ERRORS_RETURN);
 }
 
   //_____________________________________________________________________________
@@ -357,13 +361,13 @@ Parallel::finalizeManager( Circumstances circumstances /* = NormalShutdown */ )
     std::cout.flush();
 
     double seconds = 1.0;
-    
+
     struct timespec ts;
     ts.tv_sec = (int)seconds;
     ts.tv_nsec = (int)(1.e9 * (seconds - ts.tv_sec));
 
     nanosleep(&ts, &ts);
-    
+
     Uintah::MPI::Abort(Uintah::worldComm_, errorcode);
   }
   else {

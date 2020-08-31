@@ -1,7 +1,11 @@
 /*
  * The MIT License
  *
+<<<<<<< HEAD
  * Copyright (c) 1997-2019 The University of Utah
+=======
+ * Copyright (c) 1997-2020 The University of Utah
+>>>>>>> origin/master
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -1148,14 +1152,15 @@ TaskGraph::createDetailedDependencies( DetailedTask     * dtask
                         m_load_balancer->getPatchwiseProcessorAssignment(neighbor) != my_rank) {
                       continue;
                     }
-
-                    DOUT(true, "Failure finding " << *req << " for " << *dtask);
+                    
+                    DOUT(true,"*******************************" );
+                    DOUT(true, "  Rank-" << my_rank << ", Task Graph Index: "<< m_index  );
+                    DOUT(true, "  Failure finding " << *req << " for " << *dtask);
                     if (creator) {
-                      std::cout << "creator=" << *creator << "\n";
+                      std::cout << "  creator=" << *creator << "\n";
                     }
-                    DOUT(true, "neighbor=" << *fromNeighbor << ", matl=" << matl);
-                    DOUT(true, "Rank-" << my_rank);
-
+                    DOUT(true, "  neighbor=" << *fromNeighbor << ", matl=" << matl);
+                    DOUT(true,"*******************************" )
                     SCI_THROW(InternalError("Failed to find comp for dep!", __FILE__, __LINE__));
                   }
                 }

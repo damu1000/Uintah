@@ -15,9 +15,13 @@ public:
 
     void problemSetup( ProblemSpecP& db );
 
-    void register_initialize( std::vector<ArchesFieldContainer::VariableInformation>& variable_registry , const bool packed_tasks);
+    void register_initialize( std::vector<ArchesFieldContainer::VariableInformation>& variable_registry, const bool packed_tasks);
 
+<<<<<<< HEAD
     void register_timestep_init( std::vector<ArchesFieldContainer::VariableInformation>& variable_registry , const bool packed_tasks){}
+=======
+    void register_timestep_init( std::vector<ArchesFieldContainer::VariableInformation>& variable_registry, const bool packed_tasks){}
+>>>>>>> origin/master
 
     void register_timestep_eval( std::vector<ArchesFieldContainer::VariableInformation>& variable_registry, const int time_substep , const bool packed_tasks);
 
@@ -54,6 +58,9 @@ public:
     };
 
 private:
+
+    void computeModel( const Patch* patch, ArchesTaskInfoManager* tsk_info );
+
     std::string m_u_vel_name;
     std::string m_v_vel_name;
     std::string m_w_vel_name;
@@ -69,10 +76,14 @@ private:
     std::string m_rhow_vel_name;
     std::string m_IsI_name;
 
+<<<<<<< HEAD
     const std::string m_turb_model_name; 
     //std::string m_ref_density_name;
     //std::string m_cell_type_name;
     //int Type_filter ;
+=======
+    const std::string m_turb_model_name;
+>>>>>>> origin/master
     bool m_create_labels_IsI_t_viscosity{true};
     Uintah::ArchesCore::FILTER Type_filter;
     Uintah::ArchesCore::TestFilter m_Filter;

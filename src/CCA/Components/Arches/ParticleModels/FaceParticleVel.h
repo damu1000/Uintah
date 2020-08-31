@@ -120,7 +120,7 @@ private:
     up_face = "face_pvel_x";
     vp_face = "face_pvel_y";
     wp_face = "face_pvel_z";
-    
+
     std::string scheme = "second";
     m_int_scheme = ArchesCore::get_interpolant_from_string( scheme );
 
@@ -158,49 +158,36 @@ private:
   void FaceParticleVel<T>::initialize( const Patch* patch, ArchesTaskInfoManager* tsk_info ){
 
 
-  Uintah::BlockRange range( patch->getCellLowIndex(), patch->getCellHighIndex() );
+    Uintah::BlockRange range( patch->getCellLowIndex(), patch->getCellHighIndex() );
 
 
-  for ( int ienv = 0; ienv < m_N; ienv++ ){
+    for ( int ienv = 0; ienv < m_N; ienv++ ){
 
-    std::string up_face_i = ArchesCore::append_env(up_face,ienv);
-    std::string vp_face_i = ArchesCore::append_env(vp_face,ienv);
-    std::string wp_face_i = ArchesCore::append_env(wp_face,ienv);
+      std::string up_face_i = ArchesCore::append_env(up_face,ienv);
+      std::string vp_face_i = ArchesCore::append_env(vp_face,ienv);
+      std::string wp_face_i = ArchesCore::append_env(wp_face,ienv);
 
-    FXT& up_f = tsk_info->get_uintah_field_add<FXT>(up_face_i);
-    FYT& vp_f = tsk_info->get_uintah_field_add<FYT>(vp_face_i);
-    FZT& wp_f = tsk_info->get_uintah_field_add<FZT>(wp_face_i);
+      FXT& up_f = tsk_info->get_field<FXT>(up_face_i);
+      FYT& vp_f = tsk_info->get_field<FYT>(vp_face_i);
+      FZT& wp_f = tsk_info->get_field<FZT>(wp_face_i);
 
-    std::string up_i = ArchesCore::append_env(up_root,ienv);
-    std::string vp_i = ArchesCore::append_env(vp_root,ienv);
-    std::string wp_i = ArchesCore::append_env(wp_root,ienv);
+      std::string up_i = ArchesCore::append_env(up_root,ienv);
+      std::string vp_i = ArchesCore::append_env(vp_root,ienv);
+      std::string wp_i = ArchesCore::append_env(wp_root,ienv);
 
-    CT& up = tsk_info->get_const_uintah_field_add<CT>(up_i);
-    CT& vp = tsk_info->get_const_uintah_field_add<CT>(vp_i);
-    CT& wp = tsk_info->get_const_uintah_field_add<CT>(wp_i);
+      CT& up = tsk_info->get_field<CT>(up_i);
+      CT& vp = tsk_info->get_field<CT>(vp_i);
+      CT& wp = tsk_info->get_field<CT>(wp_i);
 
-    ArchesCore::OneDInterpolator my_interpolant_up( up_f, up, -1, 0, 0 );
-    ArchesCore::OneDInterpolator my_interpolant_vp( vp_f, vp, 0, -1, 0 );
-    ArchesCore::OneDInterpolator my_interpolant_wp( wp_f, wp, 0, 0, -1 );
+      up_f.initialize(0.0);
+      vp_f.initialize(0.0);
+      wp_f.initialize(0.0);
 
-    if ( m_int_scheme == ArchesCore::SECONDCENTRAL ) {
+      ArchesCore::doInterpolation( range, up_f, up, -1,  0,  0, m_int_scheme );
+      ArchesCore::doInterpolation( range, vp_f, vp,  0, -1,  0, m_int_scheme );
+      ArchesCore::doInterpolation( range, wp_f, wp,  0,  0, -1, m_int_scheme );
 
-      ArchesCore::SecondCentral ci;
-      Uintah::parallel_for( range, my_interpolant_up, ci );
-      Uintah::parallel_for( range, my_interpolant_vp, ci );
-      Uintah::parallel_for( range, my_interpolant_wp, ci );
-
-    } else if ( m_int_scheme== ArchesCore::FOURTHCENTRAL ){
-
-      ArchesCore::FourthCentral ci;
-      Uintah::parallel_for( range, my_interpolant_up, ci );
-      Uintah::parallel_for( range, my_interpolant_vp, ci );
-      Uintah::parallel_for( range, my_interpolant_wp, ci );
-
-  }
-
-
-  }
+    }
   }
 
   //======TIME STEP INITIALIZATION:
@@ -214,7 +201,6 @@ private:
   //======TIME STEP EVALUATION:
   template <typename T>
   void FaceParticleVel<T>::register_timestep_eval( std::vector<ArchesFieldContainer::VariableInformation>& variable_registry, const int time_substep , const bool packed_tasks){
-
 
     for ( int ienv = 0; ienv < m_N; ienv++ ){
 
@@ -234,55 +220,48 @@ private:
       register_variable( wp_i, ArchesFieldContainer::REQUIRES, m_ghost_cells, ArchesFieldContainer::NEWDW, variable_registry, time_substep );
     }
 
-
   }
 
   template <typename T>
   void FaceParticleVel<T>::eval( const Patch* patch, ArchesTaskInfoManager* tsk_info ){
 
+    Uintah::BlockRange range( patch->getCellLowIndex(), patch->getCellHighIndex() );
 
-  Uintah::BlockRange range( patch->getCellLowIndex(), patch->getCellHighIndex() );
+    for ( int ienv = 0; ienv < m_N; ienv++ ){
 
+      std::string up_face_i = ArchesCore::append_env(up_face,ienv);
+      std::string vp_face_i = ArchesCore::append_env(vp_face,ienv);
+      std::string wp_face_i = ArchesCore::append_env(wp_face,ienv);
 
-  for ( int ienv = 0; ienv < m_N; ienv++ ){
+      FXT& up_f = tsk_info->get_field<FXT>(up_face_i);
+      FYT& vp_f = tsk_info->get_field<FYT>(vp_face_i);
+      FZT& wp_f = tsk_info->get_field<FZT>(wp_face_i);
 
-    std::string up_face_i = ArchesCore::append_env(up_face,ienv);
-    std::string vp_face_i = ArchesCore::append_env(vp_face,ienv);
-    std::string wp_face_i = ArchesCore::append_env(wp_face,ienv);
-    FXT& up_f = tsk_info->get_uintah_field_add<FXT>(up_face_i);
-    FYT& vp_f = tsk_info->get_uintah_field_add<FYT>(vp_face_i);
-    FZT& wp_f = tsk_info->get_uintah_field_add<FZT>(wp_face_i);
+      std::string up_i = ArchesCore::append_env(up_root,ienv);
+      std::string vp_i = ArchesCore::append_env(vp_root,ienv);
+      std::string wp_i = ArchesCore::append_env(wp_root,ienv);
 
-    std::string up_i = ArchesCore::append_env(up_root,ienv);
-    std::string vp_i = ArchesCore::append_env(vp_root,ienv);
-    std::string wp_i = ArchesCore::append_env(wp_root,ienv);
+      CT& up = tsk_info->get_field<CT>(up_i);
+      CT& vp = tsk_info->get_field<CT>(vp_i);
+      CT& wp = tsk_info->get_field<CT>(wp_i);
 
-    CT& up = tsk_info->get_const_uintah_field_add<CT>(up_i);
-    CT& vp = tsk_info->get_const_uintah_field_add<CT>(vp_i);
-    CT& wp = tsk_info->get_const_uintah_field_add<CT>(wp_i);
+      GET_EXTRACELL_FX_BUFFERED_PATCH_RANGE(0, 1);
+      GET_EXTRACELL_FY_BUFFERED_PATCH_RANGE(0, 1);
+      GET_EXTRACELL_FZ_BUFFERED_PATCH_RANGE(0, 1);
 
-    ArchesCore::OneDInterpolator my_interpolant_up( up_f, up, -1, 0, 0 );
-    ArchesCore::OneDInterpolator my_interpolant_vp( vp_f, vp, 0, -1, 0 );
-    ArchesCore::OneDInterpolator my_interpolant_wp( wp_f, wp, 0, 0, -1 );
+      Uintah::BlockRange range_x( low_fx_patch_range, high_fx_patch_range );
+      Uintah::BlockRange range_y( low_fy_patch_range, high_fy_patch_range );
+      Uintah::BlockRange range_z( low_fz_patch_range, high_fz_patch_range );
 
-    if ( m_int_scheme == ArchesCore::SECONDCENTRAL ) {
+      up_f.initialize(0.0);
+      vp_f.initialize(0.0);
+      wp_f.initialize(0.0);
 
-      ArchesCore::SecondCentral ci;
-      Uintah::parallel_for( range, my_interpolant_up, ci );
-      Uintah::parallel_for( range, my_interpolant_vp, ci );
-      Uintah::parallel_for( range, my_interpolant_wp, ci );
+      ArchesCore::doInterpolation( range_x, up_f, up, -1,  0,  0, m_int_scheme );
+      ArchesCore::doInterpolation( range_y, vp_f, vp,  0, -1,  0, m_int_scheme );
+      ArchesCore::doInterpolation( range_z, wp_f, wp,  0,  0, -1, m_int_scheme );
 
-    } else if ( m_int_scheme== ArchesCore::FOURTHCENTRAL ){
-
-      ArchesCore::FourthCentral ci;
-      Uintah::parallel_for( range, my_interpolant_up, ci );
-      Uintah::parallel_for( range, my_interpolant_vp, ci );
-      Uintah::parallel_for( range, my_interpolant_wp, ci );
-
-  }
-
-
-  }
+    }
   }
 }
 #endif

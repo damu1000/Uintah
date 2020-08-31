@@ -1,7 +1,11 @@
 /*
  * The MIT License
  *
+<<<<<<< HEAD
  * Copyright (c) 1997-2019 The University of Utah
+=======
+ * Copyright (c) 1997-2020 The University of Utah
+>>>>>>> origin/master
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -324,6 +328,11 @@ void setIntrusionDensity( const ProcessorGroup*,
                           const MaterialSubset*,
                           DataWarehouse*,
                           DataWarehouse* new_dw);
+                          
+void sched_computeAlphaG( SchedulerP& sched,
+                          const LevelP& level,
+                          const MaterialSet* matls,
+                          const bool carry_forward );
 
 // wall closure models:
 void
@@ -633,7 +642,11 @@ struct BCInfo {
   std::string partName;
   std::string faceName;
   bool lHasPartMassFlow;
+<<<<<<< HEAD
   Patch::FaceType face; 
+=======
+  Patch::FaceType face;
+>>>>>>> origin/master
 
   // Inlets:
   Vector velocity;

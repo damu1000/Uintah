@@ -4,7 +4,11 @@
 /*
  * The MIT License
  *
+<<<<<<< HEAD
  * Copyright (c) 1997-2019 The University of Utah
+=======
+ * Copyright (c) 1997-2020 The University of Utah
+>>>>>>> origin/master
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -281,8 +285,13 @@ private:
     int ceqn = 0;
     for ( SV::iterator ieqn = _eqn_names.begin(); ieqn != _eqn_names.end(); ieqn++){
 
+<<<<<<< HEAD
       T& phi = tsk_info->get_uintah_field_add<T>(m_transported_eqn_names[ceqn]);
       CT& old_phi = tsk_info->get_const_uintah_field_add<CT>(m_transported_eqn_names[ceqn], ArchesFieldContainer::OLDDW);
+=======
+      T& phi = tsk_info->get_field<T>(m_transported_eqn_names[ceqn]);
+      CT& old_phi = tsk_info->get_field<CT>(m_transported_eqn_names[ceqn], ArchesFieldContainer::OLDDW);
+>>>>>>> origin/master
       ceqn +=1;
 
       auto fe_update = [&](int i, int j, int k){
@@ -315,10 +324,17 @@ private:
       std::string varname = ieqn->first;
       Scaling_info info = ieqn->second;
       //const double scaling_constant = ieqn->second;
+<<<<<<< HEAD
       constCCVariable<double>& vol_fraction = tsk_info->get_const_uintah_field_add<constCCVariable<double> >(m_volFraction_name);
 
       T& phi = tsk_info->get_uintah_field_add<T>(varname);
       T& phi_unscaled = tsk_info->get_uintah_field_add<T>(info.unscaled_var);
+=======
+      constCCVariable<double>& vol_fraction = tsk_info->get_field<constCCVariable<double> >(m_volFraction_name);
+
+      T& phi = tsk_info->get_field<T>(varname);
+      T& phi_unscaled = tsk_info->get_field<T>(info.unscaled_var);
+>>>>>>> origin/master
 
       Uintah::BlockRange range( patch->getCellLowIndex(), patch->getCellHighIndex() );
 
@@ -346,6 +362,7 @@ private:
 //--------------------------------------------------------------------------------------------------
   template <typename T > void
   TimeAve<T >::compute_bcs( const Patch* patch, ArchesTaskInfoManager* tsk_info ){
+<<<<<<< HEAD
   const BndMapT& bc_info = m_bcHelper->get_boundary_information();
   ArchesCore::VariableHelper<T> helper;
   typedef typename ArchesCore::VariableHelper<T>::ConstType CT;
@@ -362,14 +379,38 @@ private:
 
       if ( on_this_patch ){
         Uintah::Iterator cell_iter = m_bcHelper->get_uintah_extra_bnd_mask( i_bc->second, patch->getID());
+=======
+
+    const BndMapT& bc_info = m_bcHelper->get_boundary_information();
+    ArchesCore::VariableHelper<T> helper;
+    typedef typename ArchesCore::VariableHelper<T>::ConstType CT;
+    constCCVariable<double>& vol_fraction = tsk_info->get_field<constCCVariable<double> >(m_volFraction_name);
+
+    for ( auto ieqn = m_scaling_info.begin(); ieqn != m_scaling_info.end(); ieqn++ ){
+      CT& phi = tsk_info->get_field<CT>(ieqn->first);
+      T& phi_unscaled = tsk_info->get_field<T>((ieqn->second).unscaled_var);
+
+      for ( auto i_bc = bc_info.begin(); i_bc != bc_info.end(); i_bc++ ){
+        const bool on_this_patch = i_bc->second.has_patch(patch->getID());
+        //Get the iterator
+
+        if ( on_this_patch ){
+          Uintah::Iterator cell_iter = m_bcHelper->get_uintah_extra_bnd_mask( i_bc->second, patch->getID());
+>>>>>>> origin/master
 
           for ( cell_iter.reset(); !cell_iter.done(); cell_iter++ ){
             IntVector c = *cell_iter;
             phi_unscaled[c] = phi[c] * (ieqn->second).constant*vol_fraction[c] ;
           }
         }
+<<<<<<< HEAD
     }
   }
   }
+=======
+      }
+    }
+  }
+>>>>>>> origin/master
 }
 #endif

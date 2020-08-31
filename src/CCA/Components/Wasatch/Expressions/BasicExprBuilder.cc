@@ -41,6 +41,8 @@
 #include <CCA/Components/Wasatch/Expressions/ExprAlgebra.h>
 #include <CCA/Components/Wasatch/Expressions/TimeDerivative.h>
 #include <CCA/Components/Wasatch/Expressions/GeometryBased.h>
+#include <CCA/Components/Wasatch/Expressions/FanModel.h>
+#include <CCA/Components/Wasatch/Expressions/TargetValueSource.h>
 #include <CCA/Components/Wasatch/Expressions/Turbulence/WallDistance.h>
 #include <CCA/Components/Wasatch/OldVariable.h>
 
@@ -478,7 +480,6 @@ namespace WasatchCore{
       for( Uintah::ProblemSpecP intrusionParams = geomBasedSpec->findBlock("Intrusion");
           intrusionParams != nullptr;
           intrusionParams = intrusionParams->findNextBlock("Intrusion") ) {
-        std::cout << "intrusion " << std::endl;
         Uintah::GeometryPieceFactory::create(intrusionParams->findBlock("geom_object"),geomObjects);
         double insideValue = 0.0;
         intrusionParams->getAttribute("value", insideValue);
@@ -1139,7 +1140,179 @@ namespace WasatchCore{
       const Category cat = parse_tasklist(exprParams,false);
       gc[cat]->exprFactory->register_expression( builder );
     }
-    
+
+    //________________________________________
+    // parse and build FAN Models
+    for( Uintah::ProblemSpecP exprParams = parser->findBlock("FanModel");
+        exprParams != nullptr;
+        exprParams = exprParams->findNextBlock("FanModel") ){
+
+      // get the name of this fan model
+      std::string fanName;
+      exprParams->getAttribute("name",fanName);
+      
+      // get the target velocities, u, v, w. Here we now only support constant velocities.
+      std::vector<double> targetVelocities;
+      exprParams->get("TargetVelocities", targetVelocities);
+      
+
+      // get the density tagname
+      Expr::Tag densityTag;
+      Uintah::ProblemSpecP densityParams = parser->findBlock("Density");
+      if( densityParams->findBlock("NameTag") ){
+        densityTag = parse_nametag( densityParams->findBlock("NameTag") );
+      }
+      else{
+        std::string densName;
+        Uintah::ProblemSpecP constDensParam = densityParams->findBlock("Constant");
+        constDensParam->getAttribute( "name", densName );
+        densityTag = Expr::Tag( densName, Expr::STATE_NONE );
+      }
+
+      
+      // now obtain all relevant momentum names and tags so that we can add the fan source accordingly
+      Uintah::ProblemSpecP momentumSpec  = parser->findBlock("MomentumEquations");
+      std::string xmomname, ymomname, zmomname;
+      const Uintah::ProblemSpecP doxmom = momentumSpec->get( "X-Momentum", xmomname );
+      const Uintah::ProblemSpecP doymom = momentumSpec->get( "Y-Momentum", ymomname );
+      const Uintah::ProblemSpecP dozmom = momentumSpec->get( "Z-Momentum", zmomname );
+
+      // get the geometry of the fan
+      std::multimap <Uintah::GeometryPieceP, double > geomObjectsMap;
+      double outsideValue = 0.0;
+      std::vector<Uintah::GeometryPieceP> geomObjects;
+      Uintah::GeometryPieceFactory::create(exprParams->findBlock("geom_object"),geomObjects);
+      double insideValue = 1.0;
+      geomObjectsMap.insert(std::pair<Uintah::GeometryPieceP, double>(geomObjects.back(), insideValue)); // set a value inside the geometry object
+      
+      const TagNames tNames = TagNames::self();
+      OldVariable& oldVar = OldVariable::self();
+      
+      if( doxmom ){
+        typedef XVolField FieldT;
+        const double targetVelocity =targetVelocities[0];
+        std::cout << "target vels" << targetVelocity << std::endl;
+        // declare fan source term tag
+        const Expr::Tag fanSourceTag(fanName + "_source_x", Expr::STATE_NONE);
+        
+        // need to use the old momentum RHS tag
+        Expr::Tag momRHSOldTag(xmomname + "_rhs_old",Expr::STATE_NONE);
+        const Expr::Tag momOldTag(xmomname, Expr::STATE_DYNAMIC);
+        
+        // now create an XVOL geometry expression using GeometryBased
+        const Expr::Tag volFracTag(fanName+"_location_x",Expr::STATE_NONE);
+        gc[ADVANCE_SOLUTION]->exprFactory->register_expression(scinew typename GeometryBased<FieldT>::Builder(volFracTag, geomObjectsMap, outsideValue));
+        
+        // now create the xmomentum source term
+        gc[ADVANCE_SOLUTION]->exprFactory->register_expression(scinew typename FanModel<FieldT>::Builder(fanSourceTag,  densityTag, momOldTag, momRHSOldTag, volFracTag, targetVelocity));
+        
+        // create an old variable
+        oldVar.add_variable<FieldT>( ADVANCE_SOLUTION, fanSourceTag);
+        Expr::Tag momRHSTag(xmomname + "_rhs", Expr::STATE_NONE);
+        oldVar.add_variable<FieldT>( ADVANCE_SOLUTION, momRHSTag);
+      }
+      
+      if( doymom ){
+        typedef YVolField FieldT;
+        const double targetVelocity =targetVelocities[1];
+        std::cout << "target vels" << targetVelocity << std::endl;
+
+        // declare fan source term tag
+        const Expr::Tag fanSourceTag(fanName + "_source_y", Expr::STATE_NONE);
+        
+        // need to use the old momentum RHS tag
+        Expr::Tag momRHSOldTag(ymomname + "_rhs_old",Expr::STATE_NONE);
+        const Expr::Tag momOldTag(ymomname, Expr::STATE_DYNAMIC);
+        
+        // now create a YVOL geometry expression using GeometryBased
+        const Expr::Tag volFracTag(fanName+"_location_y",Expr::STATE_NONE);
+        gc[ADVANCE_SOLUTION]->exprFactory->register_expression(scinew typename GeometryBased<FieldT>::Builder(volFracTag, geomObjectsMap, outsideValue));
+        
+        // now create the xmomentum source term
+        gc[ADVANCE_SOLUTION]->exprFactory->register_expression(scinew typename FanModel<FieldT>::Builder(fanSourceTag,  densityTag, momOldTag, momRHSOldTag, volFracTag, targetVelocity));
+        
+        // create an old variable
+        oldVar.add_variable<FieldT>( ADVANCE_SOLUTION, fanSourceTag);
+        Expr::Tag momRHSTag(ymomname + "_rhs", Expr::STATE_NONE);
+        oldVar.add_variable<FieldT>( ADVANCE_SOLUTION, momRHSTag);
+      }
+      
+      if( dozmom ){
+        typedef ZVolField FieldT;
+        const double targetVelocity =targetVelocities[2];
+        // declare fan source term tag
+        const Expr::Tag fanSourceTag(fanName + "_source_z", Expr::STATE_NONE);
+        
+        // need to use the old momentum RHS tag
+        Expr::Tag momRHSOldTag(zmomname + "_rhs_old",Expr::STATE_NONE);
+        const Expr::Tag momOldTag(zmomname, Expr::STATE_DYNAMIC);
+        
+        // now create a ZVOL geometry expression using GeometryBased
+        const Expr::Tag volFracTag(fanName+"_location_z",Expr::STATE_NONE);
+        gc[ADVANCE_SOLUTION]->exprFactory->register_expression(scinew typename GeometryBased<FieldT>::Builder(volFracTag, geomObjectsMap, outsideValue));
+        
+        // now create the xmomentum source term
+        gc[ADVANCE_SOLUTION]->exprFactory->register_expression(scinew typename FanModel<FieldT>::Builder(fanSourceTag,  densityTag, momOldTag, momRHSOldTag, volFracTag, targetVelocity));
+        
+        // create an old variable
+        oldVar.add_variable<FieldT>( ADVANCE_SOLUTION, fanSourceTag);
+        Expr::Tag momRHSTag(zmomname + "_rhs", Expr::STATE_NONE);
+        oldVar.add_variable<FieldT>( ADVANCE_SOLUTION, momRHSTag);
+      }
+    }
+
+    //________________________________________
+    // parse and build TargetValueSource Models
+    for( Uintah::ProblemSpecP exprParams = parser->findBlock("TargetValueSource");
+        exprParams != nullptr;
+        exprParams = exprParams->findNextBlock("TargetValueSource") ){
+      
+      typedef SVolField FieldT;
+      // get the name of this target source
+      std::string targetValueSrcName;
+      exprParams->getAttribute("name",targetValueSrcName);
+      const Expr::Tag targetValueSourceTag(targetValueSrcName + "_source", Expr::STATE_NONE);
+
+      // get the name of the target field (usually a scalar, always state_dynamic - use old value)
+      std::string targetFieldName;
+      exprParams->getAttribute("targetfieldname",targetFieldName);
+      const Expr::Tag targetFieldTag(targetFieldName, Expr::STATE_DYNAMIC);
+      const Expr::Tag targetFieldRHSTag(targetFieldName + "_rhs", Expr::STATE_NONE);
+      const Expr::Tag targetFieldRHSOldTag(targetFieldName + "_rhs_old", Expr::STATE_NONE);
+      
+      // get the name of the target field (usually a scalar, always state_dynamic - use old value)
+      double targetValue;
+      if (exprParams->getAttribute("targetvalue",targetValue))
+        exprParams->getAttribute("targetvalue",targetValue);
+
+      // if the target value is defined by another expression, get the nametag of that expression
+      Expr::Tag targetValueExpressionTag;
+      if (exprParams->findBlock("NameTag"))
+        targetValueExpressionTag = parse_nametag( exprParams->findBlock("NameTag") );
+
+     
+      // get the geometry of the fan
+      std::multimap <Uintah::GeometryPieceP, double > geomObjectsMap;
+      double outsideValue = 0.0;
+      std::vector<Uintah::GeometryPieceP> geomObjects;
+      Uintah::GeometryPieceFactory::create(exprParams->findBlock("geom_object"),geomObjects);
+      double insideValue = 1.0;
+      geomObjectsMap.insert(std::pair<Uintah::GeometryPieceP, double>(geomObjects.back(), insideValue)); // set a value inside the geometry object
+      // now create an XVOL geometry expression using GeometryBased
+      const Expr::Tag volFracTag(targetValueSrcName + "_location",Expr::STATE_NONE);
+      gc[ADVANCE_SOLUTION]->exprFactory->register_expression(scinew typename GeometryBased<FieldT>::Builder(volFracTag, geomObjectsMap, outsideValue));
+
+      
+      const TagNames tNames = TagNames::self();
+      OldVariable& oldVar = OldVariable::self();
+
+      // create an old variable
+      oldVar.add_variable<FieldT>( ADVANCE_SOLUTION, targetFieldRHSTag);
+
+      // now create the xmomentum source term
+      gc[ADVANCE_SOLUTION]->exprFactory->register_expression(scinew typename TargetValueSource<FieldT>::Builder(targetValueSourceTag, targetFieldTag, targetFieldRHSOldTag, volFracTag, targetValueExpressionTag, targetValue));
+      
+    }
     //________________________________________
     // parse and build Taylor-Green Vortex MMS
     for( Uintah::ProblemSpecP exprParams = parser->findBlock("TaylorVortexMMS");

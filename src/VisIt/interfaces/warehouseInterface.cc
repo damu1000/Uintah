@@ -1,7 +1,11 @@
 /*
  * The MIT License
  *
+<<<<<<< HEAD
  * Copyright (c) 1997-2019 The University of Utah
+=======
+ * Copyright (c) 1997-2020 The University of Utah
+>>>>>>> origin/master
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -191,18 +195,26 @@ TimeStepInfo* getTimeStepInfo(SchedulerP schedulerP,
 
       for( unsigned int m=0; m<5; ++m )
       {
+<<<<<<< HEAD
         IntVector iLow, iHigh, iExtraLow, iExtraHigh;
+=======
+        IntVector iLow, iHigh;
+>>>>>>> origin/master
 
         // If the user wants to see extra cells, just include them and
         // let VisIt believe they are part of the original data. This is
         // accomplished by setting <meshtype>_low and <meshtype>_high to
         // the extra cell boundaries so that VisIt is none the wiser.
+<<<<<<< HEAD
         if (loadExtraGeometry == NO_EXTRA_GEOMETRY)
         {
           iLow  = patch->getLowIndex (basis[m]);
           iHigh = patch->getHighIndex(basis[m]);
         }
         else if (loadExtraGeometry == CELLS)
+=======
+        if (loadExtraGeometry == CELLS)
+>>>>>>> origin/master
         {
           iLow  = patch->getExtraLowIndex (basis[m], IntVector(0,0,0));
           iHigh = patch->getExtraHighIndex(basis[m], IntVector(0,0,0));
@@ -212,8 +224,13 @@ TimeStepInfo* getTimeStepInfo(SchedulerP schedulerP,
           iLow  = patch->getLowIndex (basis[m]);
           iHigh = patch->getHighIndex(basis[m]);
 
+<<<<<<< HEAD
           iExtraLow  = patch->getExtraLowIndex (basis[m], IntVector(0,0,0));
           iExtraHigh = patch->getExtraHighIndex(basis[m], IntVector(0,0,0));
+=======
+          IntVector iExtraLow  = patch->getExtraLowIndex (basis[m], IntVector(0,0,0));
+          IntVector iExtraHigh = patch->getExtraHighIndex(basis[m], IntVector(0,0,0));
+>>>>>>> origin/master
 
           // if( m == 1 & l == 0 && p == 0 )
           //   std::cerr << iLow << "    " << iHigh << "    "
@@ -316,7 +333,16 @@ TimeStepInfo* getTimeStepInfo(SchedulerP schedulerP,
           // iLow  = Uintah::Max(lLow,  iLow);
           // iHigh = Uintah::Min(lHigh, iHigh);
         }
+<<<<<<< HEAD
 
+=======
+        else //if (loadExtraGeometry == NO_EXTRA_GEOMETRY)
+        {
+          iLow  = patch->getLowIndex (basis[m]);
+          iHigh = patch->getHighIndex(basis[m]);
+        }
+        
+>>>>>>> origin/master
         patchInfo.setBounds(&iLow[0], &iHigh[0], meshTypes[m]);
 
         // if( m == 1 && l == 0 && p == 0 )

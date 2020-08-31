@@ -14,7 +14,11 @@
 # ##
 # ## The MIT License
 # ##
+<<<<<<< HEAD
 # ## Copyright (c) 1997-2019 The University of Utah
+=======
+# ## Copyright (c) 1997-2020 The University of Utah
+>>>>>>> origin/master
 # ##
 # ## Permission is hereby granted, free of charge, to any person obtaining a copy
 # ## of this software and associated documentation files (the "Software"), to
@@ -1850,7 +1854,11 @@ gives unlimited permission to copy, distribute and modify it.
 ##
 ## The MIT License
 ##
+<<<<<<< HEAD
 ## Copyright (c) 1997-2019 The University of Utah
+=======
+## Copyright (c) 1997-2020 The University of Utah
+>>>>>>> origin/master
 ##
 ## Permission is hereby granted, free of charge, to any person obtaining a copy
 ## of this software and associated documentation files (the "Software"), to
@@ -36194,9 +36202,15 @@ EOF
 
   # for a static build, use the static CUDA runtime lib
   if test "$static" != "no" -o "$SO_OR_ARCHIVE_EXTENSION" = "a"; then
+<<<<<<< HEAD
      _cudart_lib="cudart_static dl rt pthread"
   else
      _cudart_lib="cudart"
+=======
+     _cudart_lib="cudart_static cublas_static dl rt pthread"
+  else
+     _cudart_lib="cudart cublas"
+>>>>>>> origin/master
   fi
 
 
@@ -36258,6 +36272,7 @@ for i in $_cudart_lib; do
     _sci_libs="$_sci_libs -l$i"
   fi
 done
+<<<<<<< HEAD
 
 _sci_lib_path=
 
@@ -36407,6 +36422,157 @@ if test $HAVE_CUDA="yes"; then
   fi
   eval HAVE_CUDA_H="yes"
 
+=======
+
+_sci_lib_path=
+
+for i in $_cuda_lib; do
+   # make sure it exists
+   if test -d $i; then
+      if test -z "$_sci_lib_path"; then
+         if test "$IS_STATIC_BUILD" = "yes"; then
+            _sci_lib_path="-L$i"
+         else
+            _sci_lib_path="$LDRUN_PREFIX$i -L$i"
+         fi
+      else
+         if test "$IS_STATIC_BUILD" = "yes"; then
+            _sci_lib_path="$_sci_lib_path -L$i"
+         else
+            _sci_lib_path="$_sci_lib_path $LDRUN_PREFIX$i -L$i"
+         fi
+      fi
+   fi
+done
+
+# Look for the CUDA compiler, "nvcc"
+# Extract the first word of "nvcc", so it can be a program name with args.
+set dummy nvcc; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_path_NVCC+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $NVCC in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_NVCC="$NVCC" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $with_cuda/bin
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_NVCC="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_path_NVCC" && ac_cv_path_NVCC="no"
+  ;;
+esac
+fi
+NVCC=$ac_cv_path_NVCC
+if test -n "$NVCC"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $NVCC" >&5
+$as_echo "$NVCC" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+
+# Allow GPU code generation for specific compute capabilities: 3.0, 3.5, 5.0, 5.2
+#   NOTE: We only support code generation for Kepler, Maxwell, Pascal (P100) and Volta (GV100) architectures  now (APH 10/16/18)
+if test \( "$cuda_gencode" != "30" \) -a \( "$cuda_gencode" != "35" \) -a \( "$cuda_gencode" != "50" \) -a \( "$cuda_gencode" != "52" \) -a \( "$cuda_gencode" != "60" \) -a \( "$cuda_gencode" != "70" \); then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+  as_fn_error $? "The specified value provided: \"--enable-gencode=$cuda_gencode\" is invalid, must be: 30, 35, 50, 52, 60, 70 " "$LINENO" 5
+fi
+
+NVCC_CXXFLAGS="$NVCC_CXXFLAGS -arch=sm_$cuda_gencode"
+
+# set up the -Xcompiler flag so that NVCC can pass CXXFLAGS to the host C++ compiler
+#  NOTE: -std=c++11 flag is a valid option for CUDA >=7.0, so pass it directly to NVCC
+for i in $CXXFLAGS; do
+  if test "$i" = "-std=c++11"; then
+    NVCC_CXXFLAGS="$NVCC_CXXFLAGS $i"
+  else
+    NVCC_CXXFLAGS="$NVCC_CXXFLAGS -Xcompiler $i"
+  fi
+done
+
+if test "$debug" != "no"; then
+  #
+  # NOTE: the -O2 below really should be -O0, but for some versions of
+  # NVCC, specifically on aurora, this causes debug builds not to be able
+  # to link when using -dlink, as symbols go missing. This issue seems to
+  # be Wasatch-specific, but if it gets resolved, the -O2 should be
+  # changed to -O0.  (APH 01/11/16)
+  #
+  NVCC_CXXFLAGS="-g -G -O2 -lineinfo $NVCC_CXXFLAGS $_sci_includes"
+else
+  NVCC_CXXFLAGS="$NVCC_CXXFLAGS $_sci_includes"
+fi
+
+cuda_x64=""
+if test "$enable_64bit" = "yes"; then
+  cuda_x64="-m64"
+fi
+NVCC_CXXFLAGS="$cuda_x64 $NVCC_CXXFLAGS $_sci_includes"
+
+NVCC_LIBS="$_sci_lib_path $_sci_libs"
+
+# check that the CUDA compiler works
+_file_base_name=`echo cuda_conf_test.cu | sed 's/\(.*\)\..*/\1/'`
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for C++ compilation using nvcc" >&5
+$as_echo_n "checking for C++ compilation using nvcc... " >&6; }
+$NVCC $NVCC_CXXFLAGS -c cuda_conf_test.cu
+if test -f $_file_base_name.o; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+else
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+	as_fn_error $? "For some reason we could not compile using nvcc " "$LINENO" 5
+fi
+
+# check we can also link via C++ compiler
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for linking nvcc compiled object code via C++ compiler" >&5
+$as_echo_n "checking for linking nvcc compiled object code via C++ compiler... " >&6; }
+$CXX -o $_file_base_name $_file_base_name.o $NVCC_LIBS
+
+if test -f $_file_base_name; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+  HAVE_CUDA="yes"
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+  as_fn_error $? "For some reason we could not link nvcc compiled object code " "$LINENO" 5
+fi
+
+if test $HAVE_CUDA="yes"; then
+  DEF_CUDA="#define HAVE_CUDA 1"
+  eval CUDA_LIB_DIR='"$_cuda_lib"'
+  eval CUDA_LIB_DIR_FLAG='"$_sci_lib_path"'
+  eval CUDA_LIB_FLAG='"$_sci_libs"'
+
+  if test "$_sci_includes" = "$INC_SCI_THIRDPARTY_H"; then
+    eval INC_CUDA_H=''
+  else
+    eval INC_CUDA_H='"$_sci_includes"'
+  fi
+  eval HAVE_CUDA_H="yes"
+
+>>>>>>> origin/master
 else
   eval CUDA_LIB_DIR=''
   eval CUDA_LIB_DIR_FLAG=''
@@ -38086,11 +38252,11 @@ if test "$with_boost" != NOT_SET -o "$with_boost_library" != NOT_SET; then
       fi
   fi
 
-  _boost_incl="boost/signal.hpp boost/shared_ptr.hpp boost/bind.hpp boost/signal.hpp boost/ref.hpp boost/graph/adjacency_list.hpp boost/graph/graph_traits.hpp boost/graph/topological_sort.hpp boost/graph/graphviz.hpp boost/graph/breadth_first_search.hpp boost/graph/visitors.hpp boost/graph/transpose_graph.hpp boost/any.hpp boost/filesystem.hpp"
+  _boost_incl="boost/signals2.hpp boost/shared_ptr.hpp boost/bind.hpp boost/signals2.hpp boost/ref.hpp boost/graph/adjacency_list.hpp boost/graph/graph_traits.hpp boost/graph/topological_sort.hpp boost/graph/graphviz.hpp boost/graph/breadth_first_search.hpp boost/graph/visitors.hpp boost/graph/transpose_graph.hpp boost/any.hpp boost/filesystem.hpp"
 
-  _boost_libs_mt="boost_thread-mt boost_signals-mt boost_serialization-mt boost_system-mt boost_program_options-mt boost_filesystem-mt boost_date_time-mt"
+  _boost_libs_mt="boost_thread-mt boost_serialization-mt boost_system-mt boost_program_options-mt boost_filesystem-mt boost_date_time-mt"
 
-  _boost_libs="boost_thread boost_signals boost_serialization boost_system boost_program_options boost_filesystem boost_date_time"
+  _boost_libs="boost_thread boost_serialization boost_system boost_program_options boost_filesystem boost_date_time"
 
 
 ##

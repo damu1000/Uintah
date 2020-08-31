@@ -1,7 +1,11 @@
 /*
  * The MIT License
  *
+<<<<<<< HEAD
  * Copyright (c) 1997-2019 The University of Utah
+=======
+ * Copyright (c) 1997-2020 The University of Utah
+>>>>>>> origin/master
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -113,6 +117,11 @@ class UnifiedScheduler : public MPIScheduler  {
     // timing statistics for Uintah infrastructure overhead
     enum ThreadStatsEnum {
         WaitTime
+<<<<<<< HEAD
+=======
+      , LocalTID
+      , Affinity
+>>>>>>> origin/master
       , NumTasks
       , NumPatches
     };
@@ -315,11 +324,14 @@ class UnifiedSchedulerWorker {
 
 public:
   
-  UnifiedSchedulerWorker( UnifiedScheduler * scheduler );
+  UnifiedSchedulerWorker( UnifiedScheduler * scheduler, int tid, int affinity );
 
   void run();
 
-  double getWaitTime();
+  const double getWaitTime() const;
+  const int    getLocalTID() const;
+  const int    getAffinity() const;
+
   void   startWaitTime();
   void   stopWaitTime();
   void   resetWaitTime();
@@ -330,6 +342,8 @@ private:
 
   UnifiedScheduler * m_scheduler{nullptr};
   int                m_rank{-1};
+  int                m_tid{-1};
+  int                m_affinity{-1};
 
   Timers::Simple     m_wait_timer{};
   double             m_wait_time{0.0};

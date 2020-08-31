@@ -40,6 +40,7 @@
 #include <Core/ProblemSpec/ProblemSpec.h>
 #include <Core/Util/DOUT.hpp>
 #include <Core/Util/Environment.h>
+#include <Core/Util/SysUtils.h>
 
 #include <sci_defs/visit_defs.h>
 
@@ -55,14 +56,15 @@ static std::string simExecName;
 static std::string simArgs;
 static std::string simComment("Uintah Simulation");
 static std::string simUI("uintah.ui");
+static bool        simConsole{false};
 
 Dout visitdbg("VisItLibSim", "VisIt", "Interface to VisIt's libsim", true);
 
 //---------------------------------------------------------------------
 // ProcessLibSimArguments
 //     This routine handles command line arguments
-//     -dir <VisIt directory> 
-//     -options <VisIt Options> 
+//     -dir <VisIt directory>
+//     -options <VisIt Options>
 //     -trace <VisIt trace file>
 //---------------------------------------------------------------------
 void visit_LibSimArguments(int argc, char **argv)
@@ -101,6 +103,10 @@ void visit_LibSimArguments(int argc, char **argv)
     {
       simUI = std::string( argv[++i] );
     }
+    else if( strcmp( argv[i], "-visit_console" ) == 0 )
+    {
+      simConsole = true;
+    }
     // Save off the Uintah args.
     else
       simArgs += std::string( argv[i] ) + std::string( " " );
@@ -117,12 +123,16 @@ void visit_LibSimArguments(int argc, char **argv)
 
 //---------------------------------------------------------------------
 // InitLibSim
-//     Initialize the VisIt Lib Sim 
+//     Initialize the VisIt Lib Sim
 //---------------------------------------------------------------------
 void visit_InitLibSim( visit_simulation_data *sim )
 {
   // sim->runMode is set in AMRSimulationController.cc
+<<<<<<< HEAD
   
+=======
+
+>>>>>>> origin/master
   // The simulation will wait for VisIt to connect after first step.
   // sim->runMode = VISIT_SIMMODE_STOPPED;
 
@@ -156,7 +166,7 @@ void visit_InitLibSim( visit_simulation_data *sim )
   for( int i=0; i<5; ++i )
     for( int j=0; j<5; ++j )
       sim->stripChartNames[i][j] = std::string("");
-  
+
   if( Parallel::usingMPI() )
   {
     // Tell libsim if the simulation is running in parallel.
@@ -188,22 +198,22 @@ void visit_InitLibSim( visit_simulation_data *sim )
     if( simExecName.find( "/" ) != 0 )
     {
       char *path = nullptr;
-      
+
       Dl_info info;
       if (dladdr(__builtin_return_address(0), &info))
       {
         // The last slash removes the library
         const char *lastslash = strrchr(info.dli_fname,'/');
-        
+
         if( lastslash )
         {
           // Remove the library and library directory.
           int pathLen = strlen(info.dli_fname) - strlen(lastslash) - 3;
-          
+
           if( pathLen > 0 )
           {
             path = (char *) malloc( pathLen + 2 );
-            
+
             strncpy( path, info.dli_fname, pathLen );
             path[pathLen] = '\0';
 
@@ -229,11 +239,10 @@ void visit_InitLibSim( visit_simulation_data *sim )
   sim->hostName.clear();
   sim->hostNode.clear();
   sim->switchNodeList.clear();
-  
+
   sim->nodeStart.clear();
   sim->nodeStop.clear();
   sim->nodeCores.clear();
-  sim->nodeMemory.clear();
 
   sim->maxCores = 0;
   sim->maxNodes = 0;
@@ -254,10 +263,36 @@ void visit_InitLibSim( visit_simulation_data *sim )
 
   sim->hostName = hostName;
   sim->hostNode = hostNode;
+<<<<<<< HEAD
 
   // A machine layout file could exist for this machine.
   if( sim->hostName.size() && sim->hostNode.size() )
   {
+=======
+
+  // A machine layout file could exist for this machine.
+  if( sim->hostName.size() && sim->hostNode.size() )
+  {
+    // int nRanks = sim->myworld->nRanks();
+
+    // // Get the processor's number of physical cores
+    // int my_node_phyical_cores = sysGetNumSockets() * sysGetNumCoresPerSockets();
+
+    // // Gather all processor's number of physical core sizes
+    // std::vector< unsigned int > all_node_phyical_cores;
+    // all_node_phyical_cores.resize(nRanks);
+
+    // MPI::Allgather( &my_node_phyical_cores,        1,      MPI_INT,
+    //              all_node_phyical_cores.data(), nRanks, MPI_INT,
+    //              sim->myworld->getComm());
+
+    // // Get the maximum number of physical core size across all
+    // // processors.
+    // int max_node_phyical_cores;
+    // MPI::Allreduce( &my_node_phyical_cores, &max_node_phyical_cores,
+    //              1, MPI_INT, MPI_MAX, sim->myworld->getComm());
+
+>>>>>>> origin/master
     // The machine layout files are in the in situ source dir
     std::string path = std::string( sci_getenv("SCIRUN_OBJDIR") ) +
       std::string("/../src/VisIt/libsim/");
@@ -279,6 +314,7 @@ void visit_InitLibSim( visit_simulation_data *sim )
         // This is part of the node table.
         else if( line.find("Nodes") == 0 )
         {
+<<<<<<< HEAD
           // Get the node details (number of cores and memory). The
           // number of digits is the number of digits that would be
           // present for a node number (machine001). Versus a head
@@ -292,6 +328,22 @@ void visit_InitLibSim( visit_simulation_data *sim )
             break; // error
 
           // If on a head node skip the rest and bail out.
+=======
+          // Get the node details (number of cores). The
+          // number of digits is the number of digits that would be
+          // present for a node number (machine001). Versus a head
+          // node(machine1).
+          std::string tmpNode, tmpDigits, tmpTo, tmpCores;
+          unsigned int nDigits, start, stop, nCores;
+
+          std::istringstream iss(line);
+
+          if (!(iss >> tmpNode >> start >> tmpTo >> stop >> tmpDigits >> nDigits >> tmpCores >> nCores))
+            break; // error
+
+          // If on a head node skip the rest and bail out. Assume that
+          // a head node index would never have more than one digit?
+>>>>>>> origin/master
           if( sim->hostNode.size() != nDigits )
           {
             infile.close();
@@ -304,7 +356,10 @@ void visit_InitLibSim( visit_simulation_data *sim )
           sim->nodeStart.push_back( start );
           sim->nodeStop.push_back( stop );
           sim->nodeCores.push_back( nCores );
+<<<<<<< HEAD
           sim->nodeMemory.push_back( memory );
+=======
+>>>>>>> origin/master
 
           // Get the maximum number of cores.
           if( sim->maxCores < nCores )
@@ -322,7 +377,7 @@ void visit_InitLibSim( visit_simulation_data *sim )
         {
           // Found a new switch so start a new node group.
           std::vector< unsigned int > nodes;
-          
+
           sim->switchNodeList.push_back( nodes );
         }
         // A switch connection
@@ -330,7 +385,7 @@ void visit_InitLibSim( visit_simulation_data *sim )
         {
           // Find the hostname which will be quoted.
           size_t found = line.find( "\"" + sim->hostName );
-          
+
           if( found != std::string::npos )
           {
             // Remove the hostname leaving only the node number.
@@ -369,7 +424,7 @@ void visit_InitLibSim( visit_simulation_data *sim )
           msg << "Visit libsim - "
               << "Parse error \"" << line << "\" "
               << "in the current network file: " << filename;
-          
+
           VisItUI_setValueS("SIMULATION_MESSAGE_WARNING", msg.str().c_str(), 1);
         }
       }
@@ -381,19 +436,23 @@ void visit_InitLibSim( visit_simulation_data *sim )
         sim->nodeStart.clear();
         sim->nodeStop.clear();
         sim->nodeCores.clear();
+<<<<<<< HEAD
         sim->nodeMemory.clear();
+=======
+>>>>>>> origin/master
 
         std::stringstream msg;
         msg << "Visit libsim - "
             << "Can not find node " << sim->myworld->myNodeName() << " "
             << "in the current network file: " << filename;
-          
+
         VisItUI_setValueS("SIMULATION_MESSAGE_WARNING", msg.str().c_str(), 1);
 
         DOUT( true, msg.str() );
       }
 
       infile.close();
+<<<<<<< HEAD
     }
   }
 
@@ -442,6 +501,50 @@ void visit_InitLibSim( visit_simulation_data *sim )
     }
   }
   
+=======
+    }
+  }
+
+  // If no information is availble for this machine create a generic
+  // view assuming running on a single node or the number of MPI ranks.
+  if( sim->switchNodeList.size() == 0 )
+  {
+    sim->switchIndex = 0;
+    sim->nodeIndex = 0;
+
+    sim->maxNodes = 1;
+    sim->maxCores = std::max( (unsigned int) sim->myworld->nRanks(),
+                              sysGetNumSockets() * sysGetNumCoresPerSockets() );
+
+    sim->nodeStart.push_back( 0 );
+    sim->nodeStop.push_back( 1 );
+    sim->nodeCores.push_back( sim->maxCores );
+
+    // Found a new switch so start a new node group.
+    std::vector< unsigned int > nodes;
+    sim->switchNodeList.push_back( nodes );
+    sim->switchNodeList.back().push_back( sim->nodeIndex );
+  }
+
+  // Get the greatest common demoninator so to have multiple
+  // columns for the cores.
+  unsigned int gcd = 2;
+
+  for( unsigned int i=2; i<sqrt(sim->maxCores); ++i )
+  {
+    unsigned int cc = 0;
+
+    for( unsigned int j=0; j<sim->nodeCores.size(); ++j )
+    {
+      if( sim->nodeCores[j] % i == 0 )
+        ++cc;
+    }
+
+    if( cc == sim->nodeCores.size() )
+      gcd = i;
+  }
+
+>>>>>>> origin/master
   // Size of a node based on the number of cores and GCD.
   sim->xNode = gcd;
   sim->yNode = sim->maxCores / gcd;
@@ -468,6 +571,7 @@ void visit_EndLibSim( visit_simulation_data *sim )
       // are finished.
       sim->runMode = VISIT_SIMMODE_STOPPED;
       sim->simMode = VISIT_SIMMODE_FINISHED;
+<<<<<<< HEAD
       
       if(sim->isProc0)
       {
@@ -482,6 +586,22 @@ void visit_EndLibSim( visit_simulation_data *sim )
         VisItUI_setValueS("SIMULATION_MESSAGE", msg.str().c_str(), 1);
       }
       
+=======
+
+      if(sim->isProc0)
+      {
+        VisItUI_setValueS("SIMULATION_MODE", "Stopped", 1);
+
+        std::stringstream msg;
+        msg << "Visit libsim - "
+            << "The simulation has finished, stopping at the last time step.";
+
+        DOUT( visitdbg, msg.str().c_str() );
+
+        VisItUI_setValueS("SIMULATION_MESSAGE", msg.str().c_str(), 1);
+      }
+
+>>>>>>> origin/master
       // Now check for the user to have finished or issue a terminate.
       do
       {
@@ -489,7 +609,11 @@ void visit_EndLibSim( visit_simulation_data *sim )
       }
       while( sim->runMode != VISIT_SIMMODE_FINISHED &&
              sim->simMode != VISIT_SIMMODE_TERMINATED );
+<<<<<<< HEAD
       
+=======
+
+>>>>>>> origin/master
       VisItUI_setValueS("SIMULATION_MODE", "Not connected", 1);
     }
   }
@@ -501,7 +625,7 @@ void visit_EndLibSim( visit_simulation_data *sim )
 //---------------------------------------------------------------------
 bool visit_CheckState( visit_simulation_data *sim )
 {
-  int err = 0;
+  bool err = false;
 
   // If the simulation is running update the time step and plots.
   if( sim->simMode == VISIT_SIMMODE_RUNNING )
@@ -517,9 +641,13 @@ bool visit_CheckState( visit_simulation_data *sim )
         msg << "Visit libsim - Completed the simulation at "
             << "time step " << sim->cycle << ",  "
             << "time = "   << sim->time;
+<<<<<<< HEAD
         
+=======
+
+>>>>>>> origin/master
         // DOUT( visitdbg, msg.str().c_str() );
-        
+
         VisItUI_setValueS("SIMULATION_MESSAGE", msg.str().c_str(), 1);
       }
 
@@ -533,7 +661,7 @@ bool visit_CheckState( visit_simulation_data *sim )
       {
         // Tell VisIt to update its plots
         VisItUpdatePlots();
-      
+
         // Tell VisIt to save the window.
         if( sim->imageGenerate )
         {
@@ -555,7 +683,7 @@ bool visit_CheckState( visit_simulation_data *sim )
 
   do
   {
-    /* If running do not block */
+    // If running do not block
     int blocking = (sim->runMode == VISIT_SIMMODE_RUNNING) ? 0 : 1;
 
     // State change so update
@@ -573,57 +701,54 @@ bool visit_CheckState( visit_simulation_data *sim )
             sim->simMode != VISIT_SIMMODE_TERMINATED )
         {
           sim->simMode = VISIT_SIMMODE_STOPPED;
-          
+
           if(sim->isProc0)
           {
             VisItUI_setValueS("SIMULATION_MODE", "Stopped", 1);
-              
+
             std::stringstream msg;
             msg << "Visit libsim - Stopped the simulation at "
                 << "time step " << sim->cycle << ",  "
                 << "time = " << sim->time;
+<<<<<<< HEAD
             
+=======
+
+>>>>>>> origin/master
             DOUT( visitdbg, msg.str().c_str() );
- 
+
             VisItUI_setValueS("SIMULATION_MESSAGE", msg.str().c_str(), 1);
           }
         }
       }
     }
 
-    /* Get input from VisIt or timeout so the simulation can run. */
+    // Get input from VisIt or timeout so the simulation can run.
     int visitstate;
 
-    if(sim->isProc0)
-      visitstate = VisItDetectInput(blocking, -1);
+    if(sim->isProc0) // Pass -1 for no console input.
+    {
+      visitstate = VisItDetectInput(blocking,
+                                    simConsole ? fileno(stdin) : -1);
+    }
 
     if( Parallel::usingMPI() )
-      Uintah::MPI::Bcast(&visitstate, 1, MPI_INT, 0, MPI_COMM_WORLD);
+      Uintah::MPI::Bcast(&visitstate, 1, MPI_INT, 0, sim->myworld->getComm());
 
-    /* Do different things depending on the output from VisItDetectInput. */
-    if(visitstate <= -1 || 5 <= visitstate)
-    {
-      std::stringstream msg;      
-      msg << "Visit libsim - CheckState cannot recover from error ("
-          << visitstate << ") !!";
-          
-      DOUT( visitdbg, msg.str().c_str() );
+    // Do different things depending on the output from VisItDetectInput.
 
-      VisItUI_setValueS("SIMULATION_MESSAGE_ERROR", msg.str().c_str(), 1);
-
-      err = 1;
-    }
-    else if(visitstate == 0)
+    // No input - timed out.
+    if(visitstate == 0)
     {
       if( sim->simMode != VISIT_SIMMODE_FINISHED &&
           sim->simMode != VISIT_SIMMODE_TERMINATED )
       {
         VisItUI_setValueS("SIMULATION_MODE", "Running", 1);
         sim->simMode = VISIT_SIMMODE_RUNNING;
-        
+
         if(sim->isProc0)
         {
-          std::stringstream msg;          
+          std::stringstream msg;
           msg << "Visit libsim - No input, continuing the simulation.";
 
           // DOUT( visitdbg, msg.str().c_str() );
@@ -632,26 +757,33 @@ bool visit_CheckState( visit_simulation_data *sim )
         }
       }
 
-      /* There was no input from VisIt, return control to sim. */
+      // There was no input from VisIt, return control to sim.
       break;
     }
+    // Connecting to the simulation, listen socket input.
     else if(visitstate == 1)
     {
-      /* VisIt is trying to connect to sim. */
+      // VisIt is trying to connect to sim.
       if(VisItAttemptToCompleteConnection())
       {
         visit_Initialize( sim );
       }
       else
       {
-        std::stringstream msg;
-        msg << "Visit libsim - Can not connect.";
+        // Get the error message
+        char *error = VisItGetLastError();
 
-        // DOUT( visitdbg, msg.str().c_str() );
+        std::stringstream msg;
+        msg << "Visit libsim - Can not connect. " << error;
+
+        DOUT( visitdbg, msg.str().c_str() );
 
         VisItUI_setValueS("SIMULATION_MESSAGE_ERROR", msg.str().c_str(), 1);
+
+        free(error);
       }
     }
+    // Process a command from the engine socket input.
     else if(visitstate == 2)
     {
       if( !visit_ProcessVisItCommand(sim) )
@@ -664,14 +796,84 @@ bool visit_CheckState( visit_simulation_data *sim )
           VisItUI_setValueS("SIMULATION_MODE", "Not connected", 1);
         }
 
-        /* Start running again if VisIt closes. */
+        // Start running again if VisIt closes.
         sim->runMode = VISIT_SIMMODE_RUNNING;
 
-        /* Disconnect on an error or closed connection. */
+        // Disconnect on an error or closed connection.
         VisItDisconnect();
       }
+    }
+    // Process a command from the console socket
+    else if(visitstate == 3)
+    {
+      // Read the command from the condole
+      char cconsoleInput[1000];
 
-      /* If in step mode return control back to the simulation. */
+      if(sim->isProc0)
+      {
+        if(VisItReadConsole(1000, cconsoleInput) == VISIT_ERROR)
+        {
+          std::stringstream msg;
+          msg << "Visit libsim - Cannot read console input.";
+
+          DOUT( visitdbg, msg.str().c_str() );
+
+          VisItUI_setValueS("SIMULATION_MESSAGE", msg.str().c_str(), 1);
+          VisItUI_setValueS("SIMULATION_MESSAGE", " ", 1);
+        }
+      }
+
+      if( Parallel::usingMPI() )
+      {
+        // Broadcast the console input to all processors.
+        Uintah::MPI::Bcast(cconsoleInput, 1000, MPI_CHAR, 0, sim->myworld->getComm());
+      }
+
+      // Split the console input into the command and optional args.
+      std::string cmd = std::string(cconsoleInput);
+      std::string args;
+
+      size_t found = cmd.find_first_of(" ");
+
+      // Check to see if the command has optional arguments.
+      if( found != std::string::npos )
+      {
+        args = cmd.substr(found + 1);
+        cmd = cmd.substr(0, found);
+      }
+
+      // Process the command.
+      visit_ControlCommandCallback(cmd.c_str(), args.c_str(), sim, true);
+    }
+    // Error
+    else
+    {
+      const char *errorMsg[] =
+        {"",
+         "-1 Interrupted by EINTR in select."
+         "-2 Unknown error in select.",
+         "-3 Logic error (a socket was selected but not one we set).",
+         "-4 Logic error (no descriptors but blocking).",
+         "-5 Logic error (fell through all cases)." };
+
+      std::stringstream msg;
+      msg << "Visit libsim - CheckState cannot recover from error : ";
+
+      if( -5 <= visitstate && visitstate <= -1 )
+        msg << std::endl << errorMsg[abs(visitstate)];
+      else
+        msg << visitstate << " Unknown error.";
+
+      DOUT( visitdbg, msg.str().c_str() );
+
+      VisItUI_setValueS("SIMULATION_MESSAGE_ERROR", msg.str().c_str(), 1);
+
+      err = true;
+    }
+
+    if(visitstate == 2 || visitstate == 3)
+    {
+      // If in step mode return control back to the simulation.
       if( sim->runMode == VISIT_SIMMODE_STEP )
       {
         sim->simMode = VISIT_SIMMODE_RUNNING;
@@ -680,9 +882,9 @@ bool visit_CheckState( visit_simulation_data *sim )
         {
           VisItUI_setValueS("SIMULATION_MODE", "Running", 1);
 
-          std::stringstream msg;          
+          std::stringstream msg;
           msg << "Visit libsim - Continuing the simulation for one time step";
-          
+
           // DOUT( visitdbg, msg.str().c_str() );
 
           VisItUI_setValueS("SIMULATION_MESSAGE", msg.str().c_str(), 1);
@@ -696,14 +898,14 @@ bool visit_CheckState( visit_simulation_data *sim )
         break;
       }
 
-      /* If finished return control back to the simulation. */
+      // If finished return control back to the simulation.
       else if( sim->runMode == VISIT_SIMMODE_FINISHED )
       {
         if(sim->isProc0)
         {
           VisItUI_setValueS("SIMULATION_MODE", "Not connected", 1);
 
-          std::stringstream msg;          
+          std::stringstream msg;
           msg << "Visit libsim - Finished the simulation ";
 
           // DOUT( visitdbg, msg.str().c_str() );
@@ -716,7 +918,7 @@ bool visit_CheckState( visit_simulation_data *sim )
         break;
       }
     }
-  } while(err == 0);
+  } while(err == false);
 
   return (sim->simMode == VISIT_SIMMODE_TERMINATED);
 }
@@ -726,7 +928,7 @@ bool visit_CheckState( visit_simulation_data *sim )
 // UpdateSimData
 //     Update the simulation data on all processors
 //---------------------------------------------------------------------
-void visit_UpdateSimData( visit_simulation_data *sim, 
+void visit_UpdateSimData( visit_simulation_data *sim,
                           GridP currentGrid,
                           bool first, bool last )
 {
@@ -738,7 +940,11 @@ void visit_UpdateSimData( visit_simulation_data *sim,
 
   sim->time      = appInterface->getSimTime();
   sim->cycle     = appInterface->getTimeStep();
+<<<<<<< HEAD
   
+=======
+
+>>>>>>> origin/master
   sim->first     = first;
 
   // Check to see if at the last iteration. If so stop so the
@@ -752,9 +958,9 @@ void visit_UpdateSimData( visit_simulation_data *sim,
       std::stringstream msg;
       msg << "Visit libsim - "
           << "The simulation has finished, stopping at the last time step.";
-      
+
       DOUT( visitdbg, msg.str().c_str() );
-      
+
       VisItUI_setValueS("SIMULATION_MESSAGE", msg.str().c_str(), 1);
     }
   }
@@ -765,9 +971,9 @@ void visit_UpdateSimData( visit_simulation_data *sim,
 //     Initialize everything
 //---------------------------------------------------------------------
 void visit_Initialize( visit_simulation_data *sim )
-{    
+{
   std::stringstream msg;
-      
+
   if( Parallel::usingMPI() )
   {
     msg << "Visit libsim - Processor " << sim->myworld->myRank() << " connected";
@@ -781,17 +987,17 @@ void visit_Initialize( visit_simulation_data *sim )
   {
     VisItUI_setValueS("SIMULATION_MESSAGE_CLEAR", "NoOp", 1);
     VisItUI_setValueS("STRIP_CHART_CLEAR_ALL",    "NoOp", 1);
-    
+
     // DOUT( visitdbg, msg.str().c_str() );
 
-    VisItUI_setValueS("SIMULATION_MESSAGE", msg.str().c_str(), 1);    
+    VisItUI_setValueS("SIMULATION_MESSAGE", msg.str().c_str(), 1);
     VisItUI_setValueS("SIMULATION_MODE", "Connected", 1);
   }
-  
+
   if( Parallel::usingMPI() )
     VisItSetSlaveProcessCallback(visit_SlaveProcessCallback);
 
-  /* Register command callback */
+  // Register command callback
   VisItSetCommandCallback(visit_ControlCommandCallback, (void*) sim);
 
   // These are one time initializations.
@@ -800,19 +1006,19 @@ void visit_Initialize( visit_simulation_data *sim )
   VisItUI_setValueI("SIMULATION_TIME_STEP_CYCLE",     sim->timeStep,  1);
   VisItUI_setValueI("SIMULATION_TIME_STOP_CYCLE",     sim->timeStop,  1);
 
-  /* Register data access callbacks */
+  // Register data access callbacks
   VisItSetGetMetaData(visit_SimGetMetaData, (void*) sim);
   VisItSetGetMesh(    visit_SimGetMesh,     (void*) sim);
   VisItSetGetVariable(visit_SimGetVariable, (void*) sim);
 
-  /* Register AMR data access callbacks */
+  // Register AMR data access callbacks
   VisItSetGetDomainBoundaries(visit_SimGetDomainBoundaries, (void*) sim);
   VisItSetGetDomainNesting   (visit_SimGetDomainNesting,    (void*) sim);
 
   if( Parallel::usingMPI() )
     VisItSetGetDomainList(visit_SimGetDomainList, (void*) sim);
 
-  
+
   VisItUI_textChanged("TimeStepsMax", visit_TimeStepsMaxCallback, (void*) sim);
   VisItUI_textChanged("SimTime",      visit_SimTimeMaxCallback,   (void*) sim);
   VisItUI_valueChanged("SimTimeEndAtMax",
@@ -828,7 +1034,7 @@ void visit_Initialize( visit_simulation_data *sim )
                       visit_OutputIntervalVariableCallback,  (void*) sim);
   VisItUI_valueChanged("ClampTimeToOutput",
                        visit_ClampTimeToOutputCallback,      (void*) sim);
-        
+
   VisItUI_valueChanged("ImageGroupBox",
                        visit_ImageGenerateCallback, (void*) sim);
   VisItUI_textChanged ("ImageFilename",
@@ -851,9 +1057,15 @@ void visit_Initialize( visit_simulation_data *sim )
                       visit_DoutCallback,  (void*) sim);
 
   VisItUI_valueChanged("LoadExtraGeometry",
+<<<<<<< HEAD
                        visit_LoadExtraGeometryCallback, (void*) sim);        
   VisItUI_valueChanged("LoadVariables",
                        visit_LoadVariablesCallback, (void*) sim);        
+=======
+                       visit_LoadExtraGeometryCallback, (void*) sim);
+  VisItUI_valueChanged("LoadVariables",
+                       visit_LoadVariablesCallback, (void*) sim);
+>>>>>>> origin/master
 }
-  
+
 } // End namespace Uintah

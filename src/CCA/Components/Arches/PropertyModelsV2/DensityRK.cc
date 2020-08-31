@@ -1,5 +1,8 @@
 #include <CCA/Components/Arches/PropertyModelsV2/DensityRK.h>
+<<<<<<< HEAD
 #include <CCA/Components/Arches/KokkosTools.h>
+=======
+>>>>>>> origin/master
 #include <CCA/Components/Arches/UPSHelper.h>
 
 
@@ -19,7 +22,11 @@ void
 DensityRK::problemSetup( ProblemSpecP& db ){
 
   using namespace ArchesCore;
+<<<<<<< HEAD
   m_label_density = parse_ups_for_role( DENSITY, db, "density" );
+=======
+  m_label_density = parse_ups_for_role( DENSITY_ROLE, db, "density" );
+>>>>>>> origin/master
   m_label_densityRK = m_label_density + "_rk" ;
   ProblemSpecP db_root = db->getRootNode();
 
@@ -97,7 +104,11 @@ DensityRK::register_initialize( std::vector<ArchesFieldContainer::VariableInform
 void
 DensityRK::initialize( const Patch* patch, ArchesTaskInfoManager* tsk_info ){
 
+<<<<<<< HEAD
   CCVariable<double>& rhoRK = tsk_info->get_uintah_field_add<CCVariable<double> >( m_label_densityRK );
+=======
+  CCVariable<double>& rhoRK = tsk_info->get_field<CCVariable<double> >( m_label_densityRK );
+>>>>>>> origin/master
   rhoRK.initialize(0.0);
 
 }
@@ -108,7 +119,10 @@ DensityRK::register_timestep_eval( std::vector<ArchesFieldContainer::VariableInf
                                           variable_registry, const int time_substep,
                                           const bool packed_tasks ){
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/master
   register_variable( m_label_density , ArchesFieldContainer::MODIFIES, variable_registry, time_substep );
   register_variable( m_label_density , ArchesFieldContainer::REQUIRES, 0, ArchesFieldContainer::OLDDW, variable_registry, time_substep );
 
@@ -120,9 +134,15 @@ DensityRK::register_timestep_eval( std::vector<ArchesFieldContainer::VariableInf
 void
 DensityRK::eval( const Patch* patch, ArchesTaskInfoManager* tsk_info ){
 
+<<<<<<< HEAD
   constCCVariable<double>& old_rho = tsk_info->get_const_uintah_field_add<constCCVariable<double> >( m_label_density,ArchesFieldContainer::OLDDW);
   CCVariable<double>& rho = tsk_info->get_uintah_field_add<CCVariable<double> >( m_label_density );
   CCVariable<double>& rhoRK = tsk_info->get_uintah_field_add<CCVariable<double> >( m_label_densityRK );
+=======
+  constCCVariable<double>& old_rho = tsk_info->get_field<constCCVariable<double> >( m_label_density,ArchesFieldContainer::OLDDW);
+  CCVariable<double>& rho = tsk_info->get_field<CCVariable<double> >( m_label_density );
+  CCVariable<double>& rhoRK = tsk_info->get_field<CCVariable<double> >( m_label_densityRK );
+>>>>>>> origin/master
 
   const int time_substep = tsk_info->get_time_substep();
 

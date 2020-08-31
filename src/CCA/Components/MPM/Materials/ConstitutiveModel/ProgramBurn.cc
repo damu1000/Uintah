@@ -1,7 +1,11 @@
 /*
  * The MIT License
  *
+<<<<<<< HEAD
  * Copyright (c) 1997-2019 The University of Utah
+=======
+ * Copyright (c) 1997-2020 The University of Utah
+>>>>>>> origin/master
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -47,7 +51,7 @@ ProgramBurn::ProgramBurn(ProblemSpecP& ps, MPMFlags* Mflag)
   d_useModifiedEOS = false;
 
   // These two parameters are used for the unburned Murnahan EOS
-  ps->require("K",    d_initialData.d_K);
+  ps->require("K",d_initialData.d_K);
   ps->require("n",d_initialData.d_n);
 
   // These parameters are used for the product JWL EOS
@@ -274,7 +278,7 @@ void ProgramBurn::computeStressTensor(const PatchSubset* patches,
 
       double t_b = dist/d_initialData.d_D;
 
-      double delta_L = 1.5*pow(pmass[idx]/rho0,1./3.)/d_initialData.d_D;
+      double delta_L = 1.5*cbrt(pmass[idx]/rho0)/d_initialData.d_D;
 
       if (time >= t_b){
         pProgressF_new[idx] = (time - t_b)/delta_L;

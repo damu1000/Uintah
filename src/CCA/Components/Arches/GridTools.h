@@ -4,7 +4,11 @@
 /*
  * The MIT License
  *
+<<<<<<< HEAD
  * Copyright (c) 1997-2019 The University of Utah
+=======
+ * Copyright (c) 1997-2020 The University of Utah
+>>>>>>> origin/master
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -316,10 +320,17 @@ namespace Uintah{ namespace ArchesCore{
   template <>
   struct GridVarMap<CCVariable<double> >{
     void problemSetup( ProblemSpecP db ){
+<<<<<<< HEAD
       uvel_name = parse_ups_for_role( UVELOCITY, db, ArchesCore::default_uVel_name );
       vvel_name = parse_ups_for_role( VVELOCITY, db, ArchesCore::default_vVel_name );
       wvel_name = parse_ups_for_role( WVELOCITY, db, ArchesCore::default_wVel_name );
       mu_name = parse_ups_for_role( TOTAL_VISCOSITY, db, ArchesCore::default_viscosity_name );
+=======
+      uvel_name = parse_ups_for_role( UVELOCITY_ROLE, db, ArchesCore::default_uVel_name );
+      vvel_name = parse_ups_for_role( VVELOCITY_ROLE, db, ArchesCore::default_vVel_name );
+      wvel_name = parse_ups_for_role( WVELOCITY_ROLE, db, ArchesCore::default_wVel_name );
+      mu_name = parse_ups_for_role( TOTAL_VISCOSITY_ROLE, db, ArchesCore::default_viscosity_name );
+>>>>>>> origin/master
     }
     std::string vol_frac_name = "volFraction";
     std::string mu_name;
@@ -330,7 +341,11 @@ namespace Uintah{ namespace ArchesCore{
   template <>
   struct GridVarMap<SFCXVariable<double> >{
     void problemSetup( ProblemSpecP db ){
+<<<<<<< HEAD
       mu_name = parse_ups_for_role( TOTAL_VISCOSITY, db, ArchesCore::default_viscosity_name );
+=======
+      mu_name = parse_ups_for_role( TOTAL_VISCOSITY_ROLE, db, ArchesCore::default_viscosity_name );
+>>>>>>> origin/master
     }
     std::string vol_frac_name = "volFractionX";
     std::string uvel_name = "ucell_xvel";
@@ -344,7 +359,11 @@ namespace Uintah{ namespace ArchesCore{
   template <>
   struct GridVarMap<SFCYVariable<double> >{
     void problemSetup( ProblemSpecP db ){
+<<<<<<< HEAD
       mu_name = parse_ups_for_role( TOTAL_VISCOSITY, db, ArchesCore::default_viscosity_name );
+=======
+      mu_name = parse_ups_for_role( TOTAL_VISCOSITY_ROLE, db, ArchesCore::default_viscosity_name );
+>>>>>>> origin/master
     }
     std::string vol_frac_name = "volFractionY";
     std::string uvel_name = "vcell_xvel";
@@ -358,7 +377,11 @@ namespace Uintah{ namespace ArchesCore{
   template <>
   struct GridVarMap<SFCZVariable<double> >{
     void problemSetup( ProblemSpecP db ){
+<<<<<<< HEAD
       mu_name = parse_ups_for_role( TOTAL_VISCOSITY, db, ArchesCore::default_viscosity_name );
+=======
+      mu_name = parse_ups_for_role( TOTAL_VISCOSITY_ROLE, db, ArchesCore::default_viscosity_name );
+>>>>>>> origin/master
     }
     std::string vol_frac_name = "volFractionZ";
     std::string uvel_name = "wcell_xvel";
@@ -437,6 +460,40 @@ namespace Uintah{ namespace ArchesCore{
 
   };
 
+<<<<<<< HEAD
+=======
+
+  ///  @brief Generic interface to grid interpolators.
+  template <typename grid_T, typename grid_CT>
+  void doInterpolation( Uintah::BlockRange& range, grid_T& v_i, grid_CT& v,
+                        const int &ioff, const int &joff, const int &koff,
+                        unsigned int interpScheme ){
+
+    if (interpScheme == FOURTHCENTRAL ){
+
+      Uintah::parallel_for( range, [&](int i, int j, int k) {
+
+        v_i(i,j,k) = (9./16.)*(v(i,j,k) + v(i+ioff,j+joff,k+koff))
+                   - (1./16.)*(v(i+2*ioff,j+2*joff,k+2*koff) + v(i-ioff,j-joff,k-koff)) ;
+
+      });
+
+    } else if ( interpScheme == SECONDCENTRAL ){
+
+      Uintah::parallel_for(range, [&](int i, int j, int k) {
+
+        v_i(i,j,k) = 0.5 * ( v(i,j,k) + v(i+ioff,j+joff,k+koff) );
+
+      });
+
+    } else {
+
+      throw InvalidValue("Error: Interpolator scheme not valid.", __FILE__, __LINE__);
+
+    }
+  }
+
+>>>>>>> origin/master
   /**
       @brief Returns the value (currently 0 or 1) of the volume/area fraction of gas on
              at the location specified.

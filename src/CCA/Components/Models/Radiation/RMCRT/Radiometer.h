@@ -1,7 +1,11 @@
 /*
  * The MIT License
  *
+<<<<<<< HEAD
  * Copyright (c) 1997-2019 The University of Utah
+=======
+ * Copyright (c) 1997-2020 The University of Utah
+>>>>>>> origin/master
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -49,19 +53,20 @@ namespace Uintah{
       ~Radiometer();
 
       //__________________________________
-      //  TASKS
-      /** @brief Interface to input file information */
+      //
       void  problemSetup( const ProblemSpecP& prob_spec,
                           const ProblemSpecP& rmcrt_ps,
                           const GridP& grid );
 
-      /** @brief Algorithm for tracing rays from radiometer location*/
+      //__________________________________
+      //
       void sched_radiometer( const LevelP& level,
                              SchedulerP& sched,
                              Task::WhichDW abskg_dw,
                              Task::WhichDW sigma_dw,
                              Task::WhichDW celltype_dw );
 
+<<<<<<< HEAD
       void sched_initialize_VRFlux( const LevelP& level,
                                     SchedulerP& sched );
 
@@ -74,9 +79,18 @@ namespace Uintah{
 
       //__________________________________
       // 
+=======
+      //__________________________________
+      //
+      void sched_initialize_VRFlux( const LevelP& level,
+                                    SchedulerP& sched );
+
+      //__________________________________
+      //
+>>>>>>> origin/master
       template< class T >
-      void radiometerFlux( const Patch* patch,
-                           const Level* level,
+      void radiometerFlux( const Patch  * patch,
+                           const Level  * level,
                            DataWarehouse* new_dw,
                            MTRand& mTwister,
                            constCCVariable< T > sigmaT4OverPi,
@@ -84,13 +98,9 @@ namespace Uintah{
                            constCCVariable<int> celltype,
                            const bool modifiesFlux );
 
-      void getPatchSet( SchedulerP& sched,
-                        const LevelP& level,
-                        PatchSet* ps);
-      
-      inline const VarLabel* getRadiometerLabel() const {
-        return d_VRFluxLabel;
-      }
+
+      const VarLabel* d_VRFluxLabel{nullptr};       // computed radiometer flux
+      const VarLabel* d_VRIntensityLabel{nullptr};  // computed Intensity
 
 
       const VarLabel* d_VRFluxLabel{nullptr};      // computed radiometer flux
@@ -98,6 +108,7 @@ namespace Uintah{
 
     private:
 
+<<<<<<< HEAD
       // Virtual Radiometer parameters
       int    d_VR_nRays{1000};                     // number of rays per radiometer used to compute radiative flux
       Point  d_VRLocationsMin;
@@ -108,30 +119,66 @@ namespace Uintah{
         double phiRot;
         double psiRot;
         double deltaTheta;
+=======
+      // radiometer variables
+      struct radiometer {
+        double theta_rotate;
+        double phi_rotate;
+        double xi_rotate;
+        double theta_viewAngle;
+>>>>>>> origin/master
         double range;
-        double sldAngl;
+        double solidAngle;
+
+        int    nRays{1000};
+        Point  locationsMin;
+        Point  locationsMax;
       };
 
+<<<<<<< HEAD
       VR_variables d_VR;
+=======
+      std::vector<radiometer*> d_radiometers;
+
+      inline const VarLabel* getRadiometerLabel() const {
+        return d_VRFluxLabel;
+      }
+
+      //__________________________________
+      //
+      template < class T >
+      void initialize_VRFlux( const ProcessorGroup  *,
+                              const PatchSubset     * patches,
+                              const MaterialSubset  * matls,
+                              DataWarehouse         * old_dw,
+                              DataWarehouse         * new_dw );
+
+      //__________________________________
+      //
+      void getPatchSet( SchedulerP  & sched,
+                        const LevelP& level,
+                        std::vector<radiometer* > radiometers,
+                        PatchSet    * ps);
+>>>>>>> origin/master
 
       //__________________________________
       //
       template< class T >
-      void radiometer( const ProcessorGroup* pc,
-                       const PatchSubset* patches,
-                       const MaterialSubset* matls,
-                       DataWarehouse* old_dw,
-                       DataWarehouse* new_dw,
-                       Task::WhichDW which_abskg_dw,
-                       Task::WhichDW whichd_sigmaT4_dw,
-                       Task::WhichDW which_celltype_dw );
+      void radiometerTask( const ProcessorGroup * pc,
+                          const PatchSubset     * patches,
+                          const MaterialSubset  * matls,
+                          DataWarehouse         * old_dw,
+                          DataWarehouse         * new_dw,
+                          Task::WhichDW   which_abskg_dw,
+                          Task::WhichDW   which_sigmaT4_dw,
+                          Task::WhichDW   which_celltype_dw );
 
       //__________________________________
       //
       void rayDirection_VR( MTRand& mTwister,
                             const IntVector& origin,
                             const int iRay,
-                            VR_variables& VR,
+                            const radiometer* VR,
                             Vector& directionVector,
                             double& cosVRTheta );
 
@@ -139,4 +186,4 @@ namespace Uintah{
 
 } // namespace Uintah
 
-#endif // CCA_COMPONENTS_MODELS_RADIATION_RMCRT_RADIOMETER_H
+#endif

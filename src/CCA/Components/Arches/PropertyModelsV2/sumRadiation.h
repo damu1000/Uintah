@@ -62,7 +62,11 @@ public:
 
 private:
 
+<<<<<<< HEAD
     std::vector<std::string> _gas_part_name;
+=======
+    std::vector<std::string> m_absk_names;
+>>>>>>> origin/master
     std::string m_abskt_name = "undefined";
 
   };

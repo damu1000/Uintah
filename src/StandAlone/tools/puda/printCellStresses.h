@@ -1,7 +1,11 @@
 /*
  * The MIT License
  *
+<<<<<<< HEAD:src/StandAlone/tools/puda/printCellStresses.h
  * Copyright (c) 1997-2019 The University of Utah
+=======
+ * Copyright (c) 1997-2020 The University of Utah
+>>>>>>> origin/master:src/include/sci_defs/hashmap_testdefs.h.in
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to

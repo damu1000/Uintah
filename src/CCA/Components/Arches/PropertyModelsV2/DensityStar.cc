@@ -1,5 +1,4 @@
 #include <CCA/Components/Arches/PropertyModelsV2/DensityStar.h>
-#include <CCA/Components/Arches/KokkosTools.h>
 #include <CCA/Components/Arches/UPSHelper.h>
 
 
@@ -19,7 +18,7 @@ void
 DensityStar::problemSetup( ProblemSpecP& db ){
 
   using namespace ArchesCore;
-  m_label_density = parse_ups_for_role( DENSITY, db, "density" );
+  m_label_density = parse_ups_for_role( DENSITY_ROLE, db, "density" );
   m_label_densityStar = m_label_density + "_star" ;
 
 }
@@ -45,7 +44,11 @@ DensityStar::register_initialize( std::vector<ArchesFieldContainer::VariableInfo
 void
 DensityStar::initialize( const Patch* patch, ArchesTaskInfoManager* tsk_info ){
 
+<<<<<<< HEAD
   CCVariable<double>& rhoStar = tsk_info->get_uintah_field_add<CCVariable<double> >( m_label_densityStar );
+=======
+  CCVariable<double>& rhoStar = tsk_info->get_field<CCVariable<double> >( m_label_densityStar );
+>>>>>>> origin/master
   rhoStar.initialize(0.0);
 
 }
@@ -65,8 +68,13 @@ DensityStar::register_timestep_init( std::vector<ArchesFieldContainer::VariableI
 void
 DensityStar::timestep_init( const Patch* patch, ArchesTaskInfoManager* tsk_info ){
 
+<<<<<<< HEAD
   CCVariable<double>& rhoStar = tsk_info->get_uintah_field_add<CCVariable<double> >( m_label_densityStar );
   constCCVariable<double>& old_rho = tsk_info->get_const_uintah_field_add<constCCVariable<double> >( m_label_density );
+=======
+  CCVariable<double>& rhoStar = tsk_info->get_field<CCVariable<double> >( m_label_densityStar );
+  constCCVariable<double>& old_rho = tsk_info->get_field<constCCVariable<double> >( m_label_density );
+>>>>>>> origin/master
   rhoStar.copyData(old_rho);
 
 }
@@ -91,12 +99,21 @@ DensityStar::register_timestep_eval( std::vector<ArchesFieldContainer::VariableI
 void
 DensityStar::eval( const Patch* patch, ArchesTaskInfoManager* tsk_info ){
 
+<<<<<<< HEAD
   constSFCXVariable<double>& xmom = tsk_info->get_const_uintah_field_add<constSFCXVariable<double> >(ArchesCore::default_uMom_name);
   constSFCYVariable<double>& ymom = tsk_info->get_const_uintah_field_add<constSFCYVariable<double> >(ArchesCore::default_vMom_name);
   constSFCZVariable<double>& zmom = tsk_info->get_const_uintah_field_add<constSFCZVariable<double> >(ArchesCore::default_wMom_name);
 
   CCVariable<double>& rho = tsk_info->get_uintah_field_add<CCVariable<double> >( m_label_density );
   CCVariable<double>& rhoStar = tsk_info->get_uintah_field_add<CCVariable<double> >( m_label_densityStar );
+=======
+  constSFCXVariable<double>& xmom = tsk_info->get_field<constSFCXVariable<double> >(ArchesCore::default_uMom_name);
+  constSFCYVariable<double>& ymom = tsk_info->get_field<constSFCYVariable<double> >(ArchesCore::default_vMom_name);
+  constSFCZVariable<double>& zmom = tsk_info->get_field<constSFCZVariable<double> >(ArchesCore::default_wMom_name);
+
+  CCVariable<double>& rho = tsk_info->get_field<CCVariable<double> >( m_label_density );
+  CCVariable<double>& rhoStar = tsk_info->get_field<CCVariable<double> >( m_label_densityStar );
+>>>>>>> origin/master
 
   const double dt = tsk_info->get_dt();
 

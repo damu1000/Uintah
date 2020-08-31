@@ -1,6 +1,9 @@
 #include <CCA/Components/Arches/PropertyModelsV2/ContinuityPredictor.h>
 #include <CCA/Components/Arches/UPSHelper.h>
+<<<<<<< HEAD
 #include <CCA/Components/Arches/KokkosTools.h>
+=======
+>>>>>>> origin/master
 
 namespace Uintah{
 
@@ -52,7 +55,7 @@ ContinuityPredictor::register_initialize( std::vector<ArchesFieldContainer::Vari
 void
 ContinuityPredictor::initialize( const Patch* patch, ArchesTaskInfoManager* tsk_info ){
 
-  CCVariable<double>& Balance = *(tsk_info->get_uintah_field<CCVariable<double> >( m_label_balance ));
+  CCVariable<double>& Balance = tsk_info->get_field<CCVariable<double> >( m_label_balance );
   Balance.initialize(0.0);
 
 }
@@ -90,12 +93,18 @@ ContinuityPredictor::register_timestep_eval( std::vector<ArchesFieldContainer::V
 void
 ContinuityPredictor::eval( const Patch* patch, ArchesTaskInfoManager* tsk_info ){
 
+<<<<<<< HEAD
   constSFCXVariable<double>& xmom = tsk_info->get_const_uintah_field_add<constSFCXVariable<double> >(ArchesCore::default_uMom_name);
   constSFCYVariable<double>& ymom = tsk_info->get_const_uintah_field_add<constSFCYVariable<double> >(ArchesCore::default_vMom_name);
   constSFCZVariable<double>& zmom = tsk_info->get_const_uintah_field_add<constSFCZVariable<double> >(ArchesCore::default_wMom_name);
+=======
+  constSFCXVariable<double>& xmom = tsk_info->get_field<constSFCXVariable<double> >(ArchesCore::default_uMom_name);
+  constSFCYVariable<double>& ymom = tsk_info->get_field<constSFCYVariable<double> >(ArchesCore::default_vMom_name);
+  constSFCZVariable<double>& zmom = tsk_info->get_field<constSFCZVariable<double> >(ArchesCore::default_wMom_name);
+>>>>>>> origin/master
 
-  constCCVariable<double>& drho_dt = *(tsk_info->get_const_uintah_field<constCCVariable<double> >( m_label_drhodt ));
-  CCVariable<double>& Balance = *(tsk_info->get_uintah_field<CCVariable<double> >( m_label_balance ));
+  constCCVariable<double>& drho_dt = tsk_info->get_field<constCCVariable<double> >( m_label_drhodt );
+  CCVariable<double>& Balance = tsk_info->get_field<CCVariable<double> >( m_label_balance );
   Balance.initialize(0.0);
   Vector DX = patch->dCell();
   const double area_EW = DX.y()*DX.z();

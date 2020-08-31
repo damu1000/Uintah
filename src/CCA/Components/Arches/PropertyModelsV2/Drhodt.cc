@@ -1,5 +1,4 @@
 #include <CCA/Components/Arches/PropertyModelsV2/Drhodt.h>
-#include <CCA/Components/Arches/KokkosTools.h>
 #include <CCA/Components/Arches/UPSHelper.h>
 
 
@@ -20,7 +19,7 @@ Drhodt::problemSetup( ProblemSpecP& db ){
 
   m_label_drhodt = "drhodt";
   using namespace ArchesCore;
-  m_label_density = parse_ups_for_role( DENSITY, db, "density" );
+  m_label_density = parse_ups_for_role( DENSITY_ROLE, db, "density" );
 
 }
 
@@ -45,7 +44,7 @@ Drhodt::register_initialize( std::vector<ArchesFieldContainer::VariableInformati
 void
 Drhodt::initialize( const Patch* patch, ArchesTaskInfoManager* tsk_info ){
 
-  CCVariable<double>& drhodt = tsk_info->get_uintah_field_add<CCVariable<double> >( m_label_drhodt );
+  CCVariable<double>& drhodt = tsk_info->get_field<CCVariable<double> >( m_label_drhodt );
   drhodt.initialize(0.0);
 
 }
@@ -65,10 +64,10 @@ Drhodt::register_timestep_eval( std::vector<ArchesFieldContainer::VariableInform
 void
 Drhodt::eval( const Patch* patch, ArchesTaskInfoManager* tsk_info ){
 
-  constCCVariable<double>& rho = tsk_info->get_const_uintah_field_add<constCCVariable<double> >( m_label_density );
-  constCCVariable<double>& old_rho = tsk_info->get_const_uintah_field_add<constCCVariable<double> >( m_label_density, ArchesFieldContainer::OLDDW);
+  constCCVariable<double>& rho = tsk_info->get_field<constCCVariable<double> >( m_label_density );
+  constCCVariable<double>& old_rho = tsk_info->get_field<constCCVariable<double> >( m_label_density, ArchesFieldContainer::OLDDW);
 
-  CCVariable<double>& drhodt = tsk_info->get_uintah_field_add<CCVariable<double> >( m_label_drhodt );
+  CCVariable<double>& drhodt = tsk_info->get_field<CCVariable<double> >( m_label_drhodt );
   drhodt.initialize(0.0);
   const double dt = tsk_info->get_dt();
   //Uintah::BlockRange range(patch->getExtraCellLowIndex(), patch->getExtraCellHighIndex() );

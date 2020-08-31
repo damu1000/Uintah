@@ -224,6 +224,28 @@
       <name                   spec="OPTIONAL STRING" /> <!-- The name of a file containing triangles... I think. -->
     </tri>
 
+    <line_segment             spec="OPTIONAL NO_DATA"
+                              attribute1="label    OPTIONAL STRING"
+                              children1="ALL_OR_NONE_OF( CHILD name )" >
+      <name                   spec="OPTIONAL STRING" /> 
+    </line_segment>
+
+    <half_space               spec="OPTIONAL NO_DATA"
+                              attribute1="type REQUIRED STRING 'absolute, relative'" >
+      <planePoint             spec="REQUIRED VECTOR" need_applies_to="type absolute" />
+      <normal                 spec="REQUIRED VECTOR" need_applies_to="type absolute" />
+      <offset                 spec="REQUIRED VECTOR" need_applies_to="type relative" />                              
+    </half_space>
+    
+    <polyhedron               spec="OPTIONAL NO_DATA"
+                                attribute1="label  OPTIONAL STRING" >
+      <center                 spec="REQUIRED VECTOR"/>
+      <bounds                 spec="REQUIRED NO_DATA">      
+        <half_space           spec="MULTIPLE"/>
+      </bounds>
+    </polyhedron>
+
+
     <difference               spec="FORWARD_DECLARATION" />
     <union                    spec="FORWARD_DECLARATION" />
     <intersection             spec="FORWARD_DECLARATION" />
@@ -243,9 +265,11 @@
       <cylinder_shell         spec="MULTIPLE" />
       <plane_shell            spec="MULTIPLE" />
       <tri                    spec="MULTIPLE" />
+      <line_segment           spec="MULTIPLE" />
       <union                  spec="MULTIPLE" />
       <parallelepiped         spec="MULTIPLE" />
       <smoothcyl              spec="MULTIPLE" />
+      <polyhedron             spec="MULTIPLE" />
     </union>
 
     <!-- FIXME: only can have 2 children, right? how to specify? -->
@@ -264,8 +288,10 @@
       <cylinder_shell         spec="MULTIPLE" />
       <plane_shell            spec="MULTIPLE" />
       <tri                    spec="MULTIPLE" />
+      <line_segment           spec="MULTIPLE" />
       <union                  spec="MULTIPLE" />
       <parallelepiped         spec="MULTIPLE" />
+      <polyhedron             spec="MULTIPLE" />
     </difference>
 
     <intersection             spec="OPTIONAL NO_DATA"
@@ -283,8 +309,10 @@
       <cylinder_shell         spec="MULTIPLE" />
       <plane_shell            spec="MULTIPLE" />
       <tri                    spec="MULTIPLE" />
+      <line_segment           spec="MULTIPLE" />
       <union                  spec="MULTIPLE" />
       <parallelepiped         spec="MULTIPLE" />
+      <polyhedron             spec="MULTIPLE" />
     </intersection>
 
     <geom_object              spec="REQUIRED NO_DATA"
@@ -303,8 +331,10 @@
       <plane_shell            spec="MULTIPLE" />
       <smoothcyl              spec="MULTIPLE" />
       <tri                    spec="MULTIPLE" />
+      <line_segment           spec="MULTIPLE" />
       <union                  spec="MULTIPLE" />
       <parallelepiped         spec="MULTIPLE" />
+      <polyhedron             spec="MULTIPLE" />
 
       <file                    spec="OPTIONAL NO_DATA"
                                 attribute1="label    OPTIONAL STRING" >
@@ -603,7 +633,7 @@
                           attribute12="minor_radius OPTIONAL DOUBLE 'positive'"                                             
                           attribute13="angle        OPTIONAL DOUBLE"                                                                                              
                           attribute14="name         OPTIONAL STRING"                                                        
-                          attribute15="type         OPTIONAL STRING 'Wall, Velocity, Outflow, Open, User'">                                  
+                          attribute15="type         OPTIONAL STRING 'Wall, Velocity, Outflow, Open, User, Interior'">                                  
                                                                                                                             
         <BCType       spec="MULTIPLE NO_DATA"                                                                               
                         attribute1="id        OPTIONAL STRING '0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,all'"                  
@@ -640,7 +670,7 @@
                         attribute13="minor_radius OPTIONAL DOUBLE 'positive'"                                                                       
                         attribute14="angle        OPTIONAL DOUBLE"                                                                                                
                         attribute15="name         OPTIONAL STRING"                                                                                  
-                        attribute16="type         OPTIONAL STRING 'Wall, Velocity, MassFlow, Inlet, Outflow, Open, Pressure, User'"                 
+                        attribute16="type         OPTIONAL STRING 'Wall, Velocity, MassFlow, Inlet, Outflow, Open, Symmetry, Pressure, User'"                 
                         attribute17="inner_lower  OPTIONAL MULTIPLE_DOUBLES"                                                                        
                         attribute18="outer_lower  OPTIONAL MULTIPLE_DOUBLES"                                                                        
                         attribute19="inner_upper  OPTIONAL MULTIPLE_DOUBLES"                                                                        
@@ -691,8 +721,15 @@
                               need_applies_to="var VelocityFileInput FromFile"/> 
          
           <!-- Swirl No. -->
+<<<<<<< HEAD
           <swirl_no         spec="REQUIRED DOUBLE"  need_applies_to="var Swirl, ScalarSwirl"/>
 
+=======
+          <!-- swirl_no = 2/3*vel_tangential/vel_axial -->
+          <!-- This definition is from Combustion Aerodynamics J.M. BEER and N.A. 1983 equation 5.14 -->
+          <!-- assumes: constant density, constant tangential and axial components of velocity  -->
+          <swirl_no         spec="REQUIRED DOUBLE"  need_applies_to="var Swirl, ScalarSwirl"/>
+>>>>>>> origin/master
           <!-- swirl_centriod is only required for geometries that don't have "origin" set.  See BoundaryCondition.cc for details.-->
           <swirl_centroid   spec="OPTIONAL VECTOR"  need_applies_to="var Swirl, ScalarSwirl"/>
 
@@ -732,7 +769,7 @@
 
       <SINE_BC              spec="OPTIONAL NO_DATA">
         <omega              spec="REQUIRED DOUBLE 'positive'"/>
-        <A                  spec="REQUIRED DOUBLE 'positive'"/>
+        <A                  spec="REQUIRED DOUBLE"/>
         <reference_pressure spec="REQUIRED DOUBLE 'positive'"/>
         <reference_velocity spec="REQUIRED VECTOR 'positive'"/>
       </SINE_BC>
@@ -802,7 +839,11 @@
 
   <DataAnalysis                         spec="OPTIONAL NO_DATA" >
     <Module                             spec="MULTIPLE NO_DATA"
+<<<<<<< HEAD
                                           attribute1="name REQUIRED STRING 'firstLawThermo, flatPlate_heatFlux, 
+=======
+                                          attribute1="name REQUIRED STRING 'controlVolFluxes  firstLawThermo, flatPlate_heatFlux, 
+>>>>>>> origin/master
                                                                             lineExtract,      meanTurbFluxes, minMax,         momentumAnalysis, 
                                                                             particleExtract,  planeAverage,   planeExtract, 
                                                                             radiometer,       statistics,     vorticity'" >
@@ -810,6 +851,7 @@
       <!--  Common __________________________________-->
       <material                         spec="OPTIONAL STRING" />
       <materialIndex                    spec="OPTIONAL INTEGER" />
+<<<<<<< HEAD
       <samplingFrequency                spec="REQUIRED DOUBLE"  need_applies_to="name lineExtract,     planeExtract, 
                                                                                       particleExtract, firstLawThermo,  minMax"/>
                                                                                       
@@ -818,6 +860,16 @@
                                                                                       planeExtract,     statistics"/>
                                                                                       
       <timeStop                         spec="REQUIRED DOUBLE"  need_applies_to="name firstLawThermo,  lineExtract, 
+=======
+      <samplingFrequency                spec="REQUIRED DOUBLE"  need_applies_to="name controlVolFluxes, lineExtract,     planeExtract, 
+                                                                                      particleExtract,  firstLawThermo,  minMax"/>
+                                                                                      
+      <timeStart                        spec="REQUIRED DOUBLE"  need_applies_to="name controlVolFluxes, firstLawThermo,  lineExtract, 
+                                                                                      minMax,           particleExtract, planeAverage, 
+                                                                                      planeExtract,     statistics"/>
+                                                                                      
+      <timeStop                         spec="REQUIRED DOUBLE"  need_applies_to="name controlVolFluxes, firstLawThermo,  lineExtract, 
+>>>>>>> origin/master
                                                                                       minMax,           particleExtract, planeAverage, 
                                                                                       planeExtract,     statistics"/>
                                                                                       
@@ -831,6 +883,13 @@
                                           attribute4="computeReynoldsStress OPTIONAL STRING"
                                           attribute5="weighting OPTIONAL STRING 'none, nCells, mass'" />
       </Variables>
+      
+      <!--  controlVolFluxes _____________________________-->
+      <controlVolumes                   spec="OPTIONAL NO_DATA" need_applies_to="name controlVolFluxes">
+        <box                            spec="MULTIPLE" />
+      </controlVolumes>
+      
+      
       
       <!--  lineExtract __________________________________-->
       <lines                            spec="OPTIONAL NO_DATA" need_applies_to="name lineExtract">

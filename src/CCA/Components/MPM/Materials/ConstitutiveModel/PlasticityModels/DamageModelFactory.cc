@@ -1,7 +1,11 @@
 /*
  * The MIT License
  *
+<<<<<<< HEAD
  * Copyright (c) 1997-2019 The University of Utah
+=======
+ * Copyright (c) 1997-2020 The University of Utah
+>>>>>>> origin/master
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -46,7 +50,7 @@ DamageModel* DamageModelFactory::create(ProblemSpecP    & matl_ps,
 {   
   ProblemSpecP child = matl_ps->findBlock("damage_model");
   if(!child) {
-    proc0cout << "**WARNING** Creating default null damage model" << endl;
+    //proc0cout << "**WARNING** Creating default null damage model" << endl;
     return( scinew NullDamage() );
   }
   

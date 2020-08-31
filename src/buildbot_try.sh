@@ -1,9 +1,8 @@
 #! /bin/csh -f
 #
 # The purpose of this script is to test changes you have made to your
-# local SVN repository by shipping those changes to the Uintah
+# local git repository by shipping those changes to the Uintah
 # buildbot server to run tests against.
-#
 #
 # Before you can run this script, the "buildbot" package must be
 # installed on your computer.
@@ -11,12 +10,15 @@
 # - On Debian (as root) you can run: apt-get install buildbot
 #
 #
+<<<<<<< HEAD
 # Other caveats:
 #
 # - You can't run the try if you have new files in your tree...  The
 #     only way around this is to "svn commit" the new files first.
 #
 #
+=======
+>>>>>>> origin/master
 # This is an example of a successful submission:
 #
 #   % ./buildbot_try_test.sh
@@ -29,15 +31,27 @@
 #   2018-04-24 21:52:52-0600 [Broker,client] not waiting for builds to finish
 #   2018-04-24 21:52:52-0600 [-] Stopping factory <twisted.spread.pb.PBClientFactory instance at 0x106f2cf38>
 #   2018-04-24 21:52:52-0600 [-] Main loop terminated.
-
 #
-# Buildbot test script. Execute this script in the top level source dir:
-# i.e. /Uintah/trunk/src
-
+#
 # 1. Before running this script the src code must be fully up to date.
-
+#
 # 2. If you are adding new files they must be checked in first.
+<<<<<<< HEAD
 
+=======
+#
+# 3. To create a patch run "git diff >myPatch"
+#
+# Usage: buildbot_try.sh   [options]
+#             Options:
+#              trunk-opt                  Trunk:opt-full-try server
+#              trunk-debug/dbg            Trunk:dbg-full-try server
+#              trunk-gpu                  Trunk:opt-gpu-try server
+#              kokkos-opt                 Kokkos:opt-full-try server
+#              all                        run trunk(opt + dbg + gpu) try servers
+#              createPatch                run git diff on src/ and submit that patch
+#              myPatch      <patchFile>  submit the patchfile to the try servers
+>>>>>>> origin/master
 #______________________________________________________________________
 #
 
@@ -46,6 +60,10 @@ set trunkServers = ("Trunk:opt-full-try" "Trunk:dbg-full-try" "Trunk:opt-gpu-try
 set BUILDERS = ""
 set CREATE_PATCH = false
 set MY_PATCH     = false
+<<<<<<< HEAD
+=======
+set BRANCH       = "master"
+>>>>>>> origin/master
 
 # No args so all tests
 
@@ -88,6 +106,7 @@ while ( $#argv )
       set BUILDERS = "$BUILDERS --builder=Trunk:opt-gpu-try"
       shift
       breaksw
+<<<<<<< HEAD
     
     case kokkos-opt:
       set BUILDERS = "$BUILDERS --builder=Kokkos:opt-full-try"
@@ -102,6 +121,23 @@ while ( $#argv )
       breaksw
     default:
       echo " Error parsing inputs."
+=======
+
+    case kokkos-opt:
+      set BUILDERS = "$BUILDERS --builder=Kokkos:opt-full-try"
+      set BRANCH = "kokkos_dev"
+      shift
+      breaksw
+
+    case all:
+      foreach server ($trunkServers)
+        set BUILDERS = "$BUILDERS --builder=$server"
+      end
+      shift
+      breaksw
+    default:
+      echo " Error parsing inputs ($1)."
+>>>>>>> origin/master
       echo " Usage: buildbot_try.sh   [options]"
       echo "             Options:"
       echo "              trunk-opt                  Trunk:opt-full-try server"
@@ -109,13 +145,21 @@ while ( $#argv )
       echo "              trunk-gpu                  Trunk:opt-gpu-try server"
       echo "              kokkos-opt                 Kokkos:opt-full-try server"
       echo "              all                        run trunk(opt + dbg + gpu) try servers"
+<<<<<<< HEAD
       echo "              create_patch               run svn diff on src/ and submit that patch"
+=======
+      echo "              createPatch                run git diff on src/ and submit that patch"
+>>>>>>> origin/master
       echo "              myPatch      <patchFile>  submit the patchfile to the try servers"
       echo "   Now exiting"
       exit(1)
       breaksw
   endsw
+<<<<<<< HEAD
 end        
+=======
+end
+>>>>>>> origin/master
 
 #______________________________________________________________________
 #
@@ -131,11 +175,23 @@ set PATCH = ""
 if( $CREATE_PATCH == "true" ) then
   /bin/rm -rf buildbot_patch.txt >& /dev/null
 
-  svn diff -x --context=0 > buildbot_patch.txt
+  git diff > buildbot_patch.txt
 
   ls -l buildbot_patch.txt
-  
-  set PATCH = "--diff=buildbot_patch.txt --repository=https://gforge.sci.utah.edu/svn/uintah/trunk/src" 
+
+  set PATCH = "--diff=buildbot_patch.txt --patchlevel=1"
+
+endif
+#__________________________________
+# use a user created patch
+
+if( $MY_PATCH == "true" ) then
+  if( ! -e $PATCHFILE ) then
+    echo "  Error:  Could not find the patch file $PATCHFILE"
+    exit 1
+  endif
+
+ set PATCH = "--diff=$PATCHFILE --patchlevel=1"
 endif
 #__________________________________
 # use a user created patch
@@ -156,15 +212,25 @@ echo "  BUILDERS: $BUILDERS"
 
 #__________________________________
 
+#__________________________________
+
+echo "  PATCH ${PATCH}"
+echo "  BUILDERS: ${BUILDERS}"
+
+#__________________________________
+
 buildbot --verbose try \
          --connect=pb \
          --master=uintah-build.chpc.utah.edu:8031 \
+         --branch=${BRANCH} \
+         --repository='https://github.com/Uintah/Uintah.git' \
          --username=buildbot_try \
          --passwd=try_buildbot \
-         --vc=svn \
-         --topdir=. \
+         --vc=git \
          --who=`whoami` \
-         $PATCH $BUILDERS
+         ${PATCH} ${BUILDERS}
+
+echo $status
 
 echo $status
 

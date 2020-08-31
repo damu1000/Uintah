@@ -1,7 +1,11 @@
 /*
  * The MIT License
  *
+<<<<<<< HEAD
  * Copyright (c) 1997-2019 The University of Utah
+=======
+ * Copyright (c) 1997-2020 The University of Utah
+>>>>>>> origin/master
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -30,6 +34,7 @@
 #include <Core/Grid/Variables/PerPatch.h>
 #include <Core/Math/MersenneTwister.h>
 #include <Core/Util/DOUT.hpp>
+
 #include <fstream>
 
 #define DEBUG -9            // 1: divQ, 2: boundFlux, 3: scattering
@@ -49,11 +54,11 @@ using namespace Uintah;
 // outside this unit
 Dout g_ray_dbg("Ray",     "Radiation Models", "RMCRT Ray general debug stream", false);
 Dout g_ray_BC ("Ray_BC",  "Radiation Models", "RMCRT RayBC debug stream", false);
+
 //______________________________________________________________________
 // Static variable declarations
 // This class is instantiated by ray() and radiometer().
-// You only want 1 instance of each of these variables thus we use
-// static variables
+// You only want 1 instance of each of these variables thus we use static variables
 //______________________________________________________________________
 
 double      RMCRTCommon::d_threshold;
@@ -94,7 +99,10 @@ RMCRTCommon::RMCRTCommon( TypeDescription::Type FLT_DBL )
     proc0cout << "  - Using double implementation of RMCRT" << std::endl;
   } else {
     d_sigmaT4Label = VarLabel::create( "sigmaT4",    CCVariable<float>::getTypeDescription() );
+<<<<<<< HEAD
     d_abskgLabel   = VarLabel::create( "abskgRMCRT", CCVariable<float>::getTypeDescription() );
+=======
+>>>>>>> origin/master
     proc0cout << "  - Using float implementation of RMCRT" << std::endl;
   }
 
@@ -154,12 +162,28 @@ RMCRTCommon::registerVariables(int   matlIndex,
 
   d_abskgBC_tag = d_compAbskgLabel->getName(); // The label name changes when using floats.
 
-  // If using RMCRT:DBL
+  // define the abskg VarLabel
   const Uintah::TypeDescription* td = d_compAbskgLabel->typeDescription();
   const Uintah::TypeDescription::Type subtype = td->getSubType()->getType();
+<<<<<<< HEAD
   
   if ( RMCRTCommon::d_FLT_DBL == TypeDescription::double_type && subtype == TypeDescription::double_type ) {
+=======
+
+  auto double_type = TypeDescription::double_type;
+  auto float_type = TypeDescription::float_type;
+  
+  if ( RMCRTCommon::d_FLT_DBL == double_type && subtype == double_type ) {
+>>>>>>> origin/master
     d_abskgLabel = d_compAbskgLabel;
+  }
+  
+  if ( RMCRTCommon::d_FLT_DBL == float_type && subtype == float_type ) {
+    d_abskgLabel = d_compAbskgLabel;
+  }
+  
+  if ( RMCRTCommon::d_FLT_DBL == float_type && subtype == double_type ) {
+    d_abskgLabel = VarLabel::create( "abskgRMCRT", CCVariable<float>::getTypeDescription() );
   }
 
   //__________________________________
@@ -317,6 +341,7 @@ RMCRTCommon::sigmaT4( const ProcessorGroup*,
 //
 //______________________________________________________________________
 void
+<<<<<<< HEAD
 RMCRTCommon::sched_initialize_sigmaT4( const LevelP  & level,
                                        SchedulerP    & sched )
 {
@@ -355,6 +380,52 @@ RMCRTCommon::initialize_sigmaT4( const ProcessorGroup *,
     CCVariable< T > sigmaT4;
     new_dw->allocateAndPut( sigmaT4, d_sigmaT4Label, d_matl, patch );
     sigmaT4.initialize( 0.0 );
+=======
+RMCRTCommon::sched_initialize_VarLabel( const LevelP  & level,
+                                       SchedulerP     & sched,
+                                       const VarLabel * label )
+{
+  std::string taskname = "RMCRTCommon::initialize_VarLabel";
+
+  Task* tsk = nullptr;
+  const TypeDescription* td = label->typeDescription();
+  const TypeDescription::Type subtype = td->getSubType()->getType();
+  
+  if ( subtype == TypeDescription::double_type ) {
+    tsk = scinew Task( taskname, this, &RMCRTCommon::initialize_VarLabel<double>, label );
+  } else {
+    tsk = scinew Task( taskname, this, &RMCRTCommon::initialize_VarLabel<float>, label );
+  }
+
+  std::string mesg = "RMCRTCommon::initialize_VarLabel (" + label->getName() + ")";
+  printSchedule( level, g_ray_dbg, mesg );
+
+  tsk->computes( label );
+
+  sched->addTask( tsk, level->eachPatch(), d_matlSet );
+}
+//______________________________________________________________________
+// Initialize a VarLabel = 0
+//______________________________________________________________________
+template< class T>
+void
+RMCRTCommon::initialize_VarLabel( const ProcessorGroup *,
+                                  const PatchSubset    * patches,
+                                  const MaterialSubset *,
+                                  DataWarehouse        *,
+                                  DataWarehouse        * new_dw,
+                                  const VarLabel       * label )
+{
+  for (int p=0; p < patches->size(); p++){
+    const Patch* patch = patches->get(p);
+
+    std::string mesg = "Doing RMCRTCommon::initialize_VarLabel (" + label->getName() + ")";
+    printTask(patches, patch, g_ray_dbg, mesg );
+
+    CCVariable< T > var;
+    new_dw->allocateAndPut( var, label, d_matl, patch );
+    var.initialize( 0.0 );
+>>>>>>> origin/master
   }
 }
 
@@ -624,8 +695,8 @@ RMCRTCommon::updateSumI (const Level* level,
          printf( "distanceTraveled %g tMax[dir]: %g tMax_prev: %g, Dx[dir]: %g\n",disMin, tMax[dir], tMax_prev, Dx[dir]);
          printf( "            tDelta [%g,%g,%g] \n",tDelta.x(),tDelta.y(), tDelta.z());
 
-//         printf( "            abskg[prev] %g  \t sigmaT4OverPi[prev]: %g \n",abskg[prevCell],  sigmaT4OverPi[prevCell]);
-//         printf( "            abskg[cur]  %g  \t sigmaT4OverPi[cur]:  %g  \t  cellType: %i\n",abskg[cur], sigmaT4OverPi[cur], celltype[cur]);
+         printf( "            abskg[prev] %g  \t sigmaT4OverPi[prev]: %g \n",abskg[prevCell],  sigmaT4OverPi[prevCell]);
+         printf( "            abskg[cur]  %g  \t sigmaT4OverPi[cur]:  %g  \t  cellType: %i\n",abskg[cur], sigmaT4OverPi[cur], celltype[cur]);
          printf( "            optical_thickkness %g \t rayLength: %g\n", optical_thickness, rayLength);
       }
 #endif
@@ -792,11 +863,11 @@ void
 RMCRTCommon::sched_CarryForward_FineLevelLabels ( const LevelP& level,
                                                   SchedulerP& sched )
 {
+  std::string schedName = "RMCRTCommon::sched_CarryForward_FineLevelLabels";
+  std::string taskName  = "RMCRTCommon::carryForward_FineLevelLabels";
+  printSchedule( level, g_ray_dbg, schedName );
 
-  std::string taskname = "RMCRTCommon::sched_CarryForward_FineLevelLabels";
-  printSchedule( level, g_ray_dbg, taskname );
-
-  Task* tsk = scinew Task( taskname, this, &RMCRTCommon::carryForward_FineLevelLabels );
+  Task* tsk = scinew Task( taskName, this, &RMCRTCommon::carryForward_FineLevelLabels );
 
   tsk->requires( Task::OldDW, d_divQLabel,          d_gn, 0 );
   tsk->requires( Task::OldDW, d_boundFluxLabel,     d_gn, 0 );
@@ -835,6 +906,55 @@ RMCRTCommon::carryForward_FineLevelLabels(DetailedTask* dtask,
   new_dw->transferFrom(old_dw, d_sigmaT4Label,       patches, matls, dtask, replaceVar, nullptr );
 }
 
+
+//______________________________________________________________________
+//    Move all computed variables from old_dw -> new_dw
+//______________________________________________________________________
+void
+RMCRTCommon::sched_carryForward_VarLabels ( const LevelP& level,
+                                       SchedulerP& sched ,
+                                       const std::vector< const VarLabel* > varLabels)
+{
+  std::string schedName = "RMCRTCommon::sched_carryForward_VarLabels";
+  std::string taskName  = "RMCRTCommon::carryForward_VarLabels";
+  printSchedule( level, g_ray_dbg, schedName );
+
+  Task* tsk = scinew Task( taskName, this, &RMCRTCommon::carryForward_VarLabels, varLabels );
+
+  for ( auto iter = varLabels.begin(); iter != varLabels.end(); iter++ ){
+    tsk->requires( Task::OldDW, *iter, d_gn, 0 );
+    tsk->computes( *iter );
+  }
+  
+  sched->addTask( tsk, level->eachPatch(), d_matlSet, RMCRTCommon::TG_CARRY_FORWARD );
+}
+
+//______________________________________________________________________
+//
+void
+RMCRTCommon::carryForward_VarLabels(DetailedTask* dtask,
+                                    Task::CallBackEvent event,
+                                    const ProcessorGroup*,
+                                    const PatchSubset* patches,
+                                    const MaterialSubset* matls,
+                                    DataWarehouse* old_dw,
+                                    DataWarehouse* new_dw,
+                                    void* old_TaskGpuDW,
+                                    void* new_TaskGpuDW,
+                                    void* stream,
+                                    int deviceID,
+                                    const std::vector< const VarLabel* > varLabels)
+{
+  printTask( patches, patches->get(0), g_ray_dbg, "Doing RMCRTCommon::carryForward_VarLabels" );
+
+  bool replaceVar = true;
+  for ( auto iter = varLabels.begin(); iter != varLabels.end(); iter++ ){
+    new_dw->transferFrom(old_dw, *iter, patches, matls, dtask, replaceVar, nullptr );
+  }
+}
+
+
+
 //______________________________________________________________________
 // Utility task:  move variable from old_dw -> new_dw
 //______________________________________________________________________
@@ -844,10 +964,11 @@ RMCRTCommon::sched_CarryForward_Var ( const LevelP& level,
                                       const VarLabel* variable,
                                       const int tg_num /* == -1 */)
 {
-  std::string taskname = "        carryForward_Var: " + variable->getName();
-  printSchedule(level, g_ray_dbg, taskname);
+  std::string schedName = "RMCRTCommon::sched_CarryForward_Var_" + variable->getName();
+  std::string taskName  = "RMCRTCommon::carryForward_Var_" + variable->getName();
+  printSchedule(level, g_ray_dbg, schedName);
 
-  Task* task = scinew Task( taskname, this, &RMCRTCommon::carryForward_Var, variable );
+  Task* task = scinew Task( taskName, this, &RMCRTCommon::carryForward_Var, variable );
 
   task->requires(Task::OldDW, variable,   d_gn, 0);
   task->computes(variable);

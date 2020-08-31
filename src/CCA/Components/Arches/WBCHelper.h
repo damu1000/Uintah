@@ -1,7 +1,7 @@
 /*
  * The MIT License
  *
- * Copyright (c) 2013-2018 The University of Utah
+ * Copyright (c) 2013-2020 The University of Utah
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -134,6 +134,7 @@ OST& operator<<( OST& os, const BndCondTypeEnum bcTypeEnum );
 //****************************************************************************
 enum BndTypeEnum
 {
+<<<<<<< HEAD
   WALL,      ///< Stationary wall BC. Zero velocity (and momentum).
   INLET,     ///< Inlet boundary condition
   OUTLET,    ///< Outlet boundary condition
@@ -141,6 +142,15 @@ enum BndTypeEnum
   USER,      ///< User specified
   INTRUSION, ///< Intrusion - enum stored here for convenience
   INVALID
+=======
+  WALL_BC,      ///< Stationary wall BC. Zero velocity (and momentum).
+  INLET_BC,     ///< Inlet boundary condition
+  OUTLET_BC,    ///< Outlet boundary condition
+  PRESSURE_BC,  ///< Pressure boundary condition
+  USER_BC,      ///< User specified
+  INTRUSION_BC, ///< Intrusion - enum stored here for convenience
+  INVALID_BC
+>>>>>>> origin/master
 };
 
 BndTypeEnum       select_bnd_type_enum( const std::string& bcTypeStr );

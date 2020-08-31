@@ -1,7 +1,11 @@
 /*
  * The MIT License
  *
+<<<<<<< HEAD
  * Copyright (c) 1997-2019 The University of Utah
+=======
+ * Copyright (c) 1997-2020 The University of Utah
+>>>>>>> origin/master
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -225,7 +229,7 @@ GeometryPieceFactory::create( const ProblemSpecP           & ps,
       string data = child->getNodeValue();
       remove_lt_white_space(data);
 
-      // Lookup in table to see if this piece has already be named...
+      // Lookup in table to see if this piece has already been named...
       GeometryPieceP referencedPiece = namedPieces_[ go_label ];
 
       // If it has a childBlock or data, then it is not just a reference.
