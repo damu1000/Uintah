@@ -839,20 +839,20 @@ namespace Uintah {
         //__________________________________
         // Test for convergence failure
         
-        if( final_res_norm > m_params->tolerance || std::isfinite(final_res_norm) == 0 ){
-          if( m_params->getRecomputeTimeStepOnFailure() ){
-            proc0cout << "  WARNING:  HypreSolver not converged in " << num_iterations
-                      << " iterations, final residual= " << final_res_norm
-                      << ", requesting the time step be recomputed.\n";
-
-            new_dw->put( bool_or_vartype(true), VarLabel::find(abortTimeStep_name));
-            new_dw->put( bool_or_vartype(true), VarLabel::find(recomputeTimeStep_name));
-          } else {
-            throw ConvergenceFailure("HypreSolver variable: "+ m_X_label->getName()+", solver: "+ m_params->solvertype+", preconditioner: "+ m_params->precondtype,
-                                     num_iterations, final_res_norm,
-                                     m_params->tolerance,__FILE__,__LINE__);
-          }
-        }
+//        if( final_res_norm > m_params->tolerance || std::isfinite(final_res_norm) == 0 ){
+//          if( m_params->getRecomputeTimeStepOnFailure() ){
+//            proc0cout << "  WARNING:  HypreSolver not converged in " << num_iterations
+//                      << " iterations, final residual= " << final_res_norm
+//                      << ", requesting the time step be recomputed.\n";
+//
+//            new_dw->put( bool_or_vartype(true), VarLabel::find(abortTimeStep_name));
+//            new_dw->put( bool_or_vartype(true), VarLabel::find(recomputeTimeStep_name));
+//          } else {
+//            throw ConvergenceFailure("HypreSolver variable: "+ m_X_label->getName()+", solver: "+ m_params->solvertype+", preconditioner: "+ m_params->precondtype,
+//                                     num_iterations, final_res_norm,
+//                                     m_params->tolerance,__FILE__,__LINE__);
+//          }
+//        }
       }
     }
 

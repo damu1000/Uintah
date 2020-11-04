@@ -28,10 +28,12 @@
 #include <CCA/Components/Application/ApplicationCommon.h>
 
 #include <CCA/Components/Models/Radiation/RMCRT/Ray.h>
+//#include <CCA/Ports/SimulationInterface.h>
 #include <Core/Geometry/Vector.h>
 #include <Core/Grid/Patch.h>
 #include <Core/Util/DebugStream.h>
 #include <Core/GeometryPiece/GeometryPiece.h>
+#include <CCA/Ports/SolverInterface.h>
 
 using Uintah::DebugStream;
 
@@ -138,6 +140,17 @@ WARNING
     void areGridsEqual( const GridP& uda_grid, 
                         const GridP& grid );
 
+    void solverSetup(const ProcessorGroup* pg,
+				   const PatchSubset* patches,
+				   const MaterialSubset* matls,
+				   DataWarehouse* old_dw, DataWarehouse* new_dw,
+				   LevelP level, Scheduler* sched);
+
+    void dummySolve(const ProcessorGroup* pg,
+				   const PatchSubset* patches,
+				   const MaterialSubset* matls,
+				   DataWarehouse* old_dw, DataWarehouse* new_dw);
+
    protected:
     
     Ray* d_RMCRT{nullptr};
@@ -181,6 +194,12 @@ WARNING
     };
     
     useOldUdaData* d_old_uda{nullptr};
+
+    bool schedule_solve {false};
+    ExamplesLabel* lb_{nullptr};
+    SolverInterface* solver{nullptr};
+    bool x_laplacian, y_laplacian, z_laplacian;
+
   };
 
 } // namespace Uintah
