@@ -386,7 +386,9 @@ Ray::problemSetup( const ProblemSpecP     & prob_spec
 //           and abskg
 //______________________________________________________________________
 void
-Ray::BC_bulletproofing( const ProblemSpecP& rmcrtps )
+Ray::BC_bulletproofing( const ProblemSpecP& rmcrtps ,
+                        const bool chk_temp,
+                        const bool chk_absk )
 {
   if(d_onOff_SetBCs == false ) {
    return;
@@ -409,8 +411,13 @@ Ray::BC_bulletproofing( const ProblemSpecP& rmcrtps )
     proc0cout << "______________________________________________________________________\n\n" << endl;
 
   } else {
-    is_BC_specified(root_ps, d_compTempLabel->getName(), mss);
-    is_BC_specified(root_ps, d_abskgBC_tag,              mss);
+
+	if( chk_temp ){
+      is_BC_specified(root_ps, d_compTempLabel->getName(), mss);
+	}
+	if( chk_absk ){
+      is_BC_specified(root_ps, d_abskgBC_tag,              mss);
+	}
 
     Vector periodic;
     ProblemSpecP grid_ps  = root_ps->findBlock("Grid");

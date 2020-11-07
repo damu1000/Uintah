@@ -29,6 +29,7 @@ include $(SCIRUN_SCRIPTS)/smallso_prologue.mk
 SRCDIR := CCA/Components/Schedulers
 
 SRCS += \
+        $(SRCDIR)/custom_thread.cc            \
         $(SRCDIR)/DependencyBatch.cc          \
         $(SRCDIR)/DependencyException.cc      \
         $(SRCDIR)/DetailedDependency.cc       \

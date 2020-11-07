@@ -306,8 +306,9 @@ namespace Uintah {
     SolverType stringToSolverType( std::string str );
 
     const VarLabel * m_timeStepLabel;
-    const VarLabel * hypre_solver_label;
-    
+    std::vector<const VarLabel *> hypre_solver_label;
+    int 			   m_hypre_num_of_threads{1}, m_partition_size{1};
+
     HypreParams * m_params = nullptr;
     
   };
