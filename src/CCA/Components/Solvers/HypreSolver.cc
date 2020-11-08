@@ -401,7 +401,10 @@ namespace Uintah {
 #endif
     	  hypre_solve( pg, new_patches[part_id], matls, old_dw, new_dw, handle, timeStep, A_dw, b_dw, guess_dw, part_id);
       });
+
+#ifdef USE_MPI_EP
       hypre_destroy_thread();
+#endif
     }
 
     void hypre_solve( const ProcessorGroup * pg
