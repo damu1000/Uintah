@@ -11,21 +11,21 @@ mkdir 1_mpi
 mkdir 2_ep  
 mkdir work_dir
 
-# Install MPI Only version  
+### Install MPI Only version  
 cd 1_mpi  
 #configure line is for intel compilers and KNL. --enable-kokkos will automatically download and install kokkos.  
-../uintah_src/src/configure --enable-64bit --enable-optimize="-std=c++11 -O2 -g -fopenmp -mkl -fp-model precise -xMIC-AVX512" --enable-assertion-level=0 --with-mpi=built-in --with-hypre=../../hypre_cpu/src/build/ LDFLAGS="-ldl" --enable-examples --enable-arches --enable-kokkos  
+../uintah_src/src/configure --enable-64bit --enable-optimize="-std=c++11 -O2 -g -fopenmp -mkl -fp-model precise -xMIC-AVX512" --enable-assertion-level=0 --with-mpi=built-in --with-hypre=<hypre_path>/hypre_cpu/src/build/ LDFLAGS="-ldl" --enable-examples --enable-arches --enable-kokkos  
 make -j16 sus  
 cp ./StandAlone/sus ../work_dir/1_mpi  
 
-# Install EP version  
+### Install EP version  
 cd ../2_ep  
 #Note the difference between mpi only line and ep line: --with-hypre option is changed from hypre_cpu to hypre_ep and CXXFLAGS is added.  
-../uintah_src/src/configure --enable-64bit --enable-optimize="-std=c++11 -O2 -g -fopenmp -mkl -fp-model precise -xMIC-AVX512" --enable-assertion-level=0 --with-mpi=built-in --with-hypre=../../hypre_ep/src/build/ LDFLAGS="-ldl" CXXFLAGS="-I../../hypre_ep/src/ -DUSE_MPI_EP" --enable-examples --enable-arches --enable-kokkos  
+../uintah_src/src/configure --enable-64bit --enable-optimize="-std=c++11 -O2 -g -fopenmp -mkl -fp-model precise -xMIC-AVX512" --enable-assertion-level=0 --with-mpi=built-in --with-hypre=<hypre_path>/hypre_ep/src/build/ LDFLAGS="-ldl" CXXFLAGS="-I<hypre_path>/hypre_ep/src/ -DUSE_MPI_EP" --enable-examples --enable-arches --enable-kokkos  
 make -j16 sus  
 cp ./StandAlone/sus ../work_dir/2_ep
 
-# Run
+### Run
 
 #There are two examples - solvertest1.ups and RMCRT_ML_solvertest.ups: solvertest1 is a lapace equation built within Uintah and solved using Hypre. RMCRT_ML_solvertest is a dummy combination of the RMCRT task within Uintah followed by solvertest1.  
 cd ../work_dir  
