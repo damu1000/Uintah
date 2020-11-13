@@ -2,6 +2,10 @@
 
 <Uintah_specification>
 
+	<LoadBalancer type="HypreEPLoadBalancer">
+		<timestepInterval>100</timestepInterval>
+	</LoadBalancer>
+
   <Meta>
       <title>RMCRT</title>
   </Meta>
@@ -99,7 +103,7 @@
         <lower>      [0,0,0]      </lower>            
         <upper>      [1, 1, 1]    </upper>            
         <resolution> [16,16,16]    </resolution>
-        <patches>    [1,1,1]      </patches>
+        <patches>    [2,2,2]      </patches>
         <extraCells> [1,1,1]      </extraCells>
       </Box>                                         
     </Level>
@@ -108,21 +112,10 @@
         <lower>      [0,0,0]      </lower>          
         <upper>      [1, 1, 1]    </upper>          
         <resolution> [64,64,64]  </resolution>     
-        <patches>    [4,4,4]      </patches>     
+        <patches>    [8,8,8]      </patches>     
         <extraCells> [1,1,1]      </extraCells>       
       </Box>                                         
     </Level>
-  <!--
-    <Level>
-      <Box label = "2">                              
-        <lower>      [0,0,0]      </lower>          
-        <upper>      [1, 1, 1]    </upper>          
-        <resolution> [64,64,64]  </resolution>     
-        <patches>    [4,4,4]      </patches>      
-        <extraCells> [1,1,1]      </extraCells>       
-      </Box>                                        
-    </Level>
-  -->
   </Grid>
   <!--__________________________________-->
   <AMR type="StaticGridML" >
@@ -133,18 +126,11 @@
   <filebase>RMCRT_bm1_DO.uda</filebase>
       <outputTimestepInterval>1</outputTimestepInterval>
       <save label = "sigmaT4"/>
-
-  <!--<save label = "abskgRMCRT"/>        floats -->
-      <save label = "abskg"/>             <!-- doubles -->
+      <save label = "abskg"/>           
       <save label = "color"          levels="-1"/>
       <save label = "divQ"           levels="-1"/>
-<!--      <save label = "Ray_PPTimer"    levels="-1"/>  -->
       <save label = "cellType" />
-
-<!--
-      <save label = "mag_grad_abskg"   levels="-1"/>
-      <save label = "mag_grad_sigmaT4" levels="-1"/>
-      <save label = "flaggedCells"     levels="-1"/> -->
+      <save label = "pressure"          levels="-1"/>
       
       <checkpoint cycle = "1" timestepInterval = "3"/>
   </DataArchiver>
@@ -154,7 +140,7 @@
   <Temperature>       64.804        </Temperature>
   <abskg>             999           </abskg>
   <benchmark>          1            </benchmark>
-  <calc_frequency>     2            </calc_frequency>
+  <calc_frequency>     1            </calc_frequency>
   
   <RMCRT type = "double">
     <randomSeed>        false       </randomSeed>

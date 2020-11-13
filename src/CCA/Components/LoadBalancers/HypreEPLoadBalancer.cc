@@ -84,7 +84,7 @@ HypreEPLoadBalancer::problemSetup( ProblemSpecP & pspec, GridP & grid, const Mat
   int num_of_threads = xthreads * ythreads * zthreads;
   int num_of_eps = size * num_of_threads; // this number of end points
   int maxLevels = grid->numLevels();
-  int tot_num_patches = 1, num_coarse_patches=0;
+  int tot_num_patches = 0, num_coarse_patches=0;
 
 
   if(xthreads == -1 || ythreads == -1 || zthreads == -1){
@@ -94,7 +94,7 @@ HypreEPLoadBalancer::problemSetup( ProblemSpecP & pspec, GridP & grid, const Mat
 
 
   for(int l=0; l < maxLevels; l++)
-	  tot_num_patches *= grid->getLevel(l)->numPatches();
+	  tot_num_patches += grid->getLevel(l)->numPatches();
   m_patch_to_proc.resize(tot_num_patches);
 
   for(int p=0; p<tot_num_patches; p++)

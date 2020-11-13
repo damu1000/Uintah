@@ -27,16 +27,16 @@ cp ./StandAlone/sus ../work_dir/2_ep
 
 ### Run
 
-#There are two examples - solvertest1.ups and RMCRT_ML_solvertest.ups: solvertest1 is a lapace equation built within Uintah and solved using Hypre. RMCRT_ML_solvertest is a dummy combination of the RMCRT task within Uintah followed by solvertest1.  
+#There are two examples - solvertest1.ups and RMCRT_bm1_DO_solvertest.ups: solvertest1 is a lapace equation built within Uintah and solved using Hypre. RMCRT_bm1_DO_solvertest is a dummy combination of the RMCRT task within Uintah followed by solvertest1.  
 cd ../work_dir  
 #copy both input spec files:  
 cp ../uintah_src/src/StandAlone/inputs/Examples/solvertest1.ups ./  
-cp ../uintah_src/src/StandAlone/inputs/Examples/RMCRT_ML_solvertest.ups ./  
+cp ../uintah_src/src/StandAlone/inputs/Examples/RMCRT_bm1_DO_solvertest.ups ./  
 
 #modify both input files as follows:  
 #1. Ensure ups file has: &lt;outputTimestepInterval&gt;0&lt;/outputTimestepInterval&gt; and &lt;checkpoint cycle = "0" interval = "0"/&gt;. This will turn off the exporting of the output to the disk. Keep the output on if changes made within Uintah or Hypre are to be tested.  
 #2. Update &lt;resolution&gt; and &lt;patches&gt; as needed. &lt;resolution&gt; is the total number of cells within the domain and &lt;patches&gt; gives the nuber patches in three dimensions. e.g. if &lt;resolution&gt; is set to [128,128,128] and &lt;patches&gt; is set to [4,4,4], then there will 64 patches in total (4 in each dimension) and each patch will have the size [128/4,128/4,128/4] i.e. 32 cubed.  
-#3. RMCRT_ML_solvertest.ups has two levels of the mesh. Each level has its own resolution settings. The thumb rule is to reduce fine level (level 1) resolution by a factor of 4 while setting coarse level (level 0) resolution.  
+#3. RMCRT_bm1_DO_solvertest.ups has two levels of the mesh. Each level has its own resolution settings. The thumb rule is to reduce fine level (level 1) resolution by a factor of 4 while setting coarse level (level 0) resolution.  
 #4. Adjust max_Timesteps and maxiterations to the required value.
 
 #The following examples are to occupy 64 cores on a KNL node:  
@@ -51,6 +51,12 @@ mpirun -np 64 ./1_mpi -npartitions 1 -nthreadsperpartition 1 &lt;input filename&
 #the above command will create 64 mpi ranks with 1 thread per rank.
 
 #run the MPI EP version. Ensure there are at least 64 patches:  
+# Ensure that the following block is present in the ups file.
+	<LoadBalancer type="HypreEPLoadBalancer">
+		<timestepInterval>100</timestepInterval>
+	</LoadBalancer>
+
+
 #xthreads x ythreads x zthreads x teamsize MUST match OMP_NUM_THREADS  
 export OMP_NUM_THREADS=16  
 mpirun -np 4 ./2_ep -xthreads 2 -xthreads 2 -xthreads 2 -teamsize 2 &lt;input filename&gt;.ups  
