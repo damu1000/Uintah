@@ -127,23 +127,8 @@ namespace Uintah {
       , m_isFirstSolve(isFirstSolve_in)
     {
 #ifdef USE_MPI_EP
-      const char* hypre_num_of_threads_str = std::getenv("HYPRE_THREADS"); //use diff env variable if it conflicts with OMP. but using same will be consistent.
-      if(hypre_num_of_threads_str)
-      {
-    	  char temp_str[16];
-    	  strcpy(temp_str, hypre_num_of_threads_str);
-    	  const char s[2] = ",";
-    	  char *token;
-    	  token = strtok(temp_str, s);	/* get the first token */
-    	  m_hypre_num_of_threads = atoi(token);
-    	  token = strtok(NULL, s);
-    	  m_partition_size =  atoi(token);
-      }
-      else
-      {
-    	  m_hypre_num_of_threads = std::max(1, Uintah::Parallel::getNumPartitions());
-    	  m_partition_size = std::max(1, Uintah::Parallel::getThreadsPerPartition());
-      }
+      m_hypre_num_of_threads = std::max(1, Uintah::Parallel::getNumPartitions());
+      m_partition_size = std::max(1, Uintah::Parallel::getThreadsPerPartition());
 
       MPI_Comm shmcomm;
       MPI_Comm_split_type(MPI_COMM_WORLD, MPI_COMM_TYPE_SHARED, 0, MPI_INFO_NULL, &shmcomm);
@@ -172,8 +157,8 @@ namespace Uintah {
       }
       else
       {
-    	  printf("Error: set environment variable HYPRE_BINDING\n");
-    	  exit(1);
+    	  for(int i=0; i<m_hypre_num_of_threads*m_partition_size*m_nodal_size ;i++)
+    		  m_affinity[i] = i; //use default serial affinity. Assumption: there is no oversubscription and no hyperthreads (or hardware threads) used.
       }
 
 #endif
@@ -390,6 +375,8 @@ namespace Uintah {
 
 #ifdef USE_MPI_EP
       hypre_set_num_threads(m_hypre_num_of_threads, m_partition_size, get_custom_team_id);
+      createCommMap(Uintah::Parallel::ep_superpatch(), Uintah::Parallel::superpatches(), Uintah::Parallel::num_of_ranks3d(),
+    		  Uintah::Parallel::xthreads(), Uintah::Parallel::ythreads(), Uintah::Parallel::zthreads()); //create a comm map in hypre if multiple comms are used
 #endif
 
       m_hypre_comm_threads_added = 0;
@@ -1224,23 +1211,8 @@ namespace Uintah {
   : SolverCommon(myworld)
   {
 #ifdef USE_MPI_EP
-    const char* hypre_num_of_threads_str = std::getenv("HYPRE_THREADS"); //use diff env variable if it conflicts with OMP. but using same will be consistent.
-    if(hypre_num_of_threads_str)
-    {
-    	char temp_str[16];
-    	strcpy(temp_str, hypre_num_of_threads_str);
-    	const char s[2] = ",";
-    	char *token;
-    	token = strtok(temp_str, s);	/* get the first token */
-    	m_hypre_num_of_threads = atoi(token);
-    	token = strtok(NULL, s);
-    	m_partition_size =  atoi(token);
-    }
-    else
-    {
-    	m_hypre_num_of_threads = std::max(1, Uintah::Parallel::getNumPartitions());
-    	m_partition_size = std::max(1, Uintah::Parallel::getThreadsPerPartition());
-    }
+  	m_hypre_num_of_threads = std::max(1, Uintah::Parallel::getNumPartitions());
+  	m_partition_size = std::max(1, Uintah::Parallel::getThreadsPerPartition());
 #endif
 
     // Time Step

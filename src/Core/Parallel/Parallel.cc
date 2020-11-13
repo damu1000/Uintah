@@ -58,7 +58,12 @@ int              Parallel::s_world_rank              = -1;
 int              Parallel::s_world_size              = -1;
 std::thread::id  Parallel::s_main_thread_id          = std::this_thread::get_id();
 ProcessorGroup*  Parallel::s_root_context            = nullptr;
-
+int              Parallel::s_xthreads          = -1;
+int              Parallel::s_ythreads          = -1;
+int              Parallel::s_zthreads          = -1;
+int            * Parallel::s_ep_superpatch     = nullptr;
+int            * Parallel::s_superpatches      = nullptr;
+int            * Parallel::s_num_of_ranks3d    = nullptr;
 
 namespace Uintah {
 
@@ -129,6 +134,48 @@ Parallel::getNumPartitions()
   return s_num_partitions;
 }
 
+int Parallel::xthreads()
+{
+	return s_xthreads;
+}
+int Parallel::ythreads()
+{
+	return s_ythreads;
+}
+int Parallel::zthreads()
+{
+	return s_zthreads;
+}
+
+void Parallel::setThreads(int x, int y, int z)
+{
+	s_xthreads = x;
+	s_ythreads = y;
+	s_zthreads = z;
+}
+
+int * Parallel::ep_superpatch()
+{
+  return s_ep_superpatch;
+}
+
+int * Parallel::superpatches()
+{
+  return s_superpatches;
+}
+
+int * Parallel::num_of_ranks3d()
+{
+  return s_num_of_ranks3d;
+}
+
+void Parallel::setHypreCommInfo(int *ep_superpatch, int *superpatches, int *num_of_ranks3d)
+{
+  //used to create a comm map in hypre if multiple comms are used
+  s_ep_superpatch     = ep_superpatch;
+  s_superpatches      = superpatches;
+  s_num_of_ranks3d    = num_of_ranks3d;
+}
 //_____________________________________________________________________________
 //
 int

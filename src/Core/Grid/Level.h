@@ -256,6 +256,9 @@ public:
   inline IntVector getRefinementRatio() const { return m_refinement_ratio; }
   int getRefinementRatioMaxDim() const;
 
+  inline IntVector getPatchDistribution() const {return m_patch_distribution;}
+
+
   friend std::ostream& operator<<( std::ostream& out, const Level& level );
 
   //__________________________________

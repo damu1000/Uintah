@@ -44,16 +44,16 @@ export OMP_NESTED=true
 export OMP_PROC_BIND=spread,spread
 export OMP_PLACES=threads
 
-#run the MPI only version. Ensure there are at least 64 patches:  
+#run the MPI only version. Ensure there are at least 64 patches.
+#Always set npartitions=1 and nthreadsperpartition=1 for mpi only version:  
 export OMP_NUM_THREADS=1  
 mpirun -np 64 ./1_mpi -npartitions 1 -nthreadsperpartition 1 &lt;input filename&gt;.ups  
+#the above command will create 64 mpi ranks with 1 thread per rank.
 
 #run the MPI EP version. Ensure there are at least 64 patches:  
+#xthreads x ythreads x zthreads x teamsize MUST match OMP_NUM_THREADS  
 export OMP_NUM_THREADS=16  
-export HYPRE_THREADS=4,4  
-export HYPRE_BINDING=0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63  
-#HYPRE_THREADS indicate number of thread teams and threads per team used by hypre. teams x threads MUST match OMP_NUM_THREADS  
-mpirun -np 4 ./2_ep -npartitions 16 -nthreadsperpartition 1 &lt;input filename&gt;.ups  
-
+mpirun -np 4 ./2_ep -xthreads 2 -xthreads 2 -xthreads 2 -teamsize 2 &lt;input filename&gt;.ups  
+#the above command will create 4 mpi ranks with 2x2x2=8 teams per rank and 2 worker threads per team.
 
 

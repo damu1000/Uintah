@@ -271,6 +271,8 @@ int main( int argc, char *argv[], char *env[] )
 
   IntVector layout(1,1,1);
 
+  int xthreads=-1, ythreads=-1, zthreads=-1;
+
   /*
    * Parse arguments
    */
@@ -337,6 +339,48 @@ int main( int argc, char *argv[], char *env[] )
 #endif
       Uintah::Parallel::setThreadsPerPartition(threadsPerPartition);
     }
+
+   //----------------------------------------------------------------------------------------------------
+
+    else if (arg == "-xthreads") {
+    	if (++i == argc) {
+    		usage("You must provide a number of threads for -xthreads", arg, argv[0]);
+    	}
+    	xthreads = atoi(argv[i]);
+    	if( xthreads < 1 ) {
+    		usage("Number of threads is too small", arg, argv[0]);
+    	}
+    }
+    else if (arg == "-ythreads") {
+    	if (++i == argc) {
+    		usage("You must provide a number of threads for -ythreads", arg, argv[0]);
+    	}
+    	ythreads = atoi(argv[i]);
+    	if( ythreads < 1 ) {
+    		usage("Number of threads is too small", arg, argv[0]);
+    	}
+    }
+    else if (arg == "-zthreads") {
+    	if (++i == argc) {
+    		usage("You must provide a number of threads for -zthreads", arg, argv[0]);
+    	}
+    	zthreads = atoi(argv[i]);
+    	if( zthreads < 1 ) {
+    		usage("Number of threads is too small", arg, argv[0]);
+    	}
+    }
+    else if (arg == "-teamsize") {
+        if (++i == argc) {
+          usage("You must provide a teamsize -teamsize", arg, argv[0]);
+        }
+        threadsPerPartition = atoi(argv[i]);
+        if( threadsPerPartition < 1 ) {
+          usage("Number of threads per partition is too small", arg, argv[0]);
+        }
+    }
+
+    //----------------------------------------------------------------------------------------------------
+
     else if (arg == "-solver") {
       if (++i == argc) {
         usage("You must provide a solver name for -solver", arg, argv[0]);
@@ -499,6 +543,19 @@ int main( int argc, char *argv[], char *env[] )
         filename = argv[i];
       }
     }
+  }
+
+  if(xthreads != -1 || ythreads != -1 || zthreads != -1){
+	  if(xthreads < 1 || ythreads < 1 || zthreads < 1){
+		  printf("if xthreads/ythreads/zthreads are used, then use all and use value greater than 0\n");
+		  exit(1);
+	  }
+
+	  numPartitions = xthreads * ythreads * zthreads;
+	  Uintah::Parallel::setThreads(xthreads, ythreads, zthreads);
+	  Uintah::Parallel::setNumPartitions( numPartitions );
+      threadsPerPartition = std::max(threadsPerPartition, 1);
+      Uintah::Parallel::setThreadsPerPartition(threadsPerPartition);
   }
  
   // Pass the env into the sci env so it can be used there...

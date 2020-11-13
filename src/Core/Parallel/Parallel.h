@@ -149,6 +149,16 @@ class Parallel {
       static void exitAll( int code );
 
 
+      static int xthreads();
+      static int ythreads();
+      static int zthreads();
+      static int *ep_superpatch();
+      static int *superpatches();
+      static int *num_of_ranks3d();
+
+      static void setThreads(int x, int y, int z);
+      static void setHypreCommInfo(int *ep_superpatch, int *superpatches, int *num_of_ranks3d);
+
    private:
 
       // eliminate public construction/destruction, copy, assignment and move
@@ -169,6 +179,15 @@ class Parallel {
       static int               s_world_size;
       static std::thread::id   s_main_thread_id;
       static ProcessorGroup*   s_root_context;
+
+      //added for Hypre EP
+      static int              s_xthreads;
+      static int              s_ythreads;
+      static int              s_zthreads;
+      static int            * s_ep_superpatch;
+      static int            * s_superpatches;
+      static int            * s_num_of_ranks3d;
+
 
 };
 

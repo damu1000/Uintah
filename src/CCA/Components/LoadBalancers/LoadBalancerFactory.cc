@@ -27,6 +27,7 @@
 #include <CCA/Components/LoadBalancers/ParticleLoadBalancer.h>
 #include <CCA/Components/LoadBalancers/RoundRobinLoadBalancer.h>
 #include <CCA/Components/LoadBalancers/SimpleLoadBalancer.h>
+#include <CCA/Components/LoadBalancers/HypreEPLoadBalancer.h>
 
 #include <Core/Parallel/Parallel.h>
 #include <Core/Parallel/ProcessorGroup.h>
@@ -78,6 +79,11 @@ LoadBalancerFactory::create( const ProblemSpecP   & ps
   else if (loadbalancer == "PLB") {
     bal = scinew ParticleLoadBalancer(world);
   }
+
+  else if (loadbalancer == "HypreEPLoadBalancer") {
+    bal = scinew HypreEPLoadBalancer(world);
+  }
+
   else {
     bal = nullptr;
 

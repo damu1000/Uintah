@@ -40,7 +40,8 @@ SRCS += \
 	$(SRCDIR)/CostProfiler.cc             \
 	$(SRCDIR)/ProfileDriver.cc            \
 	$(SRCDIR)/CostModelForecaster.cc      \
-	$(SRCDIR)/ParticleLoadBalancer.cc
+	$(SRCDIR)/ParticleLoadBalancer.cc     \
+	$(SRCDIR)/HypreEPLoadBalancer.cc
 
 
 PSELIBS := \
