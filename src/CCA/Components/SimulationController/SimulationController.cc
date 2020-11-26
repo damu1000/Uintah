@@ -650,7 +650,7 @@ SimulationController::ReportStats(const ProcessorGroup*,
   }
   
   // Update the moving average and get the wall time for this time step.
-  // Timers::nanoseconds timeStepTime =
+    Timers::nanoseconds timeStepTime =
     m_wall_timers.updateExpMovingAverage();
 
   // Print the stats for this time step
@@ -671,7 +671,7 @@ SimulationController::ReportStats(const ProcessorGroup*,
             << "Time="          << std::setw(12) << m_application->getSimTime()
             << "Next delT="     << std::setw(12) << m_application->getNextDelT()
             << "Wall Time="     << std::setw(10) << m_wall_timers.GetWallTime()
-//          << "Net Wall Time=" << std::setw(10) << timeStepTime.seconds()
+            << "Current Time Step=" << std::setw(10) << timeStepTime.seconds()
             << "EMA="           << std::setw(12) << m_wall_timers.ExpMovingAverage().seconds();
 
     // Report on the memory used.

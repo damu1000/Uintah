@@ -173,6 +173,11 @@ class DWDatabase {
                 ,       std::vector<Variable*> & varlist
                 ) const;
 
+    void getlistLockLess( const VarLabel               * label
+                ,         int                      matlIndex
+                ,         const DomainType             * dom
+                ,         std::vector<Variable*> & varlist
+                ) const; //could be error prone, use with caution.
 
     inline Variable* get( const VarLabel   * label
                         ,       int          matlindex
@@ -713,6 +718,23 @@ DWDatabase<DomainType>::getlist( const VarLabel               * label
   }
 }
 
+//______________________________________________________________________
+//
+//could be error prone, use with caution.
+template<class DomainType>
+void
+DWDatabase<DomainType>::getlistLockLess( const VarLabel               * label
+                               ,         int                      matlIndex
+                               ,   const DomainType             * dom
+                               ,         std::vector<Variable*> & varlist
+                               ) const
+{
+//  std::lock_guard<Uintah::MasterLock> get_list_lock(g_keyDB_lock);
+
+  for (DataItem* dataItem = getDataItem(label, matlIndex, dom); dataItem != nullptr; dataItem = dataItem->m_next) {
+    varlist.push_back(dataItem->m_var);
+  }
+}
 //______________________________________________________________________
 //
 template<class DomainType>

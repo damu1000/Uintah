@@ -2250,7 +2250,7 @@ OnDemandDataWarehouse::getLevel(       constGridVariableBase & constGridVar
     const Patch* patch = patches[i];
 
     std::vector<Variable*> varlist;
-    m_var_DB.getlist(label, matlIndex, patch, varlist);
+    m_var_DB.getlistLockLess(label, matlIndex, patch, varlist);
     GridVariableBase* this_var = nullptr;
 
     //__________________________________
